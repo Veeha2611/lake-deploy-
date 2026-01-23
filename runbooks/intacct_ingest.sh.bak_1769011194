@@ -1,34 +1,48 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 ############################################################
 # 0. CRON-SAFE ENVIRONMENT LOADING
 ############################################################
 
-source $HOME/.bash_profile 2>/dev/null || true
-source $HOME/.zshrc 2>/dev/null || true
+source "$HOME/intacct_env.sh" PROD
 export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 
-# Intacct env (shared)
-source "$HOME/intacct_env.sh"
+: "${INTACCT_ENDPOINT_URL:?Missing INTACCT_ENDPOINT_URL}"
+: "${INTACCT_SENDER_ID:?Missing INTACCT_SENDER_ID}"
+: "${INTACCT_SENDER_PASSWORD:?Missing INTACCT_SENDER_PASSWORD}"
+: "${INTACCT_COMPANY_ID:?Missing INTACCT_COMPANY_ID}"
+: "${INTACCT_WS_USER_ID:?Missing INTACCT_WS_USER_ID}"
+: "${INTACCT_WS_USER_PASSWORD:?Missing INTACCT_WS_USER_PASSWORD}"
+
+# Legacy aliases for compatibility (most templates expect these names)
+SENDER_ID="$INTACCT_SENDER_ID"
+SENDER_PASSWORD="$INTACCT_SENDER_PASSWORD"
+WS_USER_ID="$INTACCT_WS_USER_ID"
+WS_USER_PASSWORD="$INTACCT_WS_USER_PASSWORD"
+COMPANY_ID="$INTACCT_COMPANY_ID"
+INTACCT_ENDPOINT="$INTACCT_ENDPOINT_URL"
+
+FAILURE_REASON=""
+
+# Intacct env (shared, synchronized with above)
+# (Legacy aliases continue to reference these values for backward compatibility.)
+INTACCT_ENDPOINT="${INTACCT_ENDPOINT_URL}"
+COMPANY_ID="${INTACCT_COMPANY_ID}"
 
 ############################################################
 # 1. USER-DEFINED CREDENTIALS (FROM ENV FILE)
 ############################################################
 
-SENDER_ID="${SENDER_ID}"
-SENDER_PASSWORD="${SENDER_PASSWORD}"
-
-WS_USER_ID="${WS_USER_ID_PROD}"
-WS_USER_PASSWORD="${WS_USER_PASSWORD_PROD}"
-COMPANY_ID="${COMPANY_ID_PROD}"
-LOCATION_ID="${LOCATION_ID:-}"
-
-INTACCT_ENDPOINT="https://api.intacct.com/ia/xml/xmlgw.phtml"
+# Intacct credentials are loaded earlier via intacct_env.sh.
+INTACCT_ENDPOINT="${INTACCT_ENDPOINT_URL}"
 S3_BUCKET="s3://gwi-raw-us-east-2-pc"
 S3_XML_PREFIX="raw/intacct_xml"
 S3_JSON_PREFIX="raw/intacct_json"
 S3_HEARTBEAT_PREFIX="raw/intacct/heartbeat"
-READ_OBJECT_PAGE_SIZE="${READ_OBJECT_PAGE_SIZE:-1000}"
+
+# Location scope used when the UI is running “Top level”
+LOCATION_ID="${LOCATION_ID:-}"
 
 GL_ENTRIES_LOOKBACK_DAYS="${GL_ENTRIES_LOOKBACK_DAYS:-365}"
 GL_ENTRIES_FILTER_DATE="${GL_ENTRIES_FILTER_DATE:-$(python3 - <<'PY'
@@ -40,8 +54,8 @@ print((datetime.utcnow() - timedelta(days=days)).strftime("%Y-%m-%d"))
 PY
 )}"
 GL_ENTRIES_OBJECT="${GL_ENTRIES_OBJECT:-GLENTRY}"
-GL_ENTRIES_GENERAL_LEDGER="${GL_ENTRIES_GENERAL_LEDGER:-}"
 GL_ENTRIES_EXTRA_QUERY="${GL_ENTRIES_EXTRA_QUERY:-}"
+GL_ENTRIES_PAGE_SIZE="${GL_ENTRIES_PAGE_SIZE:-1000}"
 
 join_filters() {
   local joined=""
@@ -60,13 +74,10 @@ join_filters() {
 
 GL_ENTRIES_DEFAULT_QUERY="ENTRY_DATE >= DATE '${GL_ENTRIES_FILTER_DATE}'"
 GL_ENTRIES_FILTERS=("$GL_ENTRIES_DEFAULT_QUERY")
-[ -n "$GL_ENTRIES_GENERAL_LEDGER" ] && GL_ENTRIES_FILTERS+=("GENERALLEDGER = '${GL_ENTRIES_GENERAL_LEDGER}'")
-[ -n "$GL_ENTRIES_EXTRA_QUERY" ] && GL_ENTRIES_FILTERS+=("${GL_ENTRIES_EXTRA_QUERY}")
-
+[ -n "$GL_ENTRIES_EXTRA_QUERY" ] && GL_ENTRIES_FILTERS+=("$GL_ENTRIES_EXTRA_QUERY")
 GL_ENTRIES_COMBINED_QUERY="$(join_filters "${GL_ENTRIES_FILTERS[@]}")"
 GL_ENTRIES_QUERY="${GL_ENTRIES_QUERY:-${GL_ENTRIES_COMBINED_QUERY}}"
 GL_ENTRIES_QUERY_BLOCK="${GL_ENTRIES_QUERY_BLOCK:-          <query>${GL_ENTRIES_QUERY}</query>}"
-GL_ENTRIES_PAGE_SIZE="${GL_ENTRIES_PAGE_SIZE:-1000}"
 
 ############################################################
 # 2. LOGGING SETUP
@@ -82,10 +93,13 @@ mkdir -p "$BASE_DIR"
 mkdir -p "$LOG_DIR"
 
 LOG_FILE="$LOG_DIR/ingest_${RUN_TIMESTAMP}.log"
-exec > >(tee -a "$LOG_FILE") 2>&1
+if [ -z "${SKIP_LOG_REDIRECT:-}" ]; then
+  exec > "$LOG_FILE" 2>&1
+fi
 
 DATA_QUALITY_FILE="$BASE_DIR/data_quality_summary.txt"
 
+echo "Intacct login config: company=${COMPANY_ID}, user=${INTACCT_WS_USER_ID}, endpoint=${INTACCT_ENDPOINT}, sender_id=${INTACCT_SENDER_ID}"
 echo "Running Intacct ingest for ${COMPANY_ID} (${INTACCT_ENDPOINT})"
 echo "GLENTRY query lookback: last ${GL_ENTRIES_LOOKBACK_DAYS} days (object: ${GL_ENTRIES_OBJECT}, filter: ${GL_ENTRIES_QUERY})"
 
@@ -94,13 +108,16 @@ echo "GLENTRY query lookback: last ${GL_ENTRIES_LOOKBACK_DAYS} days (object: ${G
 ############################################################
 
 notify_failure() {
-  echo "Intacct ingest FAILED at $(date)" > "$BASE_DIR/failure.txt"
+  local reason="${1:-$FAILURE_REASON}"
+  if [ -z "$reason" ]; then
+    reason="Intacct ingest FAILED at $(date)"
+  fi
+  echo "$reason" > "$BASE_DIR/failure.txt"
   aws s3 cp "$BASE_DIR/failure.txt" \
     "${S3_BUCKET}/${S3_HEARTBEAT_PREFIX}/failure_${RUN_TIMESTAMP}.txt"
 }
 
-set -e
-trap notify_failure ERR
+trap 'notify_failure' ERR
 
 ############################################################
 # 4. AUTHENTICATE TO SAGE INTACCT
@@ -112,8 +129,8 @@ LOGIN_RESPONSE="$BASE_DIR/login_response.xml"
 cat > "$LOGIN_XML" <<EOF
 <request>
   <control>
-    <senderid>${SENDER_ID}</senderid>
-    <password>${SENDER_PASSWORD}</password>
+    <senderid>${INTACCT_SENDER_ID}</senderid>
+    <password>${INTACCT_SENDER_PASSWORD}</password>
     <controlid>loginTest</controlid>
     <uniqueid>false</uniqueid>
     <dtdversion>3.0</dtdversion>
@@ -121,9 +138,9 @@ cat > "$LOGIN_XML" <<EOF
   <operation>
     <authentication>
       <login>
-        <userid>${WS_USER_ID}</userid>
-        <companyid>${COMPANY_ID}</companyid>
-        <password>${WS_USER_PASSWORD}</password>
+        <userid>${INTACCT_WS_USER_ID}</userid>
+        <companyid>${INTACCT_COMPANY_ID}</companyid>
+        <password>${INTACCT_WS_USER_PASSWORD}</password>
 $(if [ -n "$LOCATION_ID" ]; then printf '        <locationid>%s</locationid>\n' "$LOCATION_ID"; fi)
       </login>
     </authentication>
@@ -142,35 +159,61 @@ curl -s \
   "${INTACCT_ENDPOINT}" \
   -o "$LOGIN_RESPONSE"
 
-SESSION_ID=$(sed -n 's:.*<sessionid>\(.*\)</sessionid>.*:\1:p' "$LOGIN_RESPONSE")
+LOGIN_STATUS=$(python3 - <<PY
+import xml.etree.ElementTree as ET
+root = ET.parse("$LOGIN_RESPONSE").getroot()
+print((root.findtext(".//result/status") or "").strip())
+PY
+)
+LOGIN_ERRORS=$(python3 - <<PY
+import xml.etree.ElementTree as ET
+root = ET.parse("$LOGIN_RESPONSE").getroot()
+descs = [d.text.strip() for d in root.findall(".//errormessage//description2") if d.text and d.text.strip()]
+print("|".join(descs))
+PY
+)
+SESSION_ID=$(python3 - <<PY
+import xml.etree.ElementTree as ET
+root = ET.parse("$LOGIN_RESPONSE").getroot()
+node = root.find(".//sessionid")
+print((node.text or "").strip() if node is not None else "")
+PY
+)
+
+if [ "${LOGIN_STATUS:-}" != "success" ]; then
+  FAILURE_REASON="Login failure: status=${LOGIN_STATUS:-<missing>} errors=${LOGIN_ERRORS:-<none>}"
+  notify_failure "$FAILURE_REASON"
+  exit 1
+fi
+
+if [ -z "$SESSION_ID" ]; then
+  FAILURE_REASON="Login success but no sessionid found"
+  notify_failure "$FAILURE_REASON"
+  exit 1
+fi
 
 ############################################################
-# 5. PAGINATED READ-BY-QUERY OBJECT PULLS (NDJSON OUTPUT)
+# 5. GENERIC OBJECT PULL FUNCTION (NDJSON OUTPUT)
 ############################################################
 
-pull_object_paginated() {
-  local OBJECT_NAME="$1"
-  local FILE_BASENAME="$2"
-  local QUERY_BLOCK="${3:-          <query/>}"
-  local PAGE_SIZE="${4:-${READ_OBJECT_PAGE_SIZE}}"
+pull_object() {
+  OBJECT_NAME="$1"
+  FILE_BASENAME="$2"
+  QUERY_BLOCK="${3:-          <query/>}"
 
-  local JSON_FILE="$BASE_DIR/${FILE_BASENAME}.json"
-  : > "$JSON_FILE"
+  XML_FILE="$BASE_DIR/${FILE_BASENAME}.xml"
+  RAW_XML="$BASE_DIR/${FILE_BASENAME}_response.xml"
+  JSON_FILE="$BASE_DIR/${FILE_BASENAME}.json"
+  if [ "$FILE_BASENAME" = "gl_entries" ]; then
+    echo "Using GLENTRY query block: ${QUERY_BLOCK}"
+  fi
 
-  local page=1
-  local resultstart=0
-  local resultid=""
-
-  while true; do
-    local PAGE_XML="$BASE_DIR/${FILE_BASENAME}_page_${page}.xml"
-    local RAW_XML="$BASE_DIR/${FILE_BASENAME}_page_${page}_response.xml"
-
-    cat > "$PAGE_XML" <<EOF
+  cat > "$XML_FILE" <<EOF
 <request>
   <control>
-    <senderid>${SENDER_ID}</senderid>
-    <password>${SENDER_PASSWORD}</password>
-    <controlid>get${FILE_BASENAME}_page_${page}</controlid>
+    <senderid>${INTACCT_SENDER_ID}</senderid>
+    <password>${INTACCT_SENDER_PASSWORD}</password>
+    <controlid>get${FILE_BASENAME}</controlid>
     <uniqueid>false</uniqueid>
     <dtdversion>3.0</dtdversion>
   </control>
@@ -179,64 +222,41 @@ pull_object_paginated() {
       <sessionid>${SESSION_ID}</sessionid>
     </authentication>
     <content>
-      <function controlid="get${FILE_BASENAME}Page${page}">
-        <readByQuery>
-          <object>${OBJECT_NAME}</object>
-          <fields>*</fields>
+          <function controlid="get${FILE_BASENAME}Func">
+            <readByQuery>
+              <object>${OBJECT_NAME}</object>
+              <fields>*</fields>
 $(printf '%s\n' "$QUERY_BLOCK")
-          <resultstart>${resultstart}</resultstart>
-$(if [ -n "$resultid" ]; then printf '          <resultid>%s</resultid>\n' "$resultid"; fi)
-          <pagesize>${PAGE_SIZE}</pagesize>
-        </readByQuery>
-      </function>
+              <pagesize>1000</pagesize>
+            </readByQuery>
+          </function>
     </content>
   </operation>
 </request>
 EOF
 
-    curl -s \
-      -H "Content-Type: application/xml" \
-      -d @"$PAGE_XML" \
-      "${INTACCT_ENDPOINT}" \
-      -o "$RAW_XML"
+  curl -s \
+    -H "Content-Type: application/xml" \
+    -d @"$XML_FILE" \
+    "${INTACCT_ENDPOINT}" \
+    -o "$RAW_XML"
 
-    aws s3 cp "$RAW_XML" \
-      "${S3_BUCKET}/${S3_XML_PREFIX}/${FILE_BASENAME}/${RUN_DATE}/${FILE_BASENAME}_page_${page}.xml"
+  aws s3 cp "$RAW_XML" \
+    "${S3_BUCKET}/${S3_XML_PREFIX}/${FILE_BASENAME}/${RUN_DATE}/${FILE_BASENAME}.xml"
 
-    xq -c '
-      .response.operation.result.data
-      | .. | arrays | select(length > 0)
-      | .[]
-    ' "$RAW_XML" >> "$JSON_FILE"
-
-    local page_summary
-    page_summary=$(python3 - "$RAW_XML" <<'PY'
-import sys, xml.etree.ElementTree as ET
-
-tree = ET.parse(sys.argv[1])
-root = tree.getroot()
-data = root.find(".//data")
-if data is None:
-    print("0|")
-else:
-    print(f"{data.attrib.get('numremaining','0')}|{data.attrib.get('resultId','')}")
-PY
-)
-
-    local num_remaining="${page_summary%%|*}"
-    local next_resultid="${page_summary#*|}"
-
-    if [ "$num_remaining" = "0" ] || [ -z "$next_resultid" ]; then
-      break
-    fi
-
-    resultid="$next_resultid"
-    resultstart=$((resultstart + PAGE_SIZE))
-    page=$((page + 1))
-  done
+  # NDJSON extraction (one object per line)
+  xq -c '
+    .response.operation.result.data
+    | .. | arrays | select(length > 0)
+    | .[]
+  ' "$RAW_XML" > "$JSON_FILE"
 
   aws s3 cp "$JSON_FILE" \
     "${S3_BUCKET}/${S3_JSON_PREFIX}/${FILE_BASENAME}/${RUN_DATE}/${FILE_BASENAME}.json"
+
+  if [ "$FILE_BASENAME" = "gl_entries" ]; then
+    summarize_gl_entries "$JSON_FILE"
+  fi
 }
 
 pull_paginated_gl_entries() {
@@ -246,8 +266,6 @@ pull_paginated_gl_entries() {
   local result_id=""
   local page=1
   local num_remaining=1
-  local object_id
-  object_id=$(echo "${GL_ENTRIES_OBJECT}" | tr '[:upper:]' '[:lower:]')
 
   while true; do
     local PAGE_XML="$BASE_DIR/gl_entries_page_${page}.xml"
@@ -255,19 +273,19 @@ pull_paginated_gl_entries() {
 
     cat > "$PAGE_XML" <<EOF
 <request>
-    <control>
-      <senderid>${SENDER_ID}</senderid>
-      <password>${SENDER_PASSWORD}</password>
-      <controlid>get${object_id}_page_${page}</controlid>
-      <uniqueid>false</uniqueid>
-      <dtdversion>3.0</dtdversion>
-    </control>
+  <control>
+    <senderid>${INTACCT_SENDER_ID}</senderid>
+    <password>${INTACCT_SENDER_PASSWORD}</password>
+    <controlid>getgl_entries_page_${page}</controlid>
+    <uniqueid>false</uniqueid>
+    <dtdversion>3.0</dtdversion>
+  </control>
   <operation>
     <authentication>
       <sessionid>${SESSION_ID}</sessionid>
     </authentication>
     <content>
-      <function controlid="get${object_id}Page${page}">
+      <function controlid="getgl_entriesPage${page}">
         <readByQuery>
           <object>${GL_ENTRIES_OBJECT}</object>
           <fields>*</fields>
@@ -343,8 +361,8 @@ pull_gl_accounts() {
   cat > "$KEYS_XML" <<EOF
 <request>
   <control>
-    <senderid>${SENDER_ID}</senderid>
-    <password>${SENDER_PASSWORD}</password>
+    <senderid>${INTACCT_SENDER_ID}</senderid>
+    <password>${INTACCT_SENDER_PASSWORD}</password>
     <controlid>getGLAccountKeys</controlid>
     <uniqueid>false</uniqueid>
     <dtdversion>3.0</dtdversion>
@@ -395,8 +413,8 @@ EOF
   cat > "$GL_XML" <<EOF
 <request>
   <control>
-    <senderid>${SENDER_ID}</senderid>
-    <password>${SENDER_PASSWORD}</password>
+    <senderid>${INTACCT_SENDER_ID}</senderid>
+    <password>${INTACCT_SENDER_PASSWORD}</password>
     <controlid>getGLAccounts</controlid>
     <uniqueid>false</uniqueid>
     <dtdversion>3.0</dtdversion>
@@ -482,12 +500,12 @@ PY
   local remainder=${summary#*|}
   local max_entry=${remainder%%|*}
   local max_batch=${remainder##*|}
-  local human="GL entries summary (${GL_ENTRIES_OBJECT}): count=${count}, max ENTRY_DATE=${max_entry}, max BATCH_DATE=${max_batch}"
+  local human="GL entries summary: count=${count}, max ENTRY_DATE=${max_entry}, max BATCH_DATE=${max_batch}"
   echo "$human"
   echo "$human" >> "$DATA_QUALITY_FILE"
 
   if [ "$count" -eq 0 ]; then
-    echo "No ${GL_ENTRIES_OBJECT} rows found for the last ${GL_ENTRIES_LOOKBACK_DAYS} days (starting ${GL_ENTRIES_FILTER_DATE})."
+    echo "No GL rows found for the last ${GL_ENTRIES_LOOKBACK_DAYS} days (starting ${GL_ENTRIES_FILTER_DATE})."
     echo "Please confirm the Intacct dataset has entries in that window—if not, we can extend the lookback to 730 days or beyond."
   fi
 }
@@ -496,16 +514,16 @@ PY
 # 7. MASTER DATA PULLS
 ############################################################
 
-pull_object_paginated "VENDOR" "vendors"
-pull_object_paginated "CUSTOMER" "customers"
+pull_object "VENDOR" "vendors"
+pull_object "CUSTOMER" "customers"
 pull_gl_accounts
 
 ############################################################
 # 8. TRANSACTION DATA PULLS
 ############################################################
 
-pull_object_paginated "APBILL" "ap_bills"
-pull_object_paginated "APPYMT" "ap_payments"
+pull_object "APBILL" "ap_bills"
+pull_object "APPYMT" "ap_payments"
 pull_paginated_gl_entries
 
 ############################################################

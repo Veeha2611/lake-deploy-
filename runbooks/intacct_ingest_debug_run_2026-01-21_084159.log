@@ -1,0 +1,19 @@
++ set -euo pipefail
++ source /Users/patch/intacct_env.sh PROD
+++ export INTACCT_ENDPOINT_URL=https://api.intacct.com/ia/xml/xmlgw.phtml
+++ INTACCT_ENDPOINT_URL=https://api.intacct.com/ia/xml/xmlgw.phtml
+++ export INTACCT_SENDER_ID=GWI2
+++ INTACCT_SENDER_ID=GWI2
+++ export 'INTACCT_SENDER_PASSWORD=W5FTLV2kkXJ67^'
+++ INTACCT_SENDER_PASSWORD='W5FTLV2kkXJ67^'
+++ INTACCT_ENV=PROD
+++ case "$INTACCT_ENV" in
+++ export INTACCT_COMPANY_ID=GWI
+++ INTACCT_COMPANY_ID=GWI
+++ export INTACCT_WS_USER_ID=datalake
+++ INTACCT_WS_USER_ID=datalake
+++ export INTACCT_WS_USER_PASSWORD=3vdhJ=Xc8V4
+++ INTACCT_WS_USER_PASSWORD=3vdhJ=Xc8V4
+++ echo 'Intacct environment set: PROD'
+Intacct environment set: PROD
++ source /Users/patch/.bash_profile

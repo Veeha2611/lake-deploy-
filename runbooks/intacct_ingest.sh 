@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+
+###############################################
+# Sage Intacct Integration Credentials
+# (Fill these in LOCALLY — do NOT store in Git,
+#  Notion, email, or chat.)
+###############################################
+
+SENDER_ID="GWI2"
+SENDER_PASSWORD="W5FTLV2kkXJ67^"
+
+WS_USER_ID="datalake"
+WS_USER_PASSWORD="2hXOM@79dOS"
+
+COMPANY_ID="GWI-sandbox"
+
+INTACCT_ENDPOINT="https://api.intacct.com/ia/xml/xmlgw.phtml"
+
+###############################################
+# AWS + Local Settings
+###############################################
+
+S3_BUCKET="s3://gwi-raw-us-east-2-pc"
+RUN_DATE=$(date +%F)
+BASE_DIR="$HOME/intacct_ingest/$RUN_DATE"
+mkdir -p "$BASE_DIR"
+
+###############################################
+# 1. Get API Session
+###############################################
+
+LOGIN_XML="$BASE_DIR/login.xml"
+LOGIN_RESPONSE="$BASE_DIR/login_response.xml"
+
+cat > "$LOGIN_XML" <<EOF
+<request>
+  <control>
+    <senderid>${SENDER_ID}</senderid>
+    <password>${SENDER_PASSWORD}</password>
+    <controlid>loginTest</controlid>
+    <uniqueid>false</uniqueid>
+    <dtdversion>3.0</dtdversion>
+  </control>
+  <operation>
+    <authentication>
+      <login>
+        <userid>${WS_USER_ID}</userid>
+        <companyid>${COMPANY_ID}</companyid>
+        <password>${WS_USER_PASSWORD}</password>
+      </login>
+    </authentication>
+    <content>
+      <function controlid="getSession">
+        <getAPISession/>
+      </function>
+    </content>
+  </operation>
+</request>
+EOF
+
+echo "Authenticating with Sage Intacct..."
+curl -s \
+  -H "Content-Type: application/xml" \
+  -d @"$LOGIN_XML" \
+  "${INTACCT_ENDPOINT}" \
+  -o "$LOGIN_RESPONSE"
+
+SESSION_ID=$(sed -n 's:.*<sessionid>\(.*\)</sessionid>.*:\1:p' "$LOGIN_RESPONSE")
+
+if [ -z "$SESSION_ID" ]; then
+  echo "ERROR: Could not obtain session ID. Check credentials."
+  exit 1
+fi
+
+echo "Session ID acquired."
+
+###############################################
+# Helper Function to Pull an Object
+###############################################
+
+pull_object() {
+  OBJECT_NAME="$1"
+  FILE_BASENAME="$2"
+
+  XML_FILE="$BASE_DIR/${FILE_BASENAME}.xml"
+  OUT_FILE="$BASE_DIR/${FILE_BASENAME}_response.xml"
+
+  cat > "$XML_FILE" <<EOF
+<request>
+  <control>
+    <senderid>${SENDER_ID}</senderid>
+    <password>${SENDER_PASSWORD}</password>
+    <controlid>get${FILE_BASENAME}</controlid>
+    <uniqueid>false</uniqueid>
+    <dtdversion>3.0</dtdversion>
+  </control>
+  <operation>
+    <authentication>
+      <sessionid>${SESSION_ID}</sessionid>
+    </authentication>
+    <content>
+      <function controlid="get${FILE_BASENAME}Func">
+        <readByQuery>
+          <object>${OBJECT_NAME}</object>
+          <fields>*</fields>
+          <query/>
+          <pagesize>1000</pagesize>
+        </readByQuery>
+      </function>
+    </content>
+  </operation>
+</request>
+EOF
+
+  echo "Pulling ${FILE_BASENAME}..."
+  curl -s \
+    -H "Content-Type: application/xml" \
+    -d @"$XML_FILE" \
+    "${INTACCT_ENDPOINT}" \
+    -o "$OUT_FILE"
+
+  echo "Uploading ${FILE_BASENAME} to S3..."
+  aws s3 cp "$OUT_FILE" \
+    "${S3_BUCKET}/raw/intacct/${FILE_BASENAME}/${RUN_DATE}/${FILE_BASENAME}.xml"
+}
+
+###############################################
+# 2. Pull Master Data
+###############################################
+
+pull_object "VENDOR" "vendors"
+pull_object "CUSTOMER" "customers"
+pull_object "GLACCOUNT" "gl_accounts"
+
+###############################################
+# 3. Pull Transactional Data
+###############################################
+
+pull_object "APBILL" "ap_bills"
+pull_object "APPYMT" "ap_payments"
+pull_object "JOURNALENTRY" "gl_entries"
+
+echo "Ingest complete."

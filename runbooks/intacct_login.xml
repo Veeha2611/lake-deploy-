@@ -1,0 +1,23 @@
+<request>
+  <control>
+    <senderid>GWI2</senderid>
+    <password>W5FTLV2kkXJ67^</password>
+    <controlid>loginTest</controlid>
+    <uniqueid>false</uniqueid>
+    <dtdversion>3.0</dtdversion>
+  </control>
+  <operation>
+    <authentication>
+      <login>
+        <userid>datalake</userid>
+        <companyid>GWI-sandbox</companyid>
+        <password>2hXOM@79dOS</password>
+      </login>
+    </authentication>
+    <content>
+      <function controlid="testFunc">
+        <getAPISession/>
+      </function>
+    </content>
+  </operation>
+</request>
