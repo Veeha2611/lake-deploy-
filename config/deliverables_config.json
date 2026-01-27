@@ -5,7 +5,19 @@
     "workstream": "data_lake",
     "module": "ssot",
     "status": "active",
-    "owner_email": "ops@gwi.com",
+    "owner_name": "",
+    "owner_email": "",
+    "due_date": "",
+    "priority": "high"
+  },
+  {
+    "deliverable_id": "ssot_framework",
+    "title": "Global SSOT Framework",
+    "workstream": "data_lake",
+    "module": "ssot",
+    "status": "active",
+    "owner_name": "",
+    "owner_email": "",
     "due_date": "",
     "priority": "high"
   },
@@ -15,9 +27,21 @@
     "workstream": "finance",
     "module": "intacct",
     "status": "active",
-    "owner_email": "finance@gwi.com",
+    "owner_name": "",
+    "owner_email": "",
     "due_date": "",
     "priority": "high"
+  },
+  {
+    "deliverable_id": "intacct_daily_manifest",
+    "title": "Intacct Daily Manifest",
+    "workstream": "finance",
+    "module": "intacct",
+    "status": "active",
+    "owner_name": "",
+    "owner_email": "",
+    "due_date": "",
+    "priority": "medium"
   },
   {
     "deliverable_id": "salesforce_account",
@@ -25,8 +49,108 @@
     "workstream": "crm",
     "module": "salesforce",
     "status": "active",
-    "owner_email": "salesops@gwi.com",
+    "owner_name": "",
+    "owner_email": "",
     "due_date": "",
     "priority": "medium"
+  },
+  {
+    "deliverable_id": "salesforce_daily_manifest",
+    "title": "Salesforce Daily Manifest",
+    "workstream": "crm",
+    "module": "salesforce",
+    "status": "active",
+    "owner_name": "",
+    "owner_email": "",
+    "due_date": "",
+    "priority": "medium"
+  },
+  {
+    "deliverable_id": "platt_customer",
+    "title": "Platt Customer SSOT",
+    "workstream": "platt",
+    "module": "platt",
+    "status": "active",
+    "owner_name": "",
+    "owner_email": "",
+    "due_date": "",
+    "priority": "medium"
+  },
+  {
+    "deliverable_id": "platt_billing",
+    "title": "Platt Billing SSOT",
+    "workstream": "platt",
+    "module": "platt",
+    "status": "active",
+    "owner_name": "",
+    "owner_email": "",
+    "due_date": "",
+    "priority": "medium"
+  },
+  {
+    "deliverable_id": "vetro_exports",
+    "title": "Vetro Exports Backfill",
+    "workstream": "network",
+    "module": "vetro",
+    "status": "active",
+    "owner_name": "",
+    "owner_email": "",
+    "due_date": "",
+    "priority": "high"
+  },
+  {
+    "deliverable_id": "vetro_daily_manifest",
+    "title": "Vetro Daily Manifest",
+    "workstream": "network",
+    "module": "vetro",
+    "status": "active",
+    "owner_name": "",
+    "owner_email": "",
+    "due_date": "",
+    "priority": "medium"
+  },
+  {
+    "deliverable_id": "gaiia_ingest",
+    "title": "Gaiia Ingestion",
+    "workstream": "ops",
+    "module": "gaiia",
+    "status": "active",
+    "owner_name": "",
+    "owner_email": "",
+    "due_date": "",
+    "priority": "medium"
+  },
+  {
+    "deliverable_id": "gaiia_daily_manifest",
+    "title": "Gaiia Daily Manifest",
+    "workstream": "ops",
+    "module": "gaiia",
+    "status": "active",
+    "owner_name": "",
+    "owner_email": "",
+    "due_date": "",
+    "priority": "medium"
+  },
+  {
+    "deliverable_id": "monday_sync",
+    "title": "Monday Deliverables Sync",
+    "workstream": "ops",
+    "module": "monday",
+    "status": "active",
+    "owner_name": "",
+    "owner_email": "",
+    "due_date": "",
+    "priority": "medium"
+  },
+  {
+    "deliverable_id": "mac_rebuild",
+    "title": "MAC App Rebuild",
+    "workstream": "product",
+    "module": "mac",
+    "status": "active",
+    "owner_name": "",
+    "owner_email": "",
+    "due_date": "",
+    "priority": "high"
   }
 ]
