@@ -64,3 +64,16 @@ Behavior:
 
 Completion:
 - Done when all plan_ids have a valid export in the last 7 days (>= 10KB).
+
+## Canonical Deliverables (SSOT)
+Config file:
+- `config/deliverables_config.json`
+
+DDL:
+- `sql/ssot/02_deliverables_schema.sql`
+
+Daily load:
+- `sql/ssot/03_deliverables_insert.sql` (replace `<RUN_DATE>`)
+
+Proof query:
+- `SELECT deliverable_id, status, ssot_guard_ok, exception_count FROM curated_ssot.deliverables WHERE dt='<today>'`

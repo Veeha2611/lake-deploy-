@@ -1,0 +1,32 @@
+[
+  {
+    "deliverable_id": "ssot_daily_summary",
+    "title": "SSOT Daily Summary",
+    "workstream": "data_lake",
+    "module": "ssot",
+    "status": "active",
+    "owner_email": "ops@gwi.com",
+    "due_date": "",
+    "priority": "high"
+  },
+  {
+    "deliverable_id": "intacct_gl_entries",
+    "title": "Intacct GL Entries SSOT",
+    "workstream": "finance",
+    "module": "intacct",
+    "status": "active",
+    "owner_email": "finance@gwi.com",
+    "due_date": "",
+    "priority": "high"
+  },
+  {
+    "deliverable_id": "salesforce_account",
+    "title": "Salesforce Account SSOT",
+    "workstream": "crm",
+    "module": "salesforce",
+    "status": "active",
+    "owner_email": "salesops@gwi.com",
+    "due_date": "",
+    "priority": "medium"
+  }
+]
