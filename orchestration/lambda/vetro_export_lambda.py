@@ -6,6 +6,8 @@ import time
 import zipfile
 from datetime import datetime, timezone
 from io import BytesIO
+import socket
+from urllib.parse import urlparse
 
 import boto3
 import requests
@@ -21,12 +23,17 @@ STATE_KEY = os.getenv('StateKey') or os.getenv('STATE_KEY')
 EXPORT_BUCKET = os.getenv('ExportBucket') or os.getenv('EXPORT_BUCKET')
 EXPORT_PREFIX = os.getenv('ExportPrefix') or os.getenv('EXPORT_PREFIX', 'raw/vetro')
 VETRO_TOKEN_SECRET = os.getenv('VetroTokenSecret') or os.getenv('VETRO_TOKEN_SECRET')
-API_BASE_URL = os.getenv('VetroApiUrl') or os.getenv('VETRO_API_URL', 'https://api.gwi.com/v1/vetro/export')
+API_BASE_URL = os.getenv('VetroApiUrl') or os.getenv('VETRO_API_URL', 'https://api.vetro.io/v3/export/plan')
 MIN_ZIP_BYTES = int(os.getenv('MinZipBytes') or os.getenv('MIN_ZIP_BYTES', '10240'))
 MAX_RETRIES = int(os.getenv('MaxRetries') or os.getenv('MAX_RETRIES', '6'))
 BACKOFF_BASE_SECONDS = float(os.getenv('BackoffBaseSeconds') or os.getenv('BACKOFF_BASE_SECONDS', '2.0'))
 BACKOFF_MAX_SECONDS = float(os.getenv('BackoffMaxSeconds') or os.getenv('BACKOFF_MAX_SECONDS', '60.0'))
 REQUEST_SPACING_SECONDS = float(os.getenv('RequestSpacingSeconds') or os.getenv('REQUEST_SPACING_SECONDS', '1.0'))
+MAX_BACKOFF_WAIT_SECONDS = float(os.getenv('MaxBackoffWaitSeconds') or os.getenv('MAX_BACKOFF_WAIT_SECONDS', '30.0'))
+
+
+class RateLimitExceeded(RuntimeError):
+    pass
 
 s3 = boto3.client('s3')
 secrets_client = boto3.client('secretsmanager')
@@ -143,6 +150,8 @@ def request_with_backoff(method: str, url: str, *, headers=None, json_body=None,
         retry_after = _retry_after_seconds(response)
         backoff = min(BACKOFF_MAX_SECONDS, BACKOFF_BASE_SECONDS * (2 ** (attempt - 1)))
         wait_for = max(retry_after, backoff)
+        if wait_for > MAX_BACKOFF_WAIT_SECONDS:
+            raise RateLimitExceeded(f'retry_after_too_long:{int(wait_for)}')
         logger.warning('Received 429 for %s %s; waiting %.1fs before retry %s/%s', method, url, wait_for, attempt, MAX_RETRIES)
         _sleep_with_jitter(wait_for)
 
@@ -163,32 +172,33 @@ def validate_export(payload: bytes) -> tuple[bool, str]:
     return True, 'ok'
 
 
-def request_signed_url(plan_id: str, token: str) -> str:
-    headers = {'Authorization': f'Bearer {token}'}
-    params = {'plan_id': plan_id}
-    response = request_with_backoff('POST', API_BASE_URL + '/signed-url', headers=headers, json_body=params, timeout=30)
+def request_export(plan_id: str, token: str) -> requests.Response:
+    headers = {'Token': token}
+    url = f"{API_BASE_URL}/{plan_id}"
+    response = request_with_backoff('GET', url, headers=headers, timeout=60)
     response.raise_for_status()
-    payload = response.json()
-    return payload['signed_url']
+    return response
 
 
-def download_payload(signed_url: str) -> bytes:
-    for attempt in range(3):
-        response = request_with_backoff('GET', signed_url, timeout=60)
-        if response.status_code == 200:
-            return response.content
-        if response.status_code in (403, 410):
-            logger.warning('Signed URL expired (status=%s); fetching new URL, attempt %s', response.status_code, attempt + 1)
-            continue
+def download_payload(plan_id: str, token: str) -> bytes:
+    response = request_export(plan_id, token)
+    # If the export endpoint returns JSON with a download URL, follow it.
+    content_type = (response.headers.get('Content-Type') or '').lower()
+    if 'application/json' in content_type:
+        payload = response.json()
+        download_url = payload.get('url') or payload.get('download_url') or payload.get('signed_url')
+        if not download_url:
+            raise RuntimeError('Export response JSON did not include a download URL.')
+        response = request_with_backoff('GET', download_url, timeout=120)
         response.raise_for_status()
-    raise RuntimeError('Unable to download payload after refreshing signed URL.')
+        return response.content
+    return response.content
 
 
 def export_plan(plan_id: str, token: str) -> dict:
     dt = datetime.now(timezone.utc).date().isoformat()
-    signed_url = request_signed_url(plan_id, token)
     _sleep_with_jitter(REQUEST_SPACING_SECONDS)
-    raw_payload = download_payload(signed_url)
+    raw_payload = download_payload(plan_id, token)
     is_valid, reason = validate_export(raw_payload)
     result = {
         'plan_id': plan_id,
@@ -208,6 +218,7 @@ def export_plan(plan_id: str, token: str) -> dict:
 
 
 def write_manifest(dt: str, state: dict, ingest_ok: bool) -> None:
+    diagnostic = state.get('diagnostic', {})
     manifest = {
         'system': 'vetro',
         'run_date': dt,
@@ -223,10 +234,29 @@ def write_manifest(dt: str, state: dict, ingest_ok: bool) -> None:
                 'last_error': state.get('last_error'),
             }
         },
+        'diagnostic': diagnostic,
         'generated_at': _now_iso(),
     }
     key = f'orchestration/vetro_daily/run_date={dt}/manifest.json'
     s3.put_object(Bucket=EXPORT_BUCKET, Key=key, Body=json.dumps(manifest, indent=2).encode('utf-8'), ContentType='application/json')
+
+
+def run_network_diagnostic() -> dict:
+    host = urlparse(API_BASE_URL).hostname or API_BASE_URL
+    result = {'host': host, 'dns': {'ok': False, 'answers': []}, 'http': {'ok': False, 'status_code': None}}
+    try:
+        infos = socket.getaddrinfo(host, 443)
+        addrs = sorted({info[4][0] for info in infos})
+        result['dns'] = {'ok': True, 'answers': addrs}
+    except OSError as exc:
+        result['dns'] = {'ok': False, 'error': type(exc).__name__}
+        return result
+    try:
+        resp = request_with_backoff('HEAD', f'https://{host}', timeout=20)
+        result['http'] = {'ok': resp.ok, 'status_code': resp.status_code}
+    except requests.RequestException as exc:
+        result['http'] = {'ok': False, 'error': type(exc).__name__}
+    return result
 
 
 def lambda_handler(event, context):
@@ -242,6 +272,7 @@ def lambda_handler(event, context):
     plan_id = plan_list[plan_index]
     token = fetch_token(VETRO_TOKEN_SECRET)
     dt = datetime.now(timezone.utc).date().isoformat()
+    state['diagnostic'] = run_network_diagnostic()
 
     ingest_ok = False
     try:

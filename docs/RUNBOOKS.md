@@ -32,3 +32,13 @@ Validate:
 Guard policy:
 - Guard status is computed from `*_current` tables only.
 - Exceptions are recorded but do not fail the run unless thresholds are exceeded.
+
+## Monday Deliverables Sync Prereqs
+Secret:
+- `monday/prod` in Secrets Manager with keys: `api_key`, `workspace_id`, `deliverables_board_id`
+
+Athena table:
+- `curated_ssot.deliverables` (see `sql/ssot/01_deliverables.sql`)
+
+Proof query:
+- `SELECT COUNT(*) FROM curated_ssot.deliverables WHERE dt = '<today>'`
