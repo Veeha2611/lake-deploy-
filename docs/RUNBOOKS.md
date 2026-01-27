@@ -105,3 +105,19 @@ Monday → AWS
 
 Daily merge
 - Merge `curated_core.project_updates` into `curated_core.projects_enriched` by `project_id`.
+
+## Notion Read-only Snapshot (On-demand)
+Script:
+- `scripts/notion_fetch.py`
+
+Outputs:
+- Raw JSON: `s3://gwi-raw-us-east-2-pc/knowledge/notion/pages/dt=YYYY-MM-DD/`
+- Text/markdown: `s3://gwi-raw-us-east-2-pc/knowledge/notion/text/dt=YYYY-MM-DD/`
+- Index: `s3://gwi-raw-us-east-2-pc/knowledge/notion/index/dt=YYYY-MM-DD/index.ndjson`
+
+Athena:
+- `sql/notion/00_notion_index.sql`
+
+Prereqs:
+- Notion integration token stored in Secrets Manager `notion/prod`
+- Root page shared with the integration
