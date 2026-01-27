@@ -51,3 +51,16 @@ Behavior:
 Proof mode:
 - Set `PROOF_MODE=true` and `PROOF_PLAN_ID=<id>` to attempt exactly one plan per run.
 - Use `rate(12 hours)` cadence until first success, then ramp up carefully.
+
+## Vetro Backfill Mode
+State:
+- `s3://gwi-raw-us-east-2-pc/vetro_export_state/backfill_queue.json`
+- `s3://gwi-raw-us-east-2-pc/vetro_export_state/backfill_complete.json` (only after completion)
+
+Behavior:
+- Exactly one export attempt per run.
+- On success (zip >= 10KB + expected JSON), pop plan_id from queue.
+- On 429, persist `next_allowed_ts` and exit cleanly.
+
+Completion:
+- Done when all plan_ids have a valid export in the last 7 days (>= 10KB).

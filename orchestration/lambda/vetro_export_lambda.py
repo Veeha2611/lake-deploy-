@@ -32,6 +32,9 @@ REQUEST_SPACING_SECONDS = float(os.getenv('RequestSpacingSeconds') or os.getenv(
 MAX_BACKOFF_WAIT_SECONDS = float(os.getenv('MaxBackoffWaitSeconds') or os.getenv('MAX_BACKOFF_WAIT_SECONDS', '30.0'))
 PROOF_MODE = (os.getenv('ProofMode') or os.getenv('PROOF_MODE', 'false')).lower() == 'true'
 PROOF_PLAN_ID = os.getenv('ProofPlanId') or os.getenv('PROOF_PLAN_ID')
+BACKFILL_MODE = (os.getenv('BackfillMode') or os.getenv('BACKFILL_MODE', 'true')).lower() == 'true'
+BACKFILL_QUEUE_KEY = os.getenv('BackfillQueueKey') or os.getenv('BACKFILL_QUEUE_KEY', 'vetro_export_state/backfill_queue.json')
+MIN_BACKFILL_BYTES = int(os.getenv('MinBackfillBytes') or os.getenv('MIN_BACKFILL_BYTES', '10240'))
 
 
 class RateLimitExceeded(RuntimeError):
@@ -91,6 +94,8 @@ def read_state(plan_count: int) -> dict:
         'last_error': None,
         'next_allowed_ts': None,
         'rate_limited': False,
+        'plan_success': {},
+        'plan_success_bytes': {},
     }
     try:
         response = s3.get_object(Bucket=STATE_BUCKET, Key=STATE_KEY)
@@ -120,6 +125,49 @@ def write_state(state: dict) -> None:
         Body=json.dumps(state, indent=2).encode('utf-8'),
         ContentType='application/json',
     )
+
+
+def read_backfill_queue(plan_list: list[str]) -> dict:
+    default_queue = {
+        'remaining': plan_list[:],
+        'completed': [],
+        'last_updated_ts': None,
+    }
+    try:
+        response = s3.get_object(Bucket=STATE_BUCKET, Key=BACKFILL_QUEUE_KEY)
+        payload = json.loads(response['Body'].read().decode('utf-8'))
+        if not isinstance(payload, dict):
+            return default_queue
+        if not payload.get('remaining'):
+            payload['remaining'] = []
+        if not payload.get('completed'):
+            payload['completed'] = []
+        return payload
+    except ClientError as exc:
+        if exc.response['Error']['Code'] == 'NoSuchKey':
+            return default_queue
+        raise
+
+
+def write_backfill_queue(queue: dict) -> None:
+    queue['last_updated_ts'] = _now_iso()
+    s3.put_object(
+        Bucket=STATE_BUCKET,
+        Key=BACKFILL_QUEUE_KEY,
+        Body=json.dumps(queue, indent=2).encode('utf-8'),
+        ContentType='application/json',
+    )
+
+
+def dedupe_preserve_order(values: list[str]) -> list[str]:
+    seen = set()
+    out = []
+    for v in values:
+        if v in seen:
+            continue
+        seen.add(v)
+        out.append(v)
+    return out
 
 
 def _now_iso() -> str:
@@ -249,6 +297,7 @@ def write_manifest(dt: str, state: dict, ingest_ok: bool) -> None:
                 'last_error': state.get('last_error'),
                 'rate_limited': bool(state.get('rate_limited')),
                 'next_allowed_ts': state.get('next_allowed_ts'),
+                'backfill_mode': BACKFILL_MODE,
             }
         },
         'diagnostic': diagnostic,
@@ -286,7 +335,15 @@ def lambda_handler(event, context):
 
     state = read_state(len(plan_list))
     plan_index = int(state.get('plan_index', 0)) % len(plan_list)
-    plan_id = PROOF_PLAN_ID or plan_list[plan_index]
+    queue = read_backfill_queue(plan_list)
+    if not queue.get('remaining'):
+        queue['remaining'] = plan_list[:]
+    queue['remaining'] = dedupe_preserve_order(queue.get('remaining', []))
+    write_backfill_queue(queue)
+    if BACKFILL_MODE and queue.get('remaining'):
+        plan_id = queue['remaining'][0]
+    else:
+        plan_id = PROOF_PLAN_ID or plan_list[plan_index]
     token = fetch_token(VETRO_TOKEN_SECRET)
     dt = datetime.now(timezone.utc).date().isoformat()
     state['diagnostic'] = run_network_diagnostic()
@@ -314,6 +371,13 @@ def lambda_handler(event, context):
             state['last_success_bytes'] = result.get('bytes')
             state['last_error'] = None
             ingest_ok = True
+            if result.get('bytes', 0) >= MIN_BACKFILL_BYTES:
+                state['plan_success'][plan_id] = state['last_success_ts']
+                state['plan_success_bytes'][plan_id] = int(result.get('bytes', 0))
+                if BACKFILL_MODE and queue.get('remaining'):
+                    if queue['remaining'][0] == plan_id:
+                        queue['remaining'].pop(0)
+                        queue.setdefault('completed', []).append(plan_id)
         else:
             state['last_error'] = result.get('validation_reason')
     except RateLimitExceeded as exc:
@@ -329,15 +393,46 @@ def lambda_handler(event, context):
         state['last_error'] = f'exception:{type(exc).__name__}'
         raise
     finally:
-        if PROOF_MODE:
+        if PROOF_MODE or BACKFILL_MODE:
             next_index = plan_index
         else:
             next_index = (plan_index + 1) % len(plan_list)
         state['plan_index'] = next_index
         state['next_index'] = next_index
         write_state(state)
+        if BACKFILL_MODE:
+            write_backfill_queue(queue)
         write_manifest(dt, state, ingest_ok)
         logger.info('State pointer advanced to %s (ingest_ok=%s, proof_mode=%s)', next_index, ingest_ok, PROOF_MODE)
+
+        # Backfill completion proof artifact
+        if BACKFILL_MODE and not queue.get('remaining'):
+            # completion criterion: all plan_ids have success within 7 days and bytes >= MIN_BACKFILL_BYTES
+            cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+            ok = True
+            for pid in plan_list:
+                ts = state.get('plan_success', {}).get(pid)
+                b = int(state.get('plan_success_bytes', {}).get(pid, 0))
+                if not ts:
+                    ok = False
+                    break
+                dt_ts = _parse_iso(ts)
+                if not dt_ts or dt_ts < cutoff or b < MIN_BACKFILL_BYTES:
+                    ok = False
+                    break
+            proof = {
+                'plan_count': len(plan_list),
+                'last_success_ts': state.get('last_success_ts'),
+                'sample_paths': [state.get('last_s3_key')],
+                'backfill_complete': ok,
+                'generated_at': _now_iso(),
+            }
+            s3.put_object(
+                Bucket=STATE_BUCKET,
+                Key='vetro_export_state/backfill_complete.json',
+                Body=json.dumps(proof, indent=2).encode('utf-8'),
+                ContentType='application/json',
+            )
 
 # Lambda entry point (required for some bundlers)
 def handler(event, context):
