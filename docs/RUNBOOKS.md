@@ -77,3 +77,31 @@ Daily load:
 
 Proof query:
 - `SELECT deliverable_id, status, ssot_guard_ok, exception_count FROM curated_ssot.deliverables WHERE dt='<today>'`
+
+## MAC Project & Pipeline (Monday ↔ AWS)
+Board schema (project pipeline only):
+- Project ID (text)
+- Module Type (dropdown) [must be "Project Pipeline"]
+- Entity (text)
+- Project Type (text)
+- State (text)
+- Stage (status)
+- Priority (text)
+- Owner (text)
+- Partner Share (text)
+- Investor Label (text)
+- Notes (long_text)
+- Sync to AWS (checkbox)
+
+AWS → Monday
+- Source: `curated_core.projects_enriched`
+- Upsert key: `project_id`
+- Auto-set: Module Type="Project Pipeline", Sync to AWS=checked
+
+Monday → AWS
+- Filter: Module Type == "Project Pipeline" AND Sync to AWS == checked
+- Writable fields: state, stage, priority, owner, notes
+- Append-only log: `curated_core.project_updates`
+
+Daily merge
+- Merge `curated_core.project_updates` into `curated_core.projects_enriched` by `project_id`.
