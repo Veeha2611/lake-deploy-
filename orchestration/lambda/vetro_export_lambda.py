@@ -4,7 +4,7 @@ import os
 import random
 import time
 import zipfile
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from io import BytesIO
 import socket
 from urllib.parse import urlparse
@@ -30,10 +30,14 @@ BACKOFF_BASE_SECONDS = float(os.getenv('BackoffBaseSeconds') or os.getenv('BACKO
 BACKOFF_MAX_SECONDS = float(os.getenv('BackoffMaxSeconds') or os.getenv('BACKOFF_MAX_SECONDS', '60.0'))
 REQUEST_SPACING_SECONDS = float(os.getenv('RequestSpacingSeconds') or os.getenv('REQUEST_SPACING_SECONDS', '1.0'))
 MAX_BACKOFF_WAIT_SECONDS = float(os.getenv('MaxBackoffWaitSeconds') or os.getenv('MAX_BACKOFF_WAIT_SECONDS', '30.0'))
+PROOF_MODE = (os.getenv('ProofMode') or os.getenv('PROOF_MODE', 'false')).lower() == 'true'
+PROOF_PLAN_ID = os.getenv('ProofPlanId') or os.getenv('PROOF_PLAN_ID')
 
 
 class RateLimitExceeded(RuntimeError):
-    pass
+    def __init__(self, wait_seconds: float):
+        super().__init__(f"retry_after_too_long:{int(wait_seconds)}")
+        self.wait_seconds = float(wait_seconds)
 
 s3 = boto3.client('s3')
 secrets_client = boto3.client('secretsmanager')
@@ -85,6 +89,8 @@ def read_state(plan_count: int) -> dict:
         'last_success_plan_id': None,
         'last_success_bytes': None,
         'last_error': None,
+        'next_allowed_ts': None,
+        'rate_limited': False,
     }
     try:
         response = s3.get_object(Bucket=STATE_BUCKET, Key=STATE_KEY)
@@ -120,6 +126,15 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _parse_iso(ts: str | None) -> datetime | None:
+    if not ts:
+        return None
+    try:
+        return datetime.fromisoformat(ts.replace('Z', '+00:00'))
+    except ValueError:
+        return None
+
+
 def _sleep_with_jitter(seconds: float) -> None:
     if seconds <= 0:
         return
@@ -151,7 +166,7 @@ def request_with_backoff(method: str, url: str, *, headers=None, json_body=None,
         backoff = min(BACKOFF_MAX_SECONDS, BACKOFF_BASE_SECONDS * (2 ** (attempt - 1)))
         wait_for = max(retry_after, backoff)
         if wait_for > MAX_BACKOFF_WAIT_SECONDS:
-            raise RateLimitExceeded(f'retry_after_too_long:{int(wait_for)}')
+            raise RateLimitExceeded(wait_for)
         logger.warning('Received 429 for %s %s; waiting %.1fs before retry %s/%s', method, url, wait_for, attempt, MAX_RETRIES)
         _sleep_with_jitter(wait_for)
 
@@ -232,6 +247,8 @@ def write_manifest(dt: str, state: dict, ingest_ok: bool) -> None:
                 'last_success_bytes': state.get('last_success_bytes'),
                 'last_attempt_bytes': state.get('last_attempt_bytes'),
                 'last_error': state.get('last_error'),
+                'rate_limited': bool(state.get('rate_limited')),
+                'next_allowed_ts': state.get('next_allowed_ts'),
             }
         },
         'diagnostic': diagnostic,
@@ -269,13 +286,24 @@ def lambda_handler(event, context):
 
     state = read_state(len(plan_list))
     plan_index = int(state.get('plan_index', 0)) % len(plan_list)
-    plan_id = plan_list[plan_index]
+    plan_id = PROOF_PLAN_ID or plan_list[plan_index]
     token = fetch_token(VETRO_TOKEN_SECRET)
     dt = datetime.now(timezone.utc).date().isoformat()
     state['diagnostic'] = run_network_diagnostic()
 
     ingest_ok = False
+    now_dt = datetime.now(timezone.utc)
+    next_allowed = _parse_iso(state.get('next_allowed_ts'))
+    if next_allowed and now_dt < next_allowed:
+        state['rate_limited'] = True
+        state['last_error'] = 'rate_limited_wait'
+        write_state(state)
+        write_manifest(dt, state, ingest_ok=False)
+        logger.info('Rate limited until %s; skipping attempt.', state.get('next_allowed_ts'))
+        return {'status': 'rate_limited', 'next_allowed_ts': state.get('next_allowed_ts')}
     try:
+        state['rate_limited'] = False
+        state['next_allowed_ts'] = None
         state['last_attempt_ts'] = _now_iso()
         state['last_attempt_plan_id'] = plan_id
         result = export_plan(plan_id, token)
@@ -288,17 +316,28 @@ def lambda_handler(event, context):
             ingest_ok = True
         else:
             state['last_error'] = result.get('validation_reason')
+    except RateLimitExceeded as exc:
+        # Honor Retry-After by persisting the next allowed timestamp and exiting cleanly.
+        wait_seconds = max(0.0, exc.wait_seconds)
+        next_allowed_ts = (datetime.now(timezone.utc) + timedelta(seconds=wait_seconds)).isoformat()
+        state['rate_limited'] = True
+        state['next_allowed_ts'] = next_allowed_ts
+        state['last_error'] = 'rate_limited'
+        logger.warning('Rate limited. Next allowed attempt at %s', next_allowed_ts)
     except Exception as exc:
         logger.error('Export failed for plan %s: %s', plan_id, exc)
         state['last_error'] = f'exception:{type(exc).__name__}'
         raise
     finally:
-        next_index = (plan_index + 1) % len(plan_list)
+        if PROOF_MODE:
+            next_index = plan_index
+        else:
+            next_index = (plan_index + 1) % len(plan_list)
         state['plan_index'] = next_index
         state['next_index'] = next_index
         write_state(state)
         write_manifest(dt, state, ingest_ok)
-        logger.info('State pointer advanced to %s (ingest_ok=%s)', next_index, ingest_ok)
+        logger.info('State pointer advanced to %s (ingest_ok=%s, proof_mode=%s)', next_index, ingest_ok, PROOF_MODE)
 
 # Lambda entry point (required for some bundlers)
 def handler(event, context):

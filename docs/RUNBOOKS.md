@@ -42,3 +42,12 @@ Athena table:
 
 Proof query:
 - `SELECT COUNT(*) FROM curated_ssot.deliverables WHERE dt = '<today>'`
+
+## Vetro Rate-Limit Circuit Breaker
+Behavior:
+- On HTTP 429, honor `Retry-After` by persisting `next_allowed_ts` in `vetro_export_state/plan_index.json`.
+- Runs before `next_allowed_ts` skip cleanly with `vetro.ingest.ok=false`, `rate_limited=true`.
+
+Proof mode:
+- Set `PROOF_MODE=true` and `PROOF_PLAN_ID=<id>` to attempt exactly one plan per run.
+- Use `rate(12 hours)` cadence until first success, then ramp up carefully.
