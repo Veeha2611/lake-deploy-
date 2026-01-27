@@ -1,0 +1,53 @@
+# Secrets and env
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.der
+*.jks
+*.keystore
+
+# Local secrets/state
+.secrets/
+secrets/
+state/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+
+# AWS / CLI outputs
+.aws/
+*.log
+logs/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node / Next
+node_modules/
+.next/
+out/
+dist/
+build/
+
+# OS / editors
+.DS_Store
+.vscode/
+.idea/
+
+# Data artifacts
+*.parquet
+*.feather
+*.orc
+*.csv.gz
+*.jsonl
+*.ndjson
+/tmp/
