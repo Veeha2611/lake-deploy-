@@ -1,0 +1,40 @@
+-- Pipeline Summary workbook mirror (curated view)
+CREATE OR REPLACE VIEW curated_core.projects_enriched AS
+SELECT
+  CAST(project_id AS varchar) AS project_id,
+  entity,
+  project AS project_name,
+  project_type,
+  state,
+  partner,
+  col AS split_code,
+  investor,
+  TRY_CAST(col_2 AS double) AS split_pct,
+  TRY_CAST(investment AS double) AS investment,
+  TRY_CAST(irr AS double) AS irr,
+  TRY_CAST(moic AS double) AS moic,
+  TRY_CAST(col_3 AS double) AS project_specs_code,
+  TRY_CAST(passings AS double) AS passings,
+  TRY_CAST(subscribers AS double) AS subscribers,
+  TRY_CAST(take_rate AS double) AS take_rate,
+  TRY_CAST(revenue AS double) AS revenue,
+  TRY_CAST(cash_flow AS double) AS cash_flow,
+  TRY_CAST(coc_return AS double) AS coc_return,
+  TRY_CAST(cost AS double) AS construction_cost,
+  TRY_CAST(passing AS double) AS construction_cost_per_passing,
+  TRY_CAST(cost_2 AS double) AS install_cost,
+  TRY_CAST(subscriber AS double) AS install_cost_per_subscriber,
+  TRY_CAST(install_cost AS double) AS construction_plus_install_cost,
+  TRY_CAST(passing_2 AS double) AS total_cost_per_passing,
+  TRY_CAST(arpu AS double) AS arpu,
+  TRY_CAST(completion AS double) AS months_to_completion,
+  TRY_CAST(contract_date AS date) AS contract_date,
+  TRY_CAST(start_date AS date) AS start_date,
+  TRY_CAST(end_date AS date) AS end_date,
+  deal_stage,
+  TRY_CAST(col_4 AS double) AS funnel_value,
+  TRY_CAST(col_5 AS double) AS funnel_multiple,
+  COALESCE(TRY_CAST(end_date AS date), TRY_CAST(start_date AS date), TRY_CAST(contract_date AS date)) AS due_date
+FROM raw_pipeline.lc_pipeline_2025v1
+WHERE project_id IS NOT NULL
+  AND TRIM(CAST(project_id AS varchar)) <> '';
