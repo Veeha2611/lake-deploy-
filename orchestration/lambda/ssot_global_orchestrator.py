@@ -91,6 +91,17 @@ def date_cast_expr(column: str) -> str:
     )
 
 
+def json_scalar_expr(field: str) -> str:
+    return f"json_extract_scalar(record_json, '$.{field}')"
+
+
+def coalesce_json_expr(fields: Sequence[str]) -> Optional[str]:
+    if not fields:
+        return None
+    parts = ", ".join(json_scalar_expr(f) for f in fields)
+    return f"COALESCE({parts})"
+
+
 @dataclass
 class EntityPolicy:
     system: str
@@ -233,16 +244,46 @@ def build_curated_raw_sql(policy: EntityPolicy, columns: Sequence[str]) -> Tuple
     business_col = first_present(columns, policy.business_date_candidates)
     updated_col = first_present(columns, policy.updated_at_candidates)
 
+    key_expr: Optional[str] = None
+    key_alias: Optional[str] = None
     if not key_col:
-        raise ValueError(f"No key column found for {policy.system}.{policy.entity}")
+        if "record_json" in columns:
+            key_expr = coalesce_json_expr(policy.key_candidates or ())
+            if key_expr:
+                key_alias = "entity_key"
+                key_col = key_alias
+        if not key_col:
+            raise ValueError(f"No key column found for {policy.system}.{policy.entity}")
 
     dt_expr = "dt" if "dt" in columns else "CAST(current_date AS varchar)"
 
-    business_expr = date_cast_expr(business_col) if business_col else "CAST(dt AS date)"
+    if business_col:
+        business_expr = date_cast_expr(business_col)
+    else:
+        if "record_json" in columns:
+            business_json = coalesce_json_expr(policy.business_date_candidates or ())
+            if business_json:
+                business_expr = date_cast_expr(business_json)
+            else:
+                business_expr = "CAST(dt AS date)"
+        else:
+            business_expr = "CAST(dt AS date)"
 
-    updated_expr = date_cast_expr(updated_col) if updated_col else business_expr
+    if updated_col:
+        updated_expr = date_cast_expr(updated_col)
+    else:
+        if "record_json" in columns:
+            updated_json = coalesce_json_expr(policy.updated_at_candidates or ())
+            if updated_json:
+                updated_expr = date_cast_expr(updated_json)
+            else:
+                updated_expr = business_expr
+        else:
+            updated_expr = business_expr
 
     select_cols = ",\n  ".join(columns)
+    if key_expr and key_alias:
+        select_cols = f"{select_cols},\n  {key_expr} AS {key_alias}"
 
     sql = f"""
 CREATE OR REPLACE VIEW curated_core.{policy.curated_raw} AS
