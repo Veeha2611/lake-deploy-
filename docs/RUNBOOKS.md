@@ -24,6 +24,21 @@ Validate:
 - `orchestration/vetro_daily/run_date=<today>/manifest.json`
 - Check state:
   - `s3://gwi-raw-us-east-2-pc/vetro_export_state/plan_index.json`
+Curated tables:
+- `curated_core.vetro_plan_exports_curated_raw`
+- `curated_core.vetro_plan_exports_current`
+- `curated_recon.vetro_plan_exports_exceptions`
+
+## Gaiia
+Validate:
+- `orchestration/gaiia_daily/run_date=<today>/manifest.json`
+Curated tables:
+- `curated_core.gaiia_customers_curated_raw`
+- `curated_core.gaiia_customers_current`
+- `curated_recon.gaiia_customers_exceptions`
+- `curated_core.gaiia_invoices_curated_raw`
+- `curated_core.gaiia_invoices_current`
+- `curated_recon.gaiia_invoices_exceptions`
 
 ## Global SSOT
 Validate:
