@@ -3,9 +3,12 @@
 ## Contents
 - `athena/raw/`: Athena DDL + partition projection for `vetro_raw_db.raw_line`.
 - `athena/curated/`: Curated view templates and JSON discovery query.
+- `athena/raw/legacy_ddls/` + `athena/curated/legacy_ctas/`: Legacy DDL/CTAS from prior builds.
 - `automation/lambda/`: Lambda handler that cycles through plans, honors signed URLs, and writes raw JSON to the designated S3 prefix.
 - `automation/cf/`: CloudFormation stack for the Lambda, schedule, DLQ, monitoring, and IAM permissions.
+- `docs/`: Full data lake bible (architecture, schema, runbooks, proofs, security).
 - `runbooks/`: Operational runbooks and helper scripts for deployment and validation.
+- `external_sources/`: Imported legacy scripts/configs (sanitized, reference only).
 - `release-log/`: Release log template that enforces MAC tagging, IaC pointers, and deadline reminders.
 
 ## Deployment order
@@ -23,3 +26,6 @@
 - Automation artifacts live under `automation/lambda` and `automation/cf` with descriptive names.
 - Runbook scripts are verb-noun (`deploy_vetro_export.sh`, `validate_vetro_export.sh`) and paired with markdown guidance.
 - Release tags follow `mac-YYYYMMDD-vX` and must include IaC pointers for Athena SQL, the CloudFormation template, and the Lambda zip.
+
+## Data Lake Bible
+Start here: `docs/data_lake_bible.md`

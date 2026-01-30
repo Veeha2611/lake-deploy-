@@ -3,7 +3,7 @@ set -euo pipefail
 
 : "${INTACCT_ENDPOINT_URL:?missing}"
 : "${INTACCT_SENDER_ID:?missing}"
-: "${INTACCT_SENDER_PASSWORD:?missing}"
+: "${INTACCT_SENDER_REDACTED
 : "${INTACCT_COMPANY_ID_PROD:?missing}"
 : "${INTACCT_USER_ID_PROD:?missing}"
 : "${INTACCT_USER_PASSWORD_PROD:?missing}"

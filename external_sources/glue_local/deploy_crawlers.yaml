@@ -1,0 +1,189 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Deploy Glue crawlers to keep raw datasets cataloged.
+Parameters:
+  CrawlerRoleName:
+    Type: String
+    Default: glue-crawler-role
+Resources:
+  GlueCrawlerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref CrawlerRoleName
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: glue.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+      Policies:
+        - PolicyName: GlueS3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource:
+                  - arn:aws:s3:::gwi-raw-us-east-2-pc
+                  - arn:aws:s3:::gwi-raw-us-east-2-pc/*
+  IntacctVendorsCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: intacct_vendors_json_crawler
+      Role: !GetAtt GlueCrawlerRole.Arn
+      DatabaseName: gwi_raw
+      Targets:
+        S3Targets:
+          - Path: s3://gwi-raw-us-east-2-pc/raw/intacct_json/vendors/
+      Schedule: cron(10 2 * * ? *)
+      Classifiers: ['json']
+      TablePrefix: raw_intacct_vendors
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: DEPRECATE_IN_DATABASE
+      RecrawlPolicy:
+        RecrawlBehavior: CRAWL_EVERYTHING
+  IntacctCustomersCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: intacct_customers_json_crawler
+      Role: !GetAtt GlueCrawlerRole.Arn
+      DatabaseName: gwi_raw
+      Targets:
+        S3Targets:
+          - Path: s3://gwi-raw-us-east-2-pc/raw/intacct_json/customers/
+      Schedule: cron(12 2 * * ? *)
+      Classifiers: ['json']
+      TablePrefix: raw_intacct_customers
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: DEPRECATE_IN_DATABASE
+      RecrawlPolicy:
+        RecrawlBehavior: CRAWL_EVERYTHING
+  IntacctGLAccountsCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: intacct_gl_accounts_json_crawler
+      Role: !GetAtt GlueCrawlerRole.Arn
+      DatabaseName: gwi_raw
+      Targets:
+        S3Targets:
+          - Path: s3://gwi-raw-us-east-2-pc/raw/intacct_json/gl_accounts/
+      Schedule: cron(14 2 * * ? *)
+      Classifiers: ['json']
+      TablePrefix: raw_intacct_gl_accounts
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: DEPRECATE_IN_DATABASE
+      RecrawlPolicy:
+        RecrawlBehavior: CRAWL_EVERYTHING
+  IntacctAPBillsCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: intacct_ap_bills_json_crawler
+      Role: !GetAtt GlueCrawlerRole.Arn
+      DatabaseName: gwi_raw
+      Targets:
+        S3Targets:
+          - Path: s3://gwi-raw-us-east-2-pc/raw/intacct_json/ap_bills/
+      Schedule: cron(16 2 * * ? *)
+      Classifiers: ['json']
+      TablePrefix: raw_intacct_ap_bills
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: DEPRECATE_IN_DATABASE
+      RecrawlPolicy:
+        RecrawlBehavior: CRAWL_EVERYTHING
+  IntacctAPPaymentsCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: intacct_ap_payments_json_crawler
+      Role: !GetAtt GlueCrawlerRole.Arn
+      DatabaseName: gwi_raw
+      Targets:
+        S3Targets:
+          - Path: s3://gwi-raw-us-east-2-pc/raw/intacct_json/ap_payments/
+      Schedule: cron(18 2 * * ? *)
+      Classifiers: ['json']
+      TablePrefix: raw_intacct_ap_payments
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: DEPRECATE_IN_DATABASE
+      RecrawlPolicy:
+        RecrawlBehavior: CRAWL_EVERYTHING
+  IntacctGLEntriesCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: intacct_gl_entries_json_crawler
+      Role: !GetAtt GlueCrawlerRole.Arn
+      DatabaseName: gwi_raw
+      Targets:
+        S3Targets:
+          - Path: s3://gwi-raw-us-east-2-pc/raw/intacct_json/gl_entries/
+      Schedule: cron(20 2 * * ? *)
+      Classifiers: ['json']
+      TablePrefix: raw_intacct_gl_entries
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: DEPRECATE_IN_DATABASE
+      RecrawlPolicy:
+        RecrawlBehavior: CRAWL_EVERYTHING
+  PlattRawCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: platt-raw-crawler
+      Role: !GetAtt GlueCrawlerRole.Arn
+      DatabaseName: gwi_raw
+      Targets:
+        S3Targets:
+          - Path: s3://gwi-raw-us-east-2-pc/raw/platt/
+      Schedule: cron(22 2 * * ? *)
+      Classifiers: ['csv']
+      TablePrefix: raw_platt_
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: DEPRECATE_IN_DATABASE
+      RecrawlPolicy:
+        RecrawlBehavior: CRAWL_EVERYTHING
+  SalesforceRawCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: salesforce-raw-crawler
+      Role: !GetAtt GlueCrawlerRole.Arn
+      DatabaseName: gwi_raw
+      Targets:
+        S3Targets:
+          - Path: s3://gwi-raw-us-east-2-pc/raw/salesforce/
+      Schedule: cron(24 2 * * ? *)
+      Classifiers: ['csv']
+      TablePrefix: raw_salesforce_
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: DEPRECATE_IN_DATABASE
+      RecrawlPolicy:
+        RecrawlBehavior: CRAWL_EVERYTHING
+  VetroRawCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: vetro-raw-crawler
+      Role: !GetAtt GlueCrawlerRole.Arn
+      DatabaseName: gwi_raw
+      Targets:
+        S3Targets:
+          - Path: s3://gwi-raw-us-east-2-pc/raw/vetro/
+      Schedule: cron(26 2 * * ? *)
+      Classifiers: ['json']
+      TablePrefix: raw_vetro_exports
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: DEPRECATE_IN_DATABASE
+      RecrawlPolicy:
+        RecrawlBehavior: CRAWL_EVERYTHING
+Outputs:
+  CrawlerRoleArn:
+    Value: !GetAtt GlueCrawlerRole.Arn
+    Description: IAM role used by all crawlers.

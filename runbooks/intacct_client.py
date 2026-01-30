@@ -25,18 +25,18 @@ class IntacctClient:
         self,
         endpoint_url: Optional[str] = None,
         sender_id: Optional[str] = None,
-        sender_password: Optional[str] = None,
+        sender_REDACTED = None,
         company_id: Optional[str] = None,
         user_id: Optional[str] = None,
-        user_password: Optional[str] = None,
+        user_REDACTED = None,
         timeout_seconds: Optional[int] = None,
     ) -> None:
         self.endpoint_url = endpoint_url or os.environ.get("INTACCT_ENDPOINT_URL")
         self.sender_id = sender_id or os.environ.get("INTACCT_SENDER_ID")
-        self.sender_password = sender_password or os.environ.get("INTACCT_SENDER_PASSWORD")
+        self.sender_REDACTED or os.environ.get("INTACCT_SENDER_PASSWORD")
         self.company_id = company_id or os.environ.get("INTACCT_COMPANY_ID")
         self.user_id = user_id or os.environ.get("INTACCT_WS_USER_ID")
-        self.user_password = user_password or os.environ.get("INTACCT_WS_USER_PASSWORD")
+        self.user_REDACTED or os.environ.get("INTACCT_WS_USER_PASSWORD")
         self.timeout_seconds = timeout_seconds or 60
 
         missing = [

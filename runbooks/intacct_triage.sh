@@ -52,8 +52,8 @@ write_env_snapshot_safe() {
     echo "INTACCT_SENDER_ID=${INTACCT_SENDER_ID:-}"
     echo "INTACCT_COMPANY_ID=${INTACCT_COMPANY_ID:-}"
     echo "INTACCT_WS_USER_ID=${INTACCT_WS_USER_ID:-}"
-    [[ -n "${INTACCT_SENDER_PASSWORD:-}" ]] && echo "INTACCT_SENDER_PASSWORD=***" || echo "INTACCT_SENDER_PASSWORD="
-    [[ -n "${INTACCT_WS_USER_PASSWORD:-}" ]] && echo "INTACCT_WS_USER_PASSWORD=***" || echo "INTACCT_WS_USER_PASSWORD="
+    [[ -n "${INTACCT_SENDER_REDACTED ]] && echo "INTACCT_SENDER_REDACTED || echo "INTACCT_SENDER_REDACTED
+    [[ -n "${INTACCT_WS_USER_REDACTED ]] && echo "INTACCT_WS_USER_REDACTED || echo "INTACCT_WS_USER_REDACTED
   } | sed 's/[[:cntrl:]]//g'
 }
 
@@ -67,8 +67,8 @@ check_intacct_env_presence() {
       echo "PRESENT: $v"
     fi
   done
-  if [[ -n "${INTACCT_SENDER_PASSWORD:-}" ]]; then echo "PRESENT: INTACCT_SENDER_PASSWORD (masked)"; else echo "MISSING: INTACCT_SENDER_PASSWORD"; missing=$((missing+1)); fi
-  if [[ -n "${INTACCT_WS_USER_PASSWORD:-}" ]]; then echo "PRESENT: INTACCT_WS_USER_PASSWORD (masked)"; else echo "MISSING: INTACCT_WS_USER_PASSWORD"; missing=$((missing+1)); fi
+  if [[ -n "${INTACCT_SENDER_REDACTED ]]; then echo "PRESENT: INTACCT_SENDER_PASSWORD (masked)"; else echo "MISSING: INTACCT_SENDER_PASSWORD"; missing=$((missing+1)); fi
+  if [[ -n "${INTACCT_WS_USER_REDACTED ]]; then echo "PRESENT: INTACCT_WS_USER_PASSWORD (masked)"; else echo "MISSING: INTACCT_WS_USER_PASSWORD"; missing=$((missing+1)); fi
   echo "missing_count=$missing"
   return 0
 }

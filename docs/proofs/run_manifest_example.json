@@ -1,0 +1,133 @@
+{
+  "run_timestamp_utc": "2026-01-26T13:37:49Z",
+  "caller_identity": {
+    "UserId": "AIDA2G6QUXSZ3H64Q33WS",
+    "Account": "702127848627",
+    "Arn": "arn:aws:iam::702127848627:user/patch-vetro-exports"
+  },
+  "local_artifacts": [
+    "Athena-gwi.session.sql",
+    "coverage_map.json",
+    "integration_gaps.md",
+    "investor_answers.md",
+    "investor_proof_pack.json",
+    "proofpack/01_passings_split.sql",
+    "proofpack/02_gl_revenue.sql",
+    "proofpack/03_gl_freshness.sql",
+    "intacct_ingest_no_tee.sh",
+    "investor_memo.md",
+    "run_manifest.json",
+    "investor_questions_2026_v2_all_lines.csv",
+    "investor_questions_2026_v2_questions.csv",
+    "investor_questions_2026_v2_review.md"
+  ],
+  "s3_prefixes": [
+    "s3://gwi-raw-us-east-2-pc/raw/manual/2026-01-23/",
+    "s3://gwi-raw-us-east-2-pc/raw/manual/2026-01-23/sources/",
+    "s3://gwi-raw-us-east-2-pc/raw/investor_docs/2026-01-23/",
+    "s3://gwi-raw-us-east-2-pc/raw/intacct_json/gl_entries/run_date=2026-01-23/",
+    "s3://gwi-raw-us-east-2-pc/raw/intacct_json/gl_entries/2026-01-23/",
+    "s3://gwi-raw-us-east-2-pc/raw/intacct_xml/gl_entries/2026-01-23/",
+    "s3://gwi-raw-us-east-2-pc/raw/intacct_xml/vendors/2026-01-23/",
+    "s3://gwi-raw-us-east-2-pc/raw/intacct_xml/customers/2026-01-23/",
+    "s3://gwi-raw-us-east-2-pc/raw/intacct_xml/ap_bills/2026-01-23/",
+    "s3://gwi-raw-us-east-2-pc/raw/intacct_xml/ap_payments/2026-01-23/",
+    "s3://gwi-raw-us-east-2-pc/raw/intacct/heartbeat/",
+    "s3://gwi-raw-us-east-2-pc/raw/manual/2026-01-26/",
+    "s3://gwi-raw-us-east-2-pc/raw/manual/2026-01-26/sources/",
+    "s3://gwi-raw-us-east-2-pc/raw/manual/2026-01-26/converted/",
+    "s3://gwi-raw-us-east-2-pc/raw/manual/2026-01-26/converted/Investor_Q_A_List_2026_v2_01.24.2026/analysis/"
+  ],
+  "ingest_runs": [
+    {
+      "object": "GLENTRY",
+      "run_date": "2026-01-23",
+      "rows": 1000,
+      "latest_entry_date": "2019-09-05",
+      "s3_json_uri": "s3://gwi-raw-us-east-2-pc/raw/intacct_json/gl_entries/run_date=2026-01-23/gl_entries.json",
+      "metadata_s3_uri": "s3://gwi-raw-us-east-2-pc/raw/intacct_json/gl_entries/run_date=2026-01-23/metadata.json"
+    }
+  ],
+  "manual_sources": [
+    {
+      "file": "/Users/patch/Downloads/Investor Questions - GWI Business.xlsx",
+      "s3_uri": "s3://gwi-raw-us-east-2-pc/raw/manual/2026-01-26/sources/Investor Questions - GWI Business.xlsx"
+    },
+    {
+      "file": "/Users/patch/Downloads/LC_Pipeline_2025.xlsx",
+      "s3_uri": "s3://gwi-raw-us-east-2-pc/raw/manual/2026-01-26/sources/LC_Pipeline_2025.xlsx"
+    },
+    {
+      "file": "/Users/patch/Downloads/Skye Canyon Short Form Model_v3.xlsx",
+      "s3_uri": "s3://gwi-raw-us-east-2-pc/raw/manual/2026-01-26/sources/Skye Canyon Short Form Model_v3.xlsx"
+    },
+    {
+      "file": "/Users/patch/Downloads/Chart of accounts.xls",
+      "s3_uri": "s3://gwi-raw-us-east-2-pc/raw/manual/2026-01-26/sources/Chart of accounts.xls"
+    },
+    {
+      "file": "/Users/patch/Downloads/Sage info.xlsx",
+      "s3_uri": "s3://gwi-raw-us-east-2-pc/raw/manual/2026-01-26/sources/Sage info.xlsx"
+    },
+    {
+      "file": "/Users/patch/Downloads/WIP Mac Mountain Financials_2025.12.16vExternal.xlsx",
+      "s3_uri": "s3://gwi-raw-us-east-2-pc/raw/manual/2026-01-26/sources/WIP Mac Mountain Financials_2025.12.16vExternal.xlsx"
+    },
+    {
+      "file": "/Users/patch/Downloads/Investor Q&A List_2026 v2 (01.24.2026).docx",
+      "s3_uri": "s3://gwi-raw-us-east-2-pc/raw/manual/2026-01-26/sources/Investor Q&A List_2026 v2 (01.24.2026).docx"
+    },
+    {
+      "file": "/Users/patch/Downloads/Pioneer One KPI Summary.xlsx",
+      "s3_uri": "s3://gwi-raw-us-east-2-pc/raw/manual/2026-01-26/sources/Pioneer One KPI Summary.xlsx"
+    }
+  ],
+  "notes": [
+    {
+      "timestamp_utc": "2026-01-26T13:14:53Z",
+      "event": "glue_crawler_updated",
+      "details": {
+        "crawler": "gwi_manual_raw_crawler",
+        "s3_path": "s3://gwi-raw-us-east-2-pc/raw/manual/",
+        "iam_policy_attached": "glue-manual-s3-access"
+      }
+    },
+    {
+      "timestamp_utc": "2026-01-26T13:16:04Z",
+      "event": "manual_docx_ingested",
+      "details": {
+        "file": "Investor Q&A List_2026 v2 (01.24.2026).docx",
+        "converted_prefix": "s3://gwi-raw-us-east-2-pc/raw/manual/2026-01-26/converted/Investor_Q_A_List_2026_v2_01.24.2026/"
+      }
+    },
+    {
+      "timestamp_utc": "2026-01-26T13:20:14Z",
+      "event": "investor_questions_review_generated",
+      "details": {
+        "analysis_prefix": "s3://gwi-raw-us-east-2-pc/raw/manual/2026-01-26/converted/Investor_Q_A_List_2026_v2_01.24.2026/analysis/",
+        "local_files": [
+          "investor_questions_2026_v2_all_lines.csv",
+          "investor_questions_2026_v2_questions.csv",
+          "investor_questions_2026_v2_review.md"
+        ]
+      }
+    },
+    {
+      "timestamp_utc": "2026-01-26T13:27:59Z",
+      "event": "manual_kpi_ingested",
+      "details": {
+        "file": "Pioneer One KPI Summary.xlsx",
+        "converted_prefix": "s3://gwi-raw-us-east-2-pc/raw/manual/2026-01-26/converted/Pioneer_One_KPI_Summary/"
+      }
+    },
+    {
+      "timestamp_utc": "2026-01-26T13:37:49Z",
+      "event": "intacct_full_history_run_started",
+      "details": {
+        "run_date": "2026-01-26",
+        "gl_entries_lookback_days": 9999,
+        "script": "intacct_ingest_no_tee.sh"
+      }
+    }
+  ]
+}

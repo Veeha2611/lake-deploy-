@@ -1,0 +1,14 @@
+2026-01-28 14:21:28      18841 raw/vetro_ui/plan_id=2/dt=2026-01-28/export_2026-01-28T192127730Z.zip
+2026-01-28 15:30:59      10577 raw/vetro_ui/plan_id=218/dt=2026-01-28/export_2026-01-28T203058351Z.zip
+2026-01-28 15:31:53      14969 raw/vetro_ui/plan_id=224/dt=2026-01-28/export_2026-01-28T203152298Z.zip
+2026-01-28 15:33:10      10995 raw/vetro_ui/plan_id=239/dt=2026-01-28/export_2026-01-28T203309341Z.zip
+2026-01-28 15:58:53      19112 raw/vetro_ui/plan_id=316/dt=2026-01-28/export_2026-01-28T205852657Z.zip
+2026-01-28 14:22:29      14596 raw/vetro_ui/plan_id=4/dt=2026-01-28/export_2026-01-28T192228881Z.zip
+2026-01-28 14:18:20      25789 raw/vetro_ui/plan_id=408/dt=2026-01-28/export_2026-01-28T191819159Z.zip
+2026-01-28 23:10:12      16675 raw/vetro_ui/plan_id=408/dt=2026-01-29/export_2026-01-29T041011060Z.zip
+2026-01-28 14:24:21      27851 raw/vetro_ui/plan_id=5/dt=2026-01-28/export_2026-01-28T192420358Z.zip
+2026-01-28 13:33:20    1098810 raw/vetro_ui/plans/dt=2026-01-28/plans.json
+2026-01-28 13:32:37    1040091 raw/vetro_ui/plans/dt=2026-01-28/plans_raw.json
+
+Total Objects: 11
+   Total Size: 2298306

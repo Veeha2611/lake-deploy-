@@ -43,7 +43,7 @@ def write_state(bucket: str, key: str, state: dict) -> None:
 
 def lambda_handler(event, context):
     plan_ids = [p.strip() for p in os.environ["PLAN_IDS"].split(",") if p.strip()]
-    token = get_secret(os.environ["VETRO_TOKEN_SECRET"])
+    REDACTED
 
     base_url = os.environ.get("VETRO_BASE_URL_V3", "https://api.vetro.io/v3").rstrip("/")
     export_bucket = os.environ["EXPORT_BUCKET"]

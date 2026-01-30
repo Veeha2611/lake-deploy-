@@ -1,0 +1,1913 @@
+plan_id,plan_name,status,exported_in_raw_vetro_ui,in_backfill_queue
+2,Initial Plan,archived,yes,no
+4,Initial Plan,archived,yes,no
+5,Initial Plan,active,yes,no
+57,Oak Point,archived,no,no
+58,"Biddeford, City of",archived,no,no
+59,Sullivan Tire,archived,no,no
+60,Thermoformed Plastics,archived,no,no
+61,Best Transit,archived,no,no
+62,BMS & GM Pollack,archived,no,no
+63,Main St FTTx,archived,no,no
+64,501 Main St MTU,archived,no,no
+65,Dream Local,archived,no,no
+66,Gusco Consultant,archived,no,no
+68,AVX,archived,no,no
+69,Atlantic Comfort Systems,archived,no,no
+70,Summit of NE,archived,no,no
+71,Results Engineering,archived,no,no
+72,439 Main St MTU,archived,no,no
+73,445 Main St MTU,archived,no,no
+74,Edge Marketing and Tele Services,archived,no,no
+76,Seacoast RV,archived,no,no
+78,Bill Dodge,archived,no,no
+80,Maine Alpaca,archived,no,no
+81,Yarmouth Insurance,archived,no,no
+85,Backbone Plan,archived,no,no
+86,MTU Plan,archived,no,no
+87,Regional Medical Center,archived,no,no
+88,Airo Communications,archived,no,no
+89,187 Wilton Rd,archived,no,no
+90,Eastmill FCU,archived,no,no
+92,New Move,archived,no,no
+93,Initial Plan,archived,no,no
+94,Eastern Mechanical,archived,no,no
+95,Molleur Law,archived,no,no
+96,DSM,archived,no,no
+97,Methot Insurance,archived,no,no
+98,YMCA,archived,no,no
+99,32 North,archived,no,no
+100,57 Barra Rd - MTU,archived,no,no
+101,CSI,archived,no,no
+102,Martins Point,archived,no,no
+103,Holiday Inn Express,archived,no,no
+104,"Dennett, Craig, & Pate",archived,no,no
+105,265 Main St - MTU,archived,no,no
+106,Maine Molecular,archived,no,no
+107,DMA,archived,no,no
+108,Saco Police,archived,no,no
+109,Sean Byrne,archived,no,no
+110,SMAA,archived,no,no
+111,Dan's Automotive,archived,no,no
+112,Casco Bay Eyecare,archived,no,no
+113,Casco Bay Eyecare,archived,no,no
+114,Southern Maine Oral,archived,no,no
+115,Main Media,archived,no,no
+116,YMCA Child Care Center,archived,no,no
+117,Biddeford Water Treatment,archived,no,no
+118,Biddeford PD,archived,no,no
+119,Biddeford Rec,archived,no,no
+120,Biddeford Public Works,archived,no,no
+121,SMMC,archived,no,no
+122,Soleras Advanced,archived,no,no
+123,Pepperell Mill,archived,no,no
+124,NE Patients Group,archived,no,no
+125,Cyr Bus Lines,archived,no,no
+126,Allied Realty,archived,no,no
+127,Coastal Glass,archived,no,no
+128,New Life Christian,archived,no,no
+129,Saint Andre Home,archived,no,no
+130,Joe Troegners,archived,no,no
+131,Beacon Eyecare,archived,no,no
+132,Hemlock Grove Campground,archived,no,no
+133,Hissong,archived,no,no
+134,NVEST,archived,no,no
+135,Time and Quiet Press,archived,no,no
+136,1979 Portland Rd,archived,no,no
+137,Sea Mist,archived,no,no
+138,Wells Signal Cabinet,archived,no,no
+146,S&J Real Estate,archived,no,no
+147,Initial Plan,archived,no,no
+148,Maine Health,archived,no,no
+149,Mid-Coast Hospital,archived,no,no
+150,Baxter Park Inn,archived,no,no
+151,Backbone Plan,archived,no,no
+152,MRH,archived,no,no
+153,MRH,archived,no,no
+154,MRH,archived,no,no
+157,Backbone Plan,archived,no,no
+159,Hissong Wells,archived,no,no
+160,Colonial Village,archived,no,no
+161,Misty Harbor,archived,no,no
+162,Riverside Campground,archived,no,no
+163,America's Best Value Inn,archived,no,no
+164,Knox County,archived,no,no
+165,Knox County,archived,no,no
+166,Backbone Plan,archived,no,no
+167,NMMC,archived,no,no
+168,The Dunes Motel,archived,no,no
+169,Juniper Hill Inn,archived,no,no
+170,Gorges Grant Hotel,archived,no,no
+171,180 Park Ave - MTU,archived,no,no
+173,40 Summer St,archived,no,no
+174,Gagnons Auto Sales,archived,no,no
+175,The Milestone,archived,no,no
+176,1662 Post Rd - MTU,archived,no,no
+177,Ogunquit River Inn,archived,no,no
+178,Sea View Motel,archived,no,no
+179,Penobscot McCrum,archived,no,no
+180,Front St Shipyard,archived,no,no
+182,Katahdin Motors,archived,no,no
+183,Griffeth Honda,archived,no,no
+185,Ellis Insurance,archived,no,no
+186,Clark & Howell,archived,no,no
+187,Stonewall Kitchen,archived,no,no
+188,Ballou & Bedell,archived,no,no
+189,226 York St MTU,archived,no,no
+190,Town of Standish,archived,no,no
+191,Infinity FCU,archived,no,no
+192,Howell Labs,archived,no,no
+193,"Beagle, Steeves, & Ridge",archived,no,no
+194,Town of Dayton,archived,no,no
+195,Maine Optometry,archived,no,no
+196,Town of Lyman,archived,no,no
+197,Goodwins Mills Fire-Rescue,archived,no,no
+198,Fitch Company,archived,no,no
+199,Mardens,archived,no,no
+200,Hope Association,archived,no,no
+201,Saddleback Wind,archived,no,no
+202,Tinnys Automotive,archived,no,no
+203,Advantage Insurance,archived,no,no
+204,Motor Supply,archived,no,no
+205,APXnet,archived,no,no
+206,Palmer Realty,archived,no,no
+207,Anderson Equipment,archived,no,no
+208,Calzolaio Pasta,archived,no,no
+209,Expenent Technologies,archived,no,no
+210,Initial Plan,archived,no,no
+211,15 Main St MTU,archived,no,no
+217,Penobscot Nation Courthouse,archived,no,no
+218,Fort Andross MTU,archived,yes,no
+219,1CC MTU,archived,no,no
+220,Initial Plan,archived,no,no
+221,Initial Plan,archived,no,no
+222,Budget Traveler Inn,archived,no,no
+223,Home Office,archived,no,no
+224,Modular Design - FDH,active,yes,no
+230,480-482 MTU Plan,archived,no,no
+232,Franklin Savings Bank,archived,no,no
+233,Farmers Union,archived,no,no
+234,Farmers Union,archived,no,no
+235,Windstream,archived,no,no
+236,Wilson Lake Inn,archived,no,no
+237,Dayton Sand & Gravel,archived,no,no
+238,Martins Point HC,archived,no,no
+239,Initial Overlay,archived,yes,no
+241,Kennebunk L&P,archived,no,no
+242,Steel House 2,archived,no,no
+243,Madison Electric,archived,no,no
+244,Franklin Chrysler,archived,no,no
+245,Franklin Savings Bank,archived,no,no
+246,WMCA,archived,no,no
+247,UFCU,archived,no,no
+248,Waterville Pediatrics,archived,no,no
+249,Cold Brook Saab,archived,no,no
+250,Motor Supply,archived,no,no
+251,Motor Supply,archived,no,no
+252,NE Occupational,archived,no,no
+253,Realty of Maine,archived,no,no
+254,Hudson Valley Towers,archived,no,no
+255,Christopher Shupe,archived,no,no
+256,Bangor Daily News,archived,no,no
+257,JSI Store Fixtures,archived,no,no
+258,Mayo Mill,archived,no,no
+259,Daves World,archived,no,no
+260,KVHC,archived,no,no
+261,Motor Supply,archived,no,no
+263,KVHC,archived,no,no
+264,KVHC,archived,no,no
+265,KVHC,archived,no,no
+266,Health Access Networks,archived,no,no
+267,Health Access Networks,archived,no,no
+268,SW Collins,archived,no,no
+269,SW Collins,archived,no,no
+270,Daigle Oil,archived,no,no
+271,Foresight Engineering,archived,no,no
+272,Fraser Timber,archived,no,no
+273,Daigle Oil,archived,no,no
+274,County Physical Therapy,archived,no,no
+275,SW Collins,archived,no,no
+276,County Physical Therapy,archived,no,no
+277,Central Maine Building Supplies,archived,no,no
+278,Gateway Motel,archived,no,no
+279,Daigle Oil,archived,no,no
+280,Daigle Oil,archived,no,no
+281,Porvair Filtration,archived,no,no
+282,Bangor Daily News,archived,no,no
+283,Northern Maine Development Commission,archived,no,no
+284,County Federal Credit Union,archived,no,no
+285,Maine Veterans Home,archived,no,no
+286,SW Collins,archived,no,no
+287,Cunningham Security,archived,no,no
+288,MTU,archived,no,no
+289,First Parish Church,archived,no,no
+290,Chinburg Mill,archived,no,no
+291,Dyer School,archived,no,no
+292,Kelco,archived,no,no
+294,Washington County Council,archived,no,no
+295,Maine Veterans Home,archived,no,no
+296,4 Maple St Milbridge,archived,no,no
+297,Labrees Bakery,archived,no,no
+299,Pamola Motor Lodge,archived,no,no
+300,Town of East Millinocket,archived,no,no
+301,Town of East Millinocket,archived,no,no
+303,City of PI,archived,no,no
+304,City of PI,archived,no,no
+305,Hampton Inn,archived,no,no
+306,Duff Associates,archived,no,no
+307,Franklin-Somerset FCU,archived,no,no
+308,Downeast Magazine - 680 Commercial St,archived,no,no
+309,Franklin Printing,archived,no,no
+310,Franklin Memorial,archived,no,no
+311,Hampton Inn,archived,no,no
+312,Fairfield Inn,archived,no,no
+313,MTU,archived,no,no
+314,Maine Mental Health,archived,no,no
+315,Residential,archived,no,no
+316,FTTX Plan,archived,yes,no
+317,WAGM,archived,no,no
+318,County FCU,archived,no,no
+319,County Physical Therapy,archived,no,no
+320,Percys Auto Sales,archived,no,no
+321,SW Collins,archived,no,no
+322,Daigle Oil,archived,no,no
+323,Sargent Trucking,archived,no,no
+324,Northern Lighthouse,archived,no,no
+325,Pinelad Farms,archived,no,no
+326,TruChoice FCU,archived,no,no
+327,Brunswick Hotel,archived,no,no
+328,Initial Plan,active,no,no
+329,Initial Plan,active,no,no
+330,Wayside Publishing,archived,no,no
+331,5 Elm St MTU,archived,no,no
+332,21 Elm St,archived,no,no
+333,284 Main St MTU,archived,no,no
+334,Katrina Underhill,archived,no,no
+335,Town of Houlton,archived,no,no
+336,KVHC,archived,no,no
+337,Yorks of Houlton,archived,no,no
+338,Freightliner of Maine,archived,no,no
+339,County FCU,archived,no,no
+340,Scamps Transportation,archived,no,no
+341,Iveys Motor Lodge,archived,no,no
+342,Daigle Oil,archived,no,no
+343,SW Collins,archived,no,no
+344,Daigle Oil,archived,no,no
+345,East Grand Health Center,archived,no,no
+346,Environmental Wardens,archived,no,no
+347,Passamaquoddy Tribe,archived,no,no
+348,Axiom Princeton Tower,archived,no,no
+349,Passamaquoddy Rec Center,archived,no,no
+350,Passamaquoddy Indian Township Housing,archived,no,no
+351,Indian Township Police and Fire,archived,no,no
+352,A1 Computers,archived,no,no
+353,Zach Beane,archived,no,no
+354,WCCC,archived,no,no
+355,DECH,archived,no,no
+356,Axiom,archived,no,no
+357,WHCA,archived,no,no
+358,WHCA,archived,no,no
+359,MDI,archived,no,no
+360,Bucksport Regional Health,archived,no,no
+361,Seaboard FCU,archived,no,no
+362,Ellsworth American,archived,no,no
+363,Rooster Brothers,archived,no,no
+364,CTME,archived,no,no
+365,Belmont Motel,archived,no,no
+366,SMCC Portland FTTX,active,no,no
+369,Youngs Market,archived,no,no
+370,Franklin-Somerset FCU,archived,no,no
+371,Clark Auto Parts,archived,no,no
+372,Franklin County Animal Shelter,archived,no,no
+373,George & Gypsie Underhill,archived,no,no
+374,Hilton Garden Inn,archived,no,no
+375,Brown Goldsmiths,archived,no,no
+376,Orono Public Safety,archived,no,no
+377,Penobscot Valley Dermatology,archived,no,no
+378,Wells Library,archived,no,no
+379,Campus Crest,archived,no,no
+380,University Inn,archived,no,no
+381,The Avenue at Orono,archived,no,no
+382,Maine Savings FCU,archived,no,no
+383,Old Town - 136 Center St,archived,no,no
+384,Old Town City Hall,archived,no,no
+385,Old Town Library,archived,no,no
+386,Old Town Public Safety,archived,no,no
+387,Old Town Public Works,archived,no,no
+388,Old Town Airport,archived,no,no
+389,Old Town Rec Center,archived,no,no
+390,Penobscot Nation,archived,no,no
+391,Townsquare Media,archived,no,no
+393,Modem Wavs,archived,no,no
+394,215 Main St MTU,archived,no,no
+396,Mathews Brothers,archived,no,no
+397,Information Technology Exchange,archived,no,no
+398,Town of Searsport,archived,no,no
+399,Perrys Nut House,archived,no,no
+400,Maine Outdoor Sportsman,archived,no,no
+401,Fay Sylvan,archived,no,no
+402,Taylor Made Builders,archived,no,no
+403,Maine Energy,archived,no,no
+404,Penobscot Marine Museum Library,archived,no,no
+405,Penobscot Marine Museum Office,archived,no,no
+406,Penobscot Marine Museum Store,archived,no,no
+407,The Sled Shop,archived,no,no
+408,Initial Rockport FTTX Network,archived,yes,no
+409,Town of Millinocket - Fire,archived,no,no
+410,Town of Millinocket - City Hall,archived,no,no
+411,Rockland Food Services,archived,no,no
+412,Plants Unlimited - 629 Commercial St,archived,no,no
+415,Design Group,archived,no,no
+416,Franklin-Somerset FCU,archived,no,no
+417,Redbank Community Center,active,no,no
+419,Think Tank,archived,no,no
+420,Mardens,archived,no,no
+421,Canton Mt Wind,archived,no,no
+422,Design Lab Drop Rework,archived,no,no
+423,Luc Bergeron,archived,no,no
+424,Residential - 84 Main St,archived,no,no
+425,Desiree Pritchard,archived,no,no
+426,Town of Bucksport,archived,no,no
+427,Go Development and First Part of Drapeau St,archived,no,no
+428,City of Belfast,archived,no,no
+429,Buzzvote,archived,no,no
+430,Merrybell Motel,archived,no,no
+431,Nickerson Professional Assoc,archived,no,no
+432,Northeast Boat,archived,no,no
+433,Moser Law PA,archived,no,no
+435,Joe Bornstein,archived,no,no
+436,Allied Construction,archived,no,no
+437,51 US Route 1 MTU,archived,no,no
+438,Sullivan Tire,archived,no,no
+439,200 US Route 1 MTU,archived,no,no
+440,360 US Route 1 MTU,archived,no,no
+441,New England Tech Air,archived,no,no
+442,Alere,archived,no,no
+443,Bricks Cabins,archived,no,no
+449,EMEC,archived,no,no
+450,EMEC,archived,no,no
+451,Child & Family Opp,archived,no,no
+452,Northern Maine General,archived,no,no
+454,Rocknak Yacht Sales - 10 Camden St,archived,no,no
+456,Residential - 42 Camden St,archived,no,no
+457,Residential - 50 Camden St,archived,no,no
+458,EES Consulting - 61 Main St,archived,no,no
+459,Residential - 23 Main St,archived,no,no
+460,Priestley & Associates - 23 Central St,archived,no,no
+461,Residential - 8 Franklin St,archived,no,no
+462,Shephard Building - 18 Central St,archived,no,no
+463,Residential - 8 Church St,archived,no,no
+465,Residential - 162 Russell Ave,archived,no,no
+466,Residential - 165 Russell Ave,archived,no,no
+467,Public Safety - 85 Main St,archived,no,yes
+468,Residential - 29 Mechanic St,archived,no,yes
+470,Union Hall - 24 Central St,archived,no,yes
+471,Rockport Marine - 1 Main St,archived,no,yes
+472,Penbay Oil - 11 Camden St,archived,no,yes
+474,Caribou Inn,archived,no,yes
+475,Presque Isle Inn,archived,no,yes
+478,Tech Incubator,archived,no,yes
+479,Park St Laundry,archived,no,yes
+480,Palmer & Krause DDS,archived,no,yes
+481,Residential,archived,no,yes
+482,Residential,archived,no,yes
+483,"Milad Bozorgnia, DMD",archived,no,yes
+484,Best Western,archived,no,yes
+485,Howard Johnson,archived,no,yes
+486,National Distributors,archived,no,yes
+487,Quality Inn,archived,no,yes
+488,Spectrum Medical,archived,no,yes
+489,Spectrum Medical,archived,no,yes
+490,Symquest,archived,no,yes
+494,Dental Specialists of Maine,archived,no,yes
+495,Maine Neurology,archived,no,yes
+496,Portland Volvo,archived,no,yes
+497,Patriot Subaru,archived,no,yes
+498,Southern Maine Motors,archived,no,yes
+500,Southern Maine Agency on Aging,archived,no,yes
+501,Transfer Station,archived,no,yes
+502,Frozen Flamingo MTU,archived,no,yes
+503,Portland Water District,archived,no,yes
+504,Maine Medical Center,archived,no,yes
+505,Casco Bay Surgery,archived,no,yes
+506,Dental Specialists of Maine,archived,no,yes
+507,Christopher Clayton,archived,no,yes
+508,YMCA,archived,no,yes
+509,Sullivan Tire,archived,no,yes
+510,Nichols,archived,no,yes
+511,Origin BJJ,archived,no,yes
+512,MTU Plan,archived,no,yes
+513,Congregation Bet Ha'am,archived,no,yes
+514,Grand Theatre,archived,no,yes
+515,175 Portland Rd MTU,archived,no,yes
+516,Franklin-Somerset FCU,archived,no,yes
+519,66 Main St Ellsworth,active,no,yes
+610,Allied Physical Therapy and MTU,archived,no,yes
+611,USM,archived,no,yes
+612,Preble Resources,archived,no,yes
+613,Catholic Diocese,archived,no,yes
+614,MTU,archived,no,yes
+615,MTU,archived,no,yes
+616,Power Pay,archived,no,yes
+617,Alexander and Schmidt,archived,no,yes
+618,SequelCare of Maine,archived,no,yes
+619,Freeport Inn,archived,no,yes
+620,EconoLodge,archived,no,yes
+621,Delorme,archived,no,yes
+622,YMCA,archived,no,yes
+623,Winter People,archived,no,yes
+624,Alexander & Schmidt,archived,no,yes
+625,Nexus,archived,no,yes
+626,MTU,archived,no,yes
+627,MTU,archived,no,yes
+630,Our Katahdin,archived,no,yes
+633,Brown Appliances,archived,no,yes
+634,FirstLight Data Center,archived,no,yes
+635,Full Circle Painting,archived,no,yes
+636,MTU Plan,archived,no,yes
+637,First Federal Savings,archived,no,yes
+639,191 Highland Ave,archived,no,yes
+640,Watershed School,archived,no,yes
+641,Conduit Plan,active,no,yes
+642,Aroostook Regional Transport,archived,no,yes
+644,Volk Packaging,archived,no,yes
+650,Family Chiropractic of Kennebunk,archived,no,yes
+651,24 Pillsbury St South Portland,archived,no,yes
+657,Global,active,no,yes
+660,Maine Tech Int,archived,no,yes
+663,As of 1.9.18,archived,no,yes
+664,As of 1.11.18,archived,no,yes
+665,As of 1.17.2018,archived,no,yes
+666,As of 1.18.2018,archived,no,yes
+667,Brunswick - Copper to Fiber Analysis,active,no,yes
+668,Portland - Copper to Fiber Analysis,active,no,yes
+669,Westbrook - Copper to Fiber Analysis,active,no,yes
+670,Scarborough - Copper to Fiber Analysis,active,no,yes
+671,Saco - Copper to Fiber Analysis,active,no,yes
+672,Biddeford - Copper to Fiber Analysis,active,no,yes
+673,Kennebunk - Copper to Fiber Analysis,active,no,yes
+674,Augusta - Copper to Fiber Analysis,active,no,yes
+675,Gardiner - Copper to Fiber Analysis,active,no,yes
+676,Waterville - Copper to Fiber Analysis,active,no,yes
+677,Bangor - Copper to Fiber Analysis,active,no,yes
+678,Ellsworth - Copper to Fiber Analysis,active,no,yes
+679,Camden - 5 Mountain St,archived,no,yes
+682,Coastal Ortho,archived,no,yes
+683,Funtown,archived,no,yes
+686,Twilite Motel,archived,no,yes
+687,South Portland - Copper to Fiber Analysis,active,no,yes
+688,Wells Beach Campground,archived,no,yes
+689,Rockport Residential -19 Main St,archived,no,yes
+690,Powers and French,archived,no,yes
+691,Auburn-Lewiston - Firstlight FTTH,active,no,yes
+693,Lincoln FCU,archived,no,yes
+694,Jo Johnson,archived,no,yes
+695,Carpenter Associates,archived,no,yes
+696,Maine Waterside Trails,archived,no,yes
+697,York Chamber of Commerce,archived,no,yes
+698,Acadia Realty Group,archived,no,yes
+699,Acadia Music Group,archived,no,yes
+705,Bracketts Market,archived,no,yes
+706,North Country Auto,archived,no,yes
+708,Richardson Allen Furniture,archived,no,yes
+709,North Country Auto,archived,no,yes
+710,North Country Auto,archived,no,yes
+711,North Country Auto,archived,no,yes
+712,Americas Best Value Inn,archived,no,yes
+713,Max Sale,archived,no,yes
+714,NMMC,archived,no,yes
+715,Manpower,archived,no,yes
+716,Dutch Chevorlet,archived,no,yes
+717,Developers Collab,archived,no,yes
+720,Sanford-Kennebunk - Market Analysis 2019,active,no,yes
+721,Timothy Keenan,archived,no,yes
+722,Work First,archived,no,yes
+723,Prescott Metal,archived,no,yes
+725,Old Town-Orono - Market Analysis 2019,active,no,yes
+727,465 Congress St MTU,archived,no,yes
+728,Katahdin True Value,archived,no,yes
+729,Maine Optometry,archived,no,yes
+730,11 Main St MTU,archived,no,yes
+731,Side Country Sports,archived,no,yes
+732,Phase 1,active,no,yes
+743,Brunswick - Town of - FTTX,active,no,yes
+744,Brunswick - Columbia Ave - $250k,active,no,yes
+752,Farley and Sons,archived,no,yes
+754,Scarborough - Pleasant Hill 1,active,no,yes
+755,Scarborough - Pleasant Hill 2,active,no,yes
+756,Scarborough - Pleasant Hill Loop - $1M,active,no,yes
+757,Scarborough - Pleasant Hill 3,active,no,yes
+764,South Portland - North of SMCC - $500k,active,no,yes
+765,South Portland - South of SMCC - $500k,active,no,yes
+766,South Portland - Knightville - $250k,active,no,yes
+767,South Portland - Pleasantdale - $500k,active,no,yes
+768,South Portland - Meetinghouse Hill - $500k,active,no,yes
+769,Topsham - Fairgrounds - $1M,active,no,yes
+770,Topsham - Fairgrounds - $1M,active,no,yes
+771,Skowhegan - Downtown - $1M,active,no,yes
+773,Waterville - South Elm St - $750k,active,no,yes
+774,Waterville - College Ave - $500k,active,no,yes
+775,Waterville - Mayflower Hill - $500k,active,no,yes
+777,Waterville - South Elm St - $750k,active,no,yes
+778,Waterville - Main St/College Ave - $500k,active,no,yes
+779,Waterville - Mayflower Hill - $500k,active,no,yes
+780,WKK - Fletcher St - $500k,active,no,yes
+781,Kennebunkport - Downtown - $300k,active,no,yes
+782,WKK - Downtown - $300k,active,no,yes
+783,Air & Water Quality,archived,no,yes
+784,Wells - CO Area - $1M,active,no,yes
+785,WKK - CO Area - $1M,active,no,yes
+788,Saco - Maine Sports Arena,active,no,yes
+789,Pond Cove Millworks,active,no,yes
+791,Tanous & Snow,archived,no,yes
+792,Northland Custom Flooring,active,no,yes
+793,Expenet,archived,no,yes
+794,Backbone Design,active,no,yes
+795,Zone 1,active,no,yes
+796,Zone 2,active,no,yes
+797,Zone 3,active,no,yes
+798,Zone 4,active,no,yes
+799,Zone 5,active,no,yes
+800,Zone 6,active,no,yes
+801,Zone 7,active,no,yes
+802,Zone 8,active,no,yes
+803,Zone 9,active,no,yes
+804,Zone 10,active,no,yes
+805,Zone 11,active,no,yes
+806,Zone 12,active,no,yes
+807,Zone 13,active,no,yes
+808,Zone 14,active,no,yes
+809,Zone 15,active,no,yes
+810,Zone 16,active,no,yes
+811,Zone 17,active,no,yes
+812,Zone 18,active,no,yes
+813,Zone 19,active,no,yes
+814,Zone 20,active,no,yes
+815,Zone 21,active,no,yes
+816,Zone 22,active,no,yes
+817,Zone 23,active,no,yes
+818,Zone 25,active,no,yes
+819,Zone 24,active,no,yes
+820,Maine Urology,archived,no,yes
+821,112-116 Main St MTU,active,no,yes
+822,Black Bird Creative,active,no,yes
+823,Lincoln County,active,no,yes
+824,Lincoln News,archived,no,yes
+825,Julie Albert,active,no,yes
+827,Original Fiber Plan,active,no,yes
+828,Charles Dyer,active,no,yes
+829,Dan Heatley,archived,no,yes
+864,The Towne Motel,active,no,yes
+865,Rockport - Graffam and Neuro,active,no,yes
+866,Orland - RUS Hood,active,no,yes
+867,Penobscot - RUS Hood,active,no,yes
+868,Castine - RUS Hood,active,no,yes
+869,Surry - RUS Hood,active,no,yes
+870,Brooksville - RUS Hood,active,no,yes
+871,Sedgwick - RUS Hood,active,no,yes
+872,Brooklin - RUS Hood,active,no,yes
+873,Blue Hill - RUS Hood,active,no,yes
+874,Nicholas McIntosh,active,no,yes
+875,Ellsworth City Library,active,no,yes
+876,Dixfield - Market Analysis,active,no,yes
+877,Rumford-Mexico - Market Analysis,active,no,yes
+879,Newry - Market Analysis,active,no,yes
+880,Oxford - Market Analysis,active,no,yes
+887,Dixfield,active,no,yes
+888,Farmington,active,no,yes
+889,Black Pearl,active,no,yes
+891,Blue Hill,active,no,yes
+892,Eugene Slobodzian,active,no,yes
+893,Byrons Auto,active,no,yes
+894,Harmony Osteopathic,active,no,yes
+897,Greg Bell,active,no,yes
+898,Jennifer Roberge,active,no,yes
+899,Bevin McNulty,active,no,yes
+905,James Mccalsky,active,no,yes
+906,Somerset County Office of DA,active,no,yes
+907,Seasons of Smiles,active,no,yes
+908,Always Wonderful Photography,active,no,yes
+909,Pen-Bay Glass,active,no,yes
+910,Norumbega Inn,active,no,yes
+911,Casco Bay Wealth Advisors,active,no,yes
+937,Saco - 938 Portland Rd,active,no,yes
+938,Initial Plan,active,no,yes
+940,Farm to Rangeley,active,no,yes
+941,York - 1400 US Route 1,active,no,yes
+942,Bridgton - 8 Iredale St,active,no,yes
+943,Belfast - 182 Waldo Ave,active,no,yes
+944,Hopkinson & Abbondanza,active,no,yes
+945,T & B Title,active,no,yes
+946,Pyro City,active,no,yes
+953,Hancock Penn,active,no,yes
+954,Dylan Poulin,active,no,yes
+955,SequelCare,active,no,yes
+956,WHCA,active,no,yes
+957,All Coastal,active,no,yes
+960,Claire Noonan,active,no,yes
+961,David Mahany,active,no,yes
+962,Jeffrey Hartz,active,no,yes
+963,Mike Stivaletti,active,no,yes
+968,Wilton - 946 US Route 2,active,no,yes
+969,Biddeford - 7 Pearl St,active,no,yes
+970,Biddeford - 394 Hill St,active,no,yes
+971,Kyle Chapin,active,no,yes
+972,Parker Poole,active,no,yes
+977,Jo Moser,active,no,yes
+978,James Bellino,active,no,yes
+979,Bath - 12 Tower Lane,active,no,yes
+980,Don McGaffin,active,no,yes
+981,Bath - 1 Front St,active,no,yes
+982,Belfast - 50 Searsport Ave,active,no,yes
+983,Belfast - 91 Searsport Ave,active,no,yes
+984,Bath Rd Fire Dept,active,no,yes
+985,Rec Center,active,no,yes
+986,Design Plan,active,no,yes
+988,Peter Cotton,active,no,yes
+989,Foot Bridge Beach Hotel,active,no,yes
+990,Rays Plumbing,active,no,yes
+991,Tilbury House,active,no,yes
+992,South Portland - 244 Western Ave,active,no,yes
+993,John Keimel,active,no,yes
+995,Farmington - 147 Pleasant St,active,no,yes
+996,Strand Only,active,no,yes
+997,Community Energy,active,no,yes
+1002,SOPOME01,active,no,yes
+1003,KTDNMEML,active,no,yes
+1004,KTDNMEEM,active,no,yes
+1005,KTDNMEMD,active,no,yes
+1006,Early Design 3.2019,active,no,yes
+1007,Sullivans,active,no,yes
+1008,South Portland - 39 Wallace Ave,active,no,yes
+1012,South Portland Opportunity Zone,active,no,yes
+1014,Machias - 7 Ames Way,active,no,yes
+1015,South Portland - 646 Highland Ave,active,no,yes
+1016,Ellsworth - 14 Toothaker,active,no,yes
+1017,Millinocket and East Millinocket Neighborhoods,active,no,yes
+1019,Scarborough - 329 US Route 1,active,no,yes
+1020,Biddeford - 50 Adams St,active,no,yes
+1021,Belfast - 86 Lincolnville Ave,active,no,yes
+1022,Rockport - 5 Childrens Way,active,no,yes
+1023,Saco - 110 Main St,active,no,yes
+1024,Columbia Alternative,active,no,yes
+1025,Sumner - Full Town FTTX,active,no,yes
+1026,Cumberland - Pine Lane FTTX,active,no,yes
+1027,Camden - FTTX Option 1,active,no,yes
+1028,Camden - FTTX Option 2,active,no,yes
+1029,South Portland - FTTX Option Minus Maine Mall Area,active,no,yes
+1030,Machias - 61 Dublin St,active,no,yes
+1031,Phillips - ReConnect Locations,active,no,yes
+1032,Madrid - ReConnect Locations,active,no,yes
+1033,Deer Isles - ReConnect v2,active,no,yes
+1034,Strong - ReConnect Locations,active,no,yes
+1037,Whitefield - ReConnect v2,active,no,yes
+1038,Somerville - ReConnect Locations,active,no,yes
+1039,Canton - ReConnect Locations,active,no,yes
+1040,Hartford - ReConnect Locations,active,no,yes
+1041,Sumner - ReConnect Locations,active,no,yes
+1042,Buckfield - ReConnect Locations,active,no,yes
+1044,Hebron - ReConnect Locations,active,no,yes
+1046,South Portland - 20 Long Creek Dr,active,no,yes
+1047,Brunswick - 243 Neptune Dr,active,no,yes
+1048,Penobscot - RFP Proposed Area,active,no,yes
+1049,Dallas Plt - ReConnect Locations,active,no,yes
+1050,Rockport - 6 Rockport Park Center,active,no,yes
+1052,Biddeford - 10 Arctic Circle,active,no,yes
+1053,Scarborough - 24 Washington Ave,active,no,yes
+1054,Northport - 1348 Atlantic Hwy,active,no,yes
+1055,Wells - 1563 Post Rd,active,no,yes
+1057,Turner - ReConnect Locations,active,no,yes
+1058,West Paris - ReConnect Locations,active,no,yes
+1059,South Paris - ReConnect Locations,active,no,yes
+1064,Brunswick - 9 Gilman Ave,active,no,yes
+1065,Farmington - 137 High St,active,no,yes
+1067,Knightville,active,no,yes
+1068,Draft Plan Only,active,no,yes
+1070,Kennebunk - 4 Summer St,active,no,yes
+1071,Millinocket - 1024 Central St,active,no,yes
+1072,Application Design Plan,active,no,yes
+1077,Portland - 2 City Center,active,no,yes
+1078,Farmington - 531 Wilton Rd,active,no,yes
+1079,Belfast - 122 Lincolnville Ave,active,no,yes
+1080,Robbinston - 553 US Route 1,active,no,yes
+1083,Deer Isle - All premises,active,no,yes
+1084,Stonington All premises,active,no,yes
+1085,Waterford - 364 Waterford Rd,active,no,yes
+1086,Brunswick - 22 Lincoln St,active,no,yes
+1087,South Portland - 1486 Broadway,active,no,yes
+1088,Rangeley - RUS Hood,active,no,yes
+1089,Deer Isle - FTTX Backbone,active,no,yes
+1090,Route 4 - RUS Hood,active,no,yes
+1091,Madison - RUS Hood,active,no,yes
+1092,Skowhegan - RUS Hood,active,no,yes
+1094,Norridgewock - RUS Hood,active,no,yes
+1095,Canaan - RUS Hood,active,no,yes
+1096,Casco - RUS Hood,active,no,yes
+1097,Sebago - RUS Hood,active,no,yes
+1098,Raymond - RUS Hood,active,no,yes
+1099,Norway,active,no,yes
+1100,Lewiston,active,no,yes
+1101,Auburn,active,no,yes
+1102,Cabinets and Distribution,active,no,yes
+1103,Ellsworth - 1 Printing House Sq,active,no,yes
+1104,Farmington - 141 High St,active,no,yes
+1105,Freeport - 2 Stonewood Dr,active,no,yes
+1106,Farmington - 144 High St,active,no,yes
+1107,Brunswick - 74 Orion,active,no,yes
+1108,Yarmouth - 185 Spring St,active,no,yes
+1109,Brunswick - 82 Maine St,active,no,yes
+1110,Farmington - 672 Wilton Rd,active,no,yes
+1111,Perry - 1359 US Route 1,active,no,yes
+1112,Ellsworth - 163 High St,active,no,yes
+1113,Belfast - 248 Northport Ave,active,no,yes
+1114,Portland - 68 Devonshire St,active,no,yes
+1116,Rockport - 1 Limerock St,active,no,yes
+1118,Dublin Original RFP Neighborhood,active,no,yes
+1119,Portland - 489 Congress St,active,no,yes
+1120,FTTX Design,active,no,yes
+1122,Legacy Zones,active,no,yes
+1123,Dixfield - RUS Hood,active,no,yes
+1125,Phase V,active,no,yes
+1126,Rockport - 330 Commercial St,active,no,yes
+1133,Alfred St FDH,active,no,yes
+1134,Biddeford - Large Scale Hood,active,no,yes
+1135,Saco - Large Scale Hood,active,no,yes
+1136,Scarborough - Large Scale Hood,active,no,yes
+1137,Lewiston - Large Scale Hood,active,no,yes
+1138,Auburn - Large Scale Hood,active,no,yes
+1139,Brunswick - Large Scale Hood,active,no,yes
+1140,Topsham - Large Scale Hood,active,no,yes
+1141,Patten - 4 Church St,active,no,yes
+1142,Ogunquit - 248 Main St,active,no,yes
+1143,Wilton - 874 Main St,active,no,yes
+1144,Portland - 331 Cumberland Ave,active,no,yes
+1145,Bath - 638 High St,active,no,yes
+1146,Biddeford - 25 Edwards Ave,active,no,yes
+1147,Rumford to Hanover - Opp,active,no,yes
+1148,Brunswick - Opp Zone,active,no,yes
+1149,Belfast - Opp Zone,active,no,yes
+1150,Paris-Norway - Opp Zone,active,no,yes
+1151,South Bath - Opp Zone,active,no,yes
+1152,Scarborough - 144 US Route 1,active,no,yes
+1153,Farmington - 602 Wilton Rd,active,no,yes
+1154,Saco - Opp Zone,active,no,yes
+1155,Madison - Opp Zone,active,no,yes
+1156,Freeport - Large Scale Hood,active,no,yes
+1157,Yarmouth - Large Scale Hood,active,no,yes
+1158,Cumberland - Large Scale Hood,active,no,yes
+1159,Falmouth - Large Scale Hood,active,no,yes
+1160,Westbrook - Large Scale Hood,active,no,yes
+1161,Windham - Large Scale Hood,active,no,yes
+1162,Gorham - Large Scale Hood,active,no,yes
+1163,Rumford-Mexico - Large Scale Hood,active,no,yes
+1164,York - Large Scale Hood,active,no,yes
+1165,Kennebunk - Large Scale Hood,active,no,yes
+1166,Kennebunkport - Large Scale Hood,active,no,yes
+1167,Arundel - Large Scale Hood,active,no,yes
+1168,Wells - Large Scale Hood,active,no,yes
+1169,Brunswick - 49 Pleasant St,active,no,yes
+1171,SanfordNet,active,no,yes
+1172,Sanford - Large Scale Hood,active,no,yes
+1173,South Portland - Large Scale Hood,active,no,yes
+1174,Madison - 274 Main St,active,no,yes
+1175,Rockport - 22 Central St,active,no,yes
+1179,Farmington - 171 Main St,active,no,yes
+1180,Skowhegan - 98 Water St,active,no,yes
+1181,Somerville - RUS Hood,active,no,yes
+1182,South Portland - Phase I,active,no,yes
+1183,Millinocket - Opp Zone,active,no,yes
+1184,Business,active,no,yes
+1185,Residential,active,no,yes
+1186,Portland - 891 Washington Ave,active,no,yes
+1187,Saco - 25 Mill Brook Rd,active,no,yes
+1188,Skowhegan - 42 Court St,active,no,yes
+1189,Sanford - 913 Main St,active,no,yes
+1190,Kennebunk - 90 York St,active,no,yes
+1192,Farmington - RUS Hood,active,no,yes
+1193,New Sharon - RUS Hood,active,no,yes
+1194,Chesterville - RUS Hood,active,no,yes
+1195,Lewiston - Opp Zone,active,no,yes
+1196,South Portland - 218 Highland Ave,active,no,yes
+1197,Fiber Service Locations,active,no,yes
+1198,Lincolnville - 37 Shag Point Rd,active,no,yes
+1199,Biddeford - 1 Medical Center Dr,active,no,yes
+1200,Mexico - 129 Main St,active,no,yes
+1202,Ogunquit - 719 Main St,active,no,yes
+1203,Rockport - 461 Commercial St,active,no,yes
+1204,Freeport - 4 Double L St,active,no,yes
+1205,South Portland - 385 Main St,active,no,yes
+1207,Brunswick - OZ - Old Bath Rd,active,no,yes
+1208,Rumford - OZ - Downtown and Mexico,active,no,yes
+1209,Belfast - OZ - Route 1 and Downtown,active,no,yes
+1210,Paris-Norway - OZ Downtown,active,no,yes
+1211,Madison - Opp Zone Downtown,active,no,yes
+1213,Skowhegan - 398 Madison Ave,active,no,yes
+1214,Rumford - OZ - Downtown,active,no,yes
+1215,Brunswick - OZ - Wildwood,active,no,yes
+1216,South Bath - Opp Zone Dense,active,no,yes
+1217,Saco - Opp Zone Downtown,active,no,yes
+1218,Saco - Opp Zone Route 1,active,no,yes
+1219,Millinocket - OZ Millinocket,active,no,yes
+1220,Millinocket - Opp Zone East Millinocket,active,no,yes
+1221,Belfast - 139 Searsport Ave,active,no,yes
+1222,Portland - Rosemont Large Scale,active,no,yes
+1223,Portland - Forest and Woodford,active,no,yes
+1224,Portland - Deering Ctr to Nasons Corner,active,no,yes
+1225,Presque Isle - 261 Main St,active,no,yes
+1226,Wiscasset - 35 Water St,active,no,yes
+1227,Portland - West End,active,no,yes
+1228,Saco - OZ Spill Over,active,no,yes
+1229,South Portland - OZ Spill Over,active,no,yes
+1230,Mars Hill - 1 Benjamin St,active,no,yes
+1231,Madison - 339 Main St,active,no,yes
+1232,Robbinston - 666 US Route 1,active,no,yes
+1233,Rockland - Large Scale Hood,active,no,yes
+1234,Camden - Large Scale Hood,active,no,yes
+1236,Brunswick - OZ Backbone Build,active,no,yes
+1237,Brunswick - OZ Spill Over,active,no,yes
+1238,Ellsworth - Large Scale Hood,active,no,yes
+1239,Bangor - Large Scale Hood,active,no,yes
+1240,Biddeford - 316 Elm St,active,no,yes
+1241,Type II Service Locations,active,no,yes
+1243,Brunswick - 2.3M Spill Over,active,no,yes
+1244,Biddeford - 2M NMTC Hood,active,no,yes
+1246,Albany Township - ReConnect v2,active,no,yes
+1247,Greenwood - ReConnect v2,active,no,yes
+1248,Milton - ReConnect v2,active,no,yes
+1249,Newry - ReConnect v2,active,no,yes
+1250,Gilead - ReConnect v2,active,no,yes
+1251,Bethel Lateral - ReConnect v2,active,no,yes
+1253,Farmington - ReConnect v2,active,no,yes
+1254,New Sharon - ReConnect v2,active,no,yes
+1255,Blue Hill - ReConnect v2,active,no,yes
+1257,Chesterville - ReConnect v2,active,no,yes
+1258,Avon - ReConnect v2,active,no,yes
+1259,Northport - 1409 Atlantic Highway,active,no,yes
+1260,Northport - 860 Atlantic Highway,active,no,yes
+1261,Brooksville - ReConnect v2,active,no,yes
+1262,Brooklin - ReConnect v2,active,no,yes
+1263,Sedgwick - ReConnect v2,active,no,yes
+1264,Penobscot - ReConnect v2,active,no,yes
+1266,Chelsea - ReConnect v2,active,no,yes
+1267,Jefferson - ReConnect v2,active,no,yes
+1268,Nobleboro - ReConnect v2,active,no,yes
+1270,Rockport - 70 Camden St,active,no,yes
+1271,Maine West,active,no,yes
+1272,Temple - ReConnect v2,active,no,yes
+1273,Carthage - ReConnect v2,active,no,yes
+1274,Weld - ReConnect v2,active,no,yes
+1275,Portland - 106 Gilman St,active,no,yes
+1276,Vetro Design Brooksville,active,no,yes
+1288,Vetro Design Sedgwick,active,no,yes
+1289,Vetro Design Penobscot,active,no,yes
+1292,Lincolnville - 2561 Atlantic Hwy,active,no,yes
+1293,Biddeford - 366 Elm St,active,no,yes
+1294,Searsport - 1 Church St,active,no,yes
+1295,Brunswick - 22 Elm St - Temp,active,no,yes
+1297,Farmington - 125 Broadway,active,no,yes
+1298,FTTX Plan,active,no,yes
+1299,New Sharon - Backbone,active,no,yes
+1300,New Sharon - FTTX,active,no,yes
+1301,Brunswick - 5 Noble St,active,no,yes
+1302,Brunswick - 9 Cedar St,active,no,yes
+1303,Brunswick - 22 Elm St,active,no,yes
+1304,Scarborough - 9 US Route 1,active,no,yes
+1305,Sanford - 1142 Main St,active,no,yes
+1306,Sanford - 838 Main St,active,no,yes
+1307,Brunswick - 112 Columbia Ave,active,no,yes
+1308,Initial Design,active,no,yes
+1310,Wilton - 300 Main St,active,no,yes
+1311,Brunswick - 14 Moore Ave,active,no,yes
+1312,Rockport - 1047 Commercial St,active,no,yes
+1313,Ogunquit - 716 Main St,active,no,yes
+1314,Saco - 23 Millbrook Rd,active,no,yes
+1315,Canton - ConnectME,active,no,yes
+1316,Peru - ConnectME,active,no,yes
+1317,Brunswick - 11 Moore Ave,active,no,yes
+1318,Minot - ConnectME,active,no,yes
+1319,ConnectME Pre-Design,active,no,yes
+1320,South Portland - 15 Stillman St,active,no,yes
+1321,Brunswick - 135 Columbia Ave,active,no,yes
+1322,Brunswick - 162 Columbia Ave,active,no,yes
+1324,Brunswick - 129 Columbia Ave,active,no,yes
+1325,Wells - 430 Post Rd,active,no,yes
+1327,Millinocket - 936 Central St,active,no,yes
+1329,Detailed Design,active,no,yes
+1330,Preliminary Design,active,no,yes
+1331,Brunswick - 190 Columbia Ave,active,no,yes
+1332,Saco - 15 Philips Spring Rd,active,no,yes
+1333,Portland - 273 State St,active,no,yes
+1334,Brunswick - 8 Shobe Ave,active,no,yes
+1335,Brunswick - 37 Shobe Ave,active,no,yes
+1336,Brunswick - 11 Emanual Dr,active,no,yes
+1337,Chris,active,no,yes
+1338,Kerem,active,no,yes
+1339,Sean,active,no,yes
+1340,Colin,active,no,yes
+1341,Brunswick - 3 Krampf Cir,active,no,yes
+1342,Mexico - 231 Main St,active,no,yes
+1343,Brunswick - 34 Shobe Ave,active,no,yes
+1344,Brunswick - 21 Shobe Ave,active,no,yes
+1345,Medway - 2074 Medway Rd,active,no,yes
+1346,South Portland - 282 Highland Ave,active,no,yes
+1349,Saco - 1016 Portland Rd,active,no,yes
+1350,Indian Township - 9 Grand Lake Stream,active,no,yes
+1351,Ellsworth - 44 Downeast Hwy,active,no,yes
+1352,Biddeford - 5 Washington St,active,no,yes
+1353,Brunswick - 9 Shobe Ave,active,no,yes
+1354,Belfast - LCI Fiber Network,active,no,yes
+1355,Brunswick - 104 Columbia Ave,active,no,yes
+1356,Brunswick - 40 Shobe Ave,active,no,yes
+1357,Belfast - NE Lateral,active,no,yes
+1360,South Portland - 15 Ocean St,active,no,yes
+1361,Brunswick -21 Gilman Ave,active,no,yes
+1362,Biddeford - 2 Spruce St,active,no,yes
+1363,Belfast - Red 1,active,no,yes
+1364,Belfast - Red 2,active,no,yes
+1367,Belfast - Rest of Town,active,no,yes
+1369,Belfast - Airport Lateral,active,no,yes
+1370,Kennebunk - 83 Portland Rd,active,no,yes
+1371,Old Town - 96 Airport Rd,active,no,yes
+1372,South Portland - 303 Maine Mall Rd,active,no,yes
+1374,Minot - Uncabled Rds,active,no,yes
+1375,Vienna - Uncabled Roads,active,no,yes
+1376,Fayette - Uncabled Roads,active,no,yes
+1377,Brunswick - 84 Maine St,active,no,yes
+1378,Farmington - 238 Broadway,active,no,yes
+1379,Farmington - 214 Broadway,active,no,yes
+1380,Farmington - 117 High St,active,no,yes
+1381,Brunswick - 189 Columbia Ave,active,no,yes
+1382,Rumford - 468 Prospect Ave,active,no,yes
+1383,South Portland - 100 Waterman Dr,active,no,yes
+1384,Camden - 67 Elm St,active,no,yes
+1385,South Portland - 28 B St,active,no,yes
+1386,Indian Purchase TWP - 1179 Poplar St,active,no,yes
+1387,Topsham - 7 Main St,active,no,yes
+1388,Brunswick - 164 Columbia Ave,active,no,yes
+1389,Ashland - 1218 Portage Rd,active,no,yes
+1390,Brunswick - 153 Columbia Ave,active,no,yes
+1391,South Portland - 48 D St,active,no,yes
+1392,Farmington - 108 Narrow Gauge Sq,active,no,yes
+1393,Blue Hill - East Blue Hill,active,no,yes
+1394,Farmington - 224 Broadway,active,no,yes
+1395,South Portland - 3 D St,active,no,yes
+1396,Brunswick - 13 Emanual Dr,active,no,yes
+1397,Farmington - 113 Church St,active,no,yes
+1398,Portland - 265 State St,active,no,yes
+1399,Brunswick - 6 Emanual Dr,active,no,yes
+1400,Brusnwick - 103 Columbia Ave,active,no,yes
+1401,Ogunquit - 731 Main St,active,no,yes
+1402,South Portland - Spill Over Ex1,active,no,yes
+1403,South Portland - Spill Over Ex2,active,no,yes
+1404,Sanford - 1591 Main St,active,no,yes
+1405,Camden - 80 Elm St,active,no,yes
+1406,Waldo/Monroe/Prospect - v1,active,no,yes
+1407,Waldo/Monroe/Prospect - v2,active,no,yes
+1408,Belfast/Belmont RDOF,active,no,yes
+1409,Blue Hill Peninsula,active,no,yes
+1410,Scarborough - 180 US Route 1,active,no,yes
+1411,Northport - Bluff Rd Lateral,active,no,yes
+1412,Brunswick - 93 Columbia Ave,active,no,yes
+1413,Saco - 44 Spring Hill Rd,active,no,yes
+1414,Brunswick - 22 Emanual Dr,active,no,yes
+1415,Bath - 12 Court St,active,no,yes
+1416,Camden - 55 Elm St,active,no,yes
+1418,South Portland - 64 C Street,active,no,yes
+1419,South Portland - Phase II,active,no,yes
+1420,Bar Harbor - Town Request,active,no,yes
+1421,Bath - Splitter Can,active,no,yes
+1422,Sanford - 61 Industrial Ave,active,no,yes
+1423,Addresses - Peggy,active,no,yes
+1424,Sanford - 848 Main St,active,no,yes
+1425,Wells - 2700 Post Rd,active,no,yes
+1426,Brunswick - 1 Middle St,active,no,yes
+1427,Brunswick - 159 Columbia Ave,active,no,yes
+1428,South Portland - 100 Waterman Dr Floor 4,active,no,yes
+1430,South Portland - 52 Ocean St,active,no,yes
+1431,Arundel - 2501 Portland Rd,active,no,yes
+1432,Brunswick - 21 Emanual Dr,active,no,yes
+1433,South Portland - 68 C St,active,no,yes
+1434,Brunswick - 26 Cumberland St,active,no,yes
+1435,Farmington - FDH Proposal,active,no,yes
+1436,Brunswick - Cabot St Area,active,no,yes
+1437,Brunswick - Water St Area,active,no,yes
+1438,South Portland - Redbank Area,active,no,yes
+1439,South Portland - Pleasantdale Area,active,no,yes
+1440,Biddeford - Bacon St Area,active,no,yes
+1441,Blue Hill - East Blue Hill New,active,no,yes
+1442,Farmington - 146 Middle St,active,no,yes
+1443,Ellsworth - Maddox,active,no,yes
+1444,Oxford - Kohut Rd,active,no,yes
+1445,Brunswick - 79 Columbia Ave,active,no,yes
+1446,South Portland - 111 Ocean St,active,no,yes
+1449,Maine West - Build Thru,active,no,yes
+1451,Penobscot - Build Thru,active,no,yes
+1457,Brooksville - Build Thru,active,no,yes
+1461,Sedgwick - Build Thru,active,no,yes
+1466,Brunswick - 124 Columbia Ave,active,no,yes
+1467,Brunswick - 38 Emanual Dr,active,no,yes
+1468,South Portland - 360 Main St,active,no,yes
+1470,Presque Isle - 769 Main St,active,no,yes
+1471,Brunswick - 114 Bath Rd,active,no,yes
+1472,Gilead - 1979 North Rd,active,no,yes
+1473,Saco - 30 Spring Hill Rd,active,no,yes
+1474,Brunswick - 191 Columbia Ave,active,no,yes
+1475,Scarborough - 717 US Route 1,active,no,yes
+1476,Northport - 1485 Atlantic Highway,active,no,yes
+1478,Sanford - 25 July St,active,no,yes
+1479,Skowhegan - 187 Madison Ave,active,no,yes
+1480,South Portland - 50 Foden Rd,active,no,yes
+1481,South Portland - Traffic Lights,active,no,yes
+1482,Sanford - 3 Emerson St,active,no,yes
+1483,Old Town - 215 Gilman Falls Ave,active,no,yes
+1484,Wilton - 346  Main St,active,no,yes
+1485,South Portland - 24 B St,active,no,yes
+1486,Old Town - NBRC Pilot,active,no,yes
+1487,Orono - NBRC Pilot,active,no,yes
+1488,Brunswick - 10 Emanual Dr,active,no,yes
+1489,Skowhegan - 194 Madison Ave,active,no,yes
+1490,South Portland - 343 Gorham Rd,active,no,yes
+1491,Brunswick - Cedar St Ext,active,no,yes
+1492,South Portland - 72 Ocean St,active,no,yes
+1495,Design Plan,active,no,yes
+1496,Service Locations,active,no,yes
+1497,South Portland - 1286 Broadway,active,no,yes
+1498,Millinocket - 22 Central St,active,no,yes
+1499,Biddeford - Lincoln St Mill,active,no,yes
+1504,Portland - 631 Stevens Ave,active,no,yes
+1505,Optional Design Plan,active,no,yes
+1506,South Portland - 27 Ocean St,active,no,yes
+1507,Rockport - 477 Commercial St,active,no,yes
+1508,Sanford - 51 Cottage St,active,no,yes
+1509,South Portland - 71 D St,active,no,yes
+1510,South Portland - 61 D St,active,no,yes
+1512,Northport - 1184 Atlantic Hwy,active,no,yes
+1513,Pedestals,active,no,yes
+1514,Service Locations,active,no,yes
+1515,Splice Closures,active,no,yes
+1516,Poles,active,no,yes
+1517,Dover-Foxcroft - 27 Summer St,active,no,yes
+1518,Biddeford - 88 Landry St,active,no,yes
+1522,LCPs,active,no,yes
+1523,CO,active,no,yes
+1531,Distribution,active,no,yes
+1532,Drops,active,no,yes
+1533,Pigtails,active,no,yes
+1536,Multiports,active,no,yes
+1537,Madison - 145 Lakewood Rd,active,no,yes
+1538,South Portland - 68 B St,active,no,yes
+1539,South Portland - 38 A St,active,no,yes
+1540,Camden - 11 Elm St,active,no,yes
+1541,Brunswick - 12 Shobe Ave,active,no,yes
+1542,Belmont - FTTX,active,no,yes
+1547,West Cornville - FTTX,active,no,yes
+1548,East Cornville - FTTX,active,no,yes
+1549,West Chesterville - FTTX,active,no,yes
+1550,East Chesterville - FTTX,active,no,yes
+1551,Brunswick - 91 Columbia Ave,active,no,yes
+1552,Brunswick - 14 Maine St - Suite 412,active,no,yes
+1553,Brunswick - 165 Columbia Ave,active,no,yes
+1554,Mexico - 118 Main St,active,no,yes
+1555,Northport - 1001 Atlantic Hwy,active,no,yes
+1556,Biddeford - 359 Hill St,active,no,yes
+1557,Sanford - 787 Main St,active,no,yes
+1558,Springvale - 13 Pleasant St,active,no,yes
+1559,Sanford - 20 Mayflower Dr,active,no,yes
+1560,Sanford - 965 Main St,active,no,yes
+1561,Sanford - 446 Main St,active,no,yes
+1562,East Millinocket - 155 Main St,active,no,yes
+1563,Brunswick - 132 Columbia Ave,active,no,yes
+1564,Rockport - 226 Union St,active,no,yes
+1566,South Portland - 149 Evans St,active,no,yes
+1567,South Portland - 46 C St,active,no,yes
+1568,South Portland - 79 Ocean St,active,no,yes
+1569,South Portland - 68 B St Apt 1,active,no,yes
+1570,South Portland - 611 Main St,active,no,yes
+1571,Brunswick - 3 Moore Ave,active,no,yes
+1572,Brunswick - 7 Krampf Cir,active,no,yes
+1573,Biddeford - 14 Center St,active,no,yes
+1574,Lincolnville - 2138 Atlantic Hwy,active,no,yes
+1575,Fletcher,active,no,yes
+1576,Brad,active,no,yes
+1577,Heather,active,no,yes
+1578,Caiazzo,active,no,yes
+1579,Ellsworth - 201 High St,active,no,yes
+1581,Portland - 55 Portland St,active,no,yes
+1582,Portland - Gilman St,active,no,yes
+1583,Biggs,active,no,yes
+1584,Brunswick - 10 Windorf Cir,active,no,yes
+1586,Brunswick - 108 Columbia Ave,active,no,yes
+1587,Northport - 1280 Atlantic Hwy,active,no,yes
+1588,Indian Island - 2 Down St,active,no,yes
+1598,Indian Island - 12 Down St,active,no,yes
+1600,VTA - Velco DF Network,active,no,yes
+1601,Brunswick - 180 Columbia Ave,active,no,yes
+1604,Brunswick - 2 Shobe Ave,active,no,yes
+1605,Wilton - 335 Main St,active,no,yes
+1606,Brunswick - 35 Moore Ave,active,no,yes
+1608,Camden -60 Commercial St,active,no,yes
+1615,Brunswick - Brunswick PD to Freeport PD,active,no,yes
+1617,Freeport - 16 Main St,active,no,yes
+1619,Analysis Layer,active,no,yes
+1620,"Penobscot, Brooksville and BlueHill",active,no,yes
+1622,Mexico - 369 River Rd,active,no,yes
+1623,Brunswick - 1 Bowdoin Mill IS SUIT 302 Topsham,active,no,yes
+1624,South Portland - 61 D St Fl 1,active,no,yes
+1628,Waterville to Skowhegan,active,no,yes
+1629,Augusta to Oakland,active,no,yes
+1630,Kennebunk and Kennebunkport,active,no,yes
+1631,East Deering,active,no,yes
+1633,South Portland - Spill Over Ex3,active,no,yes
+1634,South Portland - Opp Zone,active,no,yes
+1635,South Portland - 2.3M Spill Over,active,no,yes
+1636,Brunswick Overlay to Auburn,active,no,yes
+1637,Portland - Deering Ctr to Nasons Corner,active,no,yes
+1638,Portland - Forest and Woodford,active,no,yes
+1639,Portland - Rosemont Large Scale,active,no,yes
+1640,Portland - West End,active,no,yes
+1648,Scarborough - 162 US RT 1,active,no,yes
+1649,Neighborhoods,active,no,yes
+1650,South Portland - 55 D Street,active,no,yes
+1651,Initial Plan,active,no,yes
+1653,Northport 1 - FTTX - AS BUILT (Comprehensive),active,no,yes
+1654,Protection Path Lease Fiber,active,no,yes
+1655,SanfordNet - 949 Main Street,active,no,yes
+1656,Farmington - 148 High St,active,no,yes
+1658,South Portland - 47 Wylie St,active,no,yes
+1659,Sample 1,active,no,yes
+1661,SanfordNet - 809 Sanford Rd Wells,active,no,yes
+1663,Scarborough - 27 Washington Ave,active,no,yes
+1666,96 Ocean St MTU,active,no,yes
+1667,38 A St Floor 2,active,no,yes
+1668,SanfordNet - 42 Jagger Mill Rd,active,no,yes
+1669,Saco - 100 Main St,active,no,yes
+1671,SanfordNet - 113 Sanford Rd Wells,active,no,yes
+1672,Biddeford - 419 Hill St,active,no,yes
+1673,Wilton - 335 Main St,active,no,yes
+1674,Northport - Horse Jockey Lane,active,no,yes
+1676,Gilead - 1430 North Rd,active,no,yes
+1677,Biddeford - 111 Elm St,active,no,yes
+1678,Brunswick - 14 Main St S2uite 200,active,no,yes
+1680,Farmington - 475 Wilton Rd,active,no,yes
+1681,Farmington - 191 Main St,active,no,yes
+1684,New Castle - 5 Sheepscot Rd,active,no,yes
+1685,Chebeague Island - RFP Response,active,no,yes
+1686,South Portland - 623 Main St,active,no,yes
+1687,Brunswick - 5 Page St,active,no,yes
+1688,Katahdin - Standard - Proposed,active,no,yes
+1692,Sanford - High Pines Development GWI fiber runs,active,no,yes
+1693,Farmington - Community Dental,active,no,yes
+1694,Brunswick - 10 Everett St,active,no,yes
+1695,Towns - Phase I,active,no,yes
+1696,Towns - Phase II,active,no,yes
+1701,FULL - HLD - Core,active,no,yes
+1702,VT - Complex DVFiber,active,no,yes
+1704,South Portland - 581 Main St.,active,no,yes
+1705,FULL - HLD - Pole Gaps,active,no,yes
+1706,Brunswick - 136 Columbia Ave,active,no,yes
+1707,FULL- HLD - Laterals,active,no,yes
+1709,Rockport - 37 Mechanic St,active,no,yes
+1742,South Portland - SMCC to Brunswick,active,no,yes
+1743,Putney Fiber IRU,active,no,yes
+1746,DVF Pole Study,active,no,yes
+1747,Brunswick - 122 Columbia Ave,active,no,yes
+1750,Slack loop moves,active,no,yes
+1751,FULL - HLD - FSA,active,no,yes
+1753,Kennebunk - 58 Portland Rd,active,no,yes
+1754,York - 36 York St,active,no,yes
+1757,ConnectME Remaining Areas,active,no,yes
+1759,Test Features,active,no,yes
+1760,Brunswick - 13 Lincoln ST,active,no,yes
+1761,South Portland - 1 Romano RD,active,no,yes
+1762,Kennebunk - 58 Portland Rd suite 15,active,no,yes
+1763,SanfordNet - 941 Main St,active,no,yes
+1764,Belfast - 16 Market St,active,no,yes
+1765,South Portland - 20 Allen Rd,active,no,yes
+1766,Current Towns,active,no,yes
+1769,FULL - HLD - FSA RDOF,active,no,yes
+1771,REMA - HLD - FSA OOS,active,no,yes
+1772,GMP UG Structures,active,no,yes
+1773,Jacksonville Electric,active,no,yes
+1774,GMP Aerial Lines,active,no,yes
+1775,VT e911 (DVF),active,no,yes
+1778,Sumner and Hebron,active,no,yes
+1780,REMA - HLD - FSA Edge,active,no,yes
+1781,South Portland - 8 Derby Rd Apt 3,active,no,yes
+1782,Brunswick - 3 OaK St,active,no,yes
+1784,Grant Data,active,no,yes
+1793,PHASE I - HLD - Core ,active,no,yes
+1794,PHASE I - HLD - Laterals,active,no,yes
+1795,PHASE I - HLD - Pole Gaps,active,no,yes
+1796,PHASE I - HLD - FSA,active,no,yes
+1797,Rockport - 1112 Commercial St,active,no,yes
+1801,SanfordNet - 945 Main St,active,no,yes
+1803,Rockland - 10 Payne Ave,active,no,yes
+1804,South Portland - Phase III,active,no,yes
+1805,Brunswick - 35 Shobe Ave,active,no,yes
+1808,ZONES - Belfast,active,no,yes
+1809,ZONES - Katahdin,active,no,yes
+1810,Katahdin - Extended - Proposed,active,no,yes
+1811,Brunswick - New Fire Station,active,no,yes
+1812,Belfast to Portland,active,no,yes
+1815,Brunswick - 3 OaK St Complete MST,active,no,yes
+1817,Brunswick - 3 OaK St - idea,active,no,yes
+1818,Kerem - Franklin County,active,no,yes
+1819,Kerem - Somerset County,active,no,yes
+1820,Phase I - FSAs,active,no,yes
+1826,PHASE I - HLD - N Protection,active,no,yes
+1827,ConnectME - Sumner,active,no,yes
+1828,ConnectME - Hebron,active,no,yes
+1829,Rockport - 1047 Bldg 2,active,no,yes
+1830,Kerem - Mahoosuc Region,active,no,yes
+1831,Maine St - West,active,no,yes
+1832,Maine St - East,active,no,yes
+1836,Grant Data - Roads,active,no,yes
+1837,Bath - 250 Water St,active,no,yes
+1838,Maine St - West FSA,active,no,yes
+1840,Wells - 73 Mile Rd,active,no,yes
+1843,PHASE I - HLD - FSA OOS,active,no,yes
+1844,PHASE I - HLD - FSA Edge,active,no,yes
+1846,SanfordNet Expansion 2022,active,no,yes
+1847,SanfordNet - 17 School St,active,no,yes
+1848,South Portland - 55 Foden Rd,active,no,yes
+1849,DVF - Authoritative Location List,active,no,yes
+1850,SanfordNet - 909 Main St,active,no,yes
+1851,South Portland - 1129 Broadway St,active,no,yes
+1852,Brunswick - 14 Krampf St,active,no,yes
+1853,DVF - Road Centerlines,active,no,yes
+1854,Kerem - Southwestern Waldo County,active,no,yes
+1855,Brunswick - 242 Bath Rd,active,no,yes
+1856,Saco - 2 Lincoln St,active,no,yes
+1858,PHASE I - HLD - FSA GMP MRE,active,no,yes
+1860,GMP Pole Apps ,active,no,yes
+1861,Brunswick - FDH Additional Feeder Strands,active,no,yes
+1862,Northport 2 - FTTX,active,no,yes
+1864,Belfast - Grant Application,active,no,yes
+1865,Southwest Waldo County Broadband Coalition,active,no,yes
+1866,Belfast - Planned Fiber Routes,active,no,yes
+1868,Biddeford - 20 Washington St,active,no,yes
+1869,Poles,active,no,yes
+1870,Pole App Polygons,active,no,yes
+1871,Brunswick - 15 Shobe Ave,active,no,yes
+1872,Rockland - 467 Main St,active,no,yes
+1873,Saco - 24 Mill Brook Rd,active,no,yes
+1874,Kerem - Midcoast Utility District,active,no,yes
+1875,Calais - 7 Dicenizo Ave,active,no,yes
+1876,Brunswick - 19 Emanual Dr,active,no,yes
+1877,Madison - 1 Main St,active,no,yes
+1879,PHASE I - HLD - FSA ADDITIONS,active,no,yes
+1880,Northport - 23 Little River Ln,active,no,yes
+1882,exportNorthport,active,no,yes
+1883,Old Town - 74 Airport Rd,active,no,yes
+1884,Caribou - 647 Main St,active,no,yes
+1885,Brunswick - 37 Moore Ave,active,no,yes
+1886,South Berwick - 12 Front St,active,no,yes
+1887,South Berwick - 71 Norton St,active,no,yes
+1888,South Berwick - 180 Main St,active,no,yes
+1889,South Berwick - 1 Farmgate Rd,active,no,yes
+1890,Gouldsboro - 120 Rt 1,active,no,yes
+1891,Northport - 104 Bayside Rd,active,no,yes
+1892,Rockland - 11 Front St,active,no,yes
+1893,Northport - 489 Atlantic Hwy,active,no,yes
+1897,FULL - HLD - POPs,active,no,yes
+1898,PHASE I - HLD - POPs,active,no,yes
+1902,FULL - HLD - COMBINED FSA,active,no,yes
+1905,VT Electric Utility Franchise Areas  ,active,no,yes
+1906,South Portland - 811 Highland Ave,active,no,yes
+1907,JEC RIDE OUT,active,no,yes
+1908,Downeast Broadband Utility,active,no,yes
+1909,CCI RIDE OUT,active,no,yes
+1910,POLE SURVEY NEEDED,active,no,yes
+1911,POLE LINE BUILDS,active,no,yes
+1912,Rockport - 166 Russell Ave,active,no,yes
+1913,Machias - 182 Main St,active,no,yes
+1914,14 Ocean St,active,no,yes
+1915,Brunswick - 4 Stanwood St,active,no,yes
+1916,South Portland - 231 Evans St,active,no,yes
+1917,Rockport - 85 Main St,active,no,yes
+1918,Millinocket - 22 Walnut St,active,no,yes
+1919,Brunswick - 240 Old Portland Rd,active,no,yes
+1920,PHASE I - Core Segments,active,no,yes
+1921,PHASE I - Lateral Segments,active,no,yes
+1922,Ellsworth - 396 High St,active,no,yes
+1923,Portland - 411 Presumpscot St,active,no,yes
+1924,Brunswick - 17 Krampf Cir,active,no,yes
+1926,FSA001 - Stamford Rev.5,active,no,yes
+1927,FSA002 - Stamford Rev.9,active,no,yes
+1928,FSA003 - Stamford Rev.10,active,no,yes
+1929,FSA004 - Readsboro Rev.12,active,no,yes
+1930,FSA005 - Readsboro Rev.11,active,no,yes
+1931,FSA006 - Whitingham Rev.2,active,no,yes
+1932,FSA006B - Whitingham,active,no,yes
+1933,FSA012 - Marlboro,active,no,yes
+1934,FSA013 - Whitingham Rev.1,active,no,yes
+1935,FSA014 - Whitingham Rev.4,active,no,yes
+1936,FSA015 - Marlboro Rev.6,active,no,yes
+1937,FSA016 - Whitingham Rev.3,active,no,yes
+1938,FSA017 - Whitingham Rev.3,active,no,yes
+1939,FSA018 - Marlboro Rev.5,active,no,yes
+1940,FSA019 - Marlboro Rev.5,active,no,yes
+1941,FSA020 - Whitingham,active,no,yes
+1942,FSA021 - Halifax Rev.6,active,no,yes
+1943,FSA022 - Halifax Rev.2,active,no,yes
+1944,FSA023 - Halifax Rev.2,active,no,yes
+1945,FSA024 - Halifax Rev.4,active,no,yes
+1946,FSA025 - Halifax Rev.8,active,no,yes
+1947,FSA026 - Halifax Rev.4,active,no,yes
+1951,FSA102 - Readsboro Rev.6,active,no,yes
+1954,Brunswick - 36 Emanual Dr,active,no,yes
+1955,PHASE IA - HLD - FSA ,active,no,yes
+1957,PHASE IA - Lateral Segments,active,no,yes
+1958,Ogunquit - 74 Main St,active,no,yes
+1959,PHASE I A- Core Segments,active,no,yes
+1960,South Portland - 650 Main St,active,no,yes
+1962,South Portland - 1248 Broadway,active,no,yes
+1966,PHASE IB - Core ,active,no,yes
+1967,PHASE IB - Laterals,active,no,yes
+1968,PHASE IB - FSA,active,no,yes
+1969,South Portland - C st FDH Feeder strand,active,no,yes
+1970,Biddeford - 334 Elm St,active,no,yes
+1974,Rockport - 9 Winter St Multiports,active,no,yes
+1975,FSAs - Build Phase 1,active,no,yes
+1976,FSAs - Build Phase 2,active,no,yes
+1980,SanfordNet - 47 Washinton St,active,no,yes
+1982, Lewiston,active,no,yes
+1983,Auburn,active,no,yes
+1984,Augusta to Lewiston,active,no,yes
+1985,West Sidney,active,no,yes
+1986,Fairfield to Skowhegan,active,no,yes
+1987,Skowhegan,active,no,yes
+1988,Madison,active,no,yes
+1989,Livermore Falls,active,no,yes
+1990,Rumford/Mexico,active,no,yes
+1991,Bethel to Woodstock PoP,active,no,yes
+1992,Bridgeton PoP,active,no,yes
+1993,Cluster D - Standish,active,no,yes
+1994,North Deering,active,no,yes
+1995,Medway V1,active,no,yes
+1996,East Millinocket V1,active,no,yes
+1997,Millinocket V1,active,no,yes
+1999,Wells - 2128 Post Rd,active,no,yes
+2000,Belfast - 213 NorthPort Ave,active,no,yes
+2001,Northport - 1290 Atlantic HWY,active,no,yes
+2002,Freeport,active,no,yes
+2003,Eliot,active,no,yes
+2004,Kittery,active,no,yes
+2005,York,active,no,yes
+2006,Wells and Ogunquit,active,no,yes
+2007,South Berwick,active,no,yes
+2012,Belfast v2,active,no,yes
+2014,Scarborough - 41 Little Dolphin Dr,active,no,yes
+2016,South Portland - 28 Foden Rd,active,no,yes
+2017,Rockport - 330 Commercial St,active,no,yes
+2018,Ellsworth to Holden,active,no,yes
+2019,SanfordNet Expansion 2022 V2,active,no,yes
+2020,Lyman to Lebanon,active,no,yes
+2021,Lebanon to Mayville,active,no,yes
+2022,Belfast to Augusta,active,no,yes
+2023,Readfield to Wilton,active,no,yes
+2024,Codyville to Chester,active,no,yes
+2025,Patten to Houtlon,active,no,yes
+2026,Swanville to West Farmington,active,no,yes
+2027,Kennebunk - 55 York St,active,no,yes
+2028,Farmington,active,no,yes
+2029,Wilton,active,no,yes
+2031,Farmington - 280 Wilton Rd,active,no,yes
+2033,Medway V2,active,no,yes
+2034,Millinocket V2,active,no,yes
+2035,East Millinocket V2,active,no,yes
+2036,FSA042 - Searsburg,active,no,yes
+2037,FSA007 - Wardsboro (F),active,no,yes
+2038,FSA008 - Wardsboro (F),active,no,yes
+2039,FSA009 - Wardsboro (F),active,no,yes
+2040,FSA152 - Jamaica (F),active,no,yes
+2041,FSA155 - Jamaica (74),active,no,yes
+2042,FSA060 - Townshend (59),active,no,yes
+2043,FSA066 - Townshend (F),active,no,yes
+2044,FSA010 - Wardsboro (F),active,no,yes
+2060,Biddeford - 208 Graham St,active,no,yes
+2061,Biddeford - 109 Cleaves St,active,no,yes
+2062,Katahdin Extended - Strand,active,no,yes
+2063,Brunswick - 8 Stanwood St,active,no,yes
+2064,Sumner Unserved + Backbone,active,no,yes
+2065,Sumner Redesign 2022,active,no,yes
+2068,Brunswick - 26 Moore Ave,active,no,yes
+2073,DVF Premise Data Collection Trial,active,no,yes
+2078,Phase 1,active,no,yes
+2079,Phase 2 ,active,no,yes
+2080,Matrix Data,active,no,yes
+2083,South Portland - 16 Ocean St,active,no,yes
+2085,Pole Tag Data,active,no,yes
+2086,South Portland - 760 Highland Ave,active,no,yes
+2087,MCA Proposal 2022 - MOOSENET,active,no,yes
+2088,GMP Relocation - Large Cap Projects,active,no,yes
+2089,Biddeford - 8 Arctic  CIR,active,no,yes
+2090,Madawaska - 325 Main St,active,no,yes
+2091,Downeast BroadBand Utility -  POP Calais,active,no,yes
+2092,Madison ,active,no,yes
+2093,East Deering ,active,no,yes
+2095,Cluster B - Skowhegan ,active,no,yes
+2096,Cluster B - Rumford/Mexico ,active,no,yes
+2097,North Deering ,active,no,yes
+2098,Cluster A - Wells and Ogunquit ,active,no,yes
+2099,Cluster C - Ellsworth to Holden ,active,no,yes
+2100,Livermore Falls ,active,no,yes
+2101,Cluster B - Freeport ,active,no,yes
+2103,Cluster D - Kittery ,active,no,yes
+2104,Cluster A - York ,active,no,yes
+2105,South Berwick ,active,no,yes
+2106,Wilton ,active,no,yes
+2107,Lewiston,active,no,yes
+2108,Auburn,active,no,yes
+2109,North Berwick,active,no,yes
+2110,Brunswick - 49 Pleasant St,active,no,yes
+2111,Northport 2 Pole Apps,active,no,yes
+2112,Westbrook - 865 Spring St,active,no,yes
+2113,Middle Mile Proposal,active,no,yes
+2114,South Portland - 315 Highland Ave,active,no,yes
+2115,Wells - 166 Post Rd,active,no,yes
+2116,Farmington - 596 Wilton Rd,active,no,yes
+2117,FSAs - Build Phase 3,active,no,yes
+2118,Build Phase 2 BB,active,no,yes
+2121,Saco - 371 Main St,active,no,yes
+2122,GMP Circuits ,active,no,yes
+2125,Kennebunk - 61 Main St,active,no,yes
+2126,SanfordNet - 917 Main St Suite 200,active,no,yes
+2127,Build Phase 1 BB,active,no,yes
+2128,Pole Polygons,active,no,yes
+2129,Bethel - 99 Main St,active,no,yes
+2130,SanfordNet - 1 Emile Levasseur Memorial Dr,active,no,yes
+2131,Cable Conn FSA014 Pole Comparison ,active,no,yes
+2132,Biddeford - 419 Alfred St,active,no,yes
+2133,Ogunquit - 79 Main St,active,no,yes
+2134,Bethel - 6 Meteorite LNDG,active,no,yes
+2135,Caribou - 26 Skyway Dr,active,no,yes
+2136,DVF Readsboro Pilot Network,active,no,yes
+2138,Wiscasset - 297 Bath Rd,active,no,yes
+2139,Farmington - 120 Broadway St,active,no,yes
+2140,Saco - 100 Main St Unit Floor 1,active,no,yes
+2141,3 Ring Binder,active,no,yes
+2144,SNAPSHOT-20221118,active,no,yes
+2145,Build Phase 3 BB,active,no,yes
+2146,150 Bluff Rd,active,no,yes
+2147,SNAPSHOT-20221209-BuildPhase1,active,no,yes
+2148,SNAPSHOT-20221209-BuildPhase2,active,no,yes
+2149,SNAPSHOT-20221209-BuildPhase3,active,no,yes
+2151,South Portland - 275 Ocean St,active,no,yes
+2152,South Portland - 19 Williston Rd,active,no,yes
+2159,SNAPSHOT-20221209-BuildPhase3 (1),active,no,yes
+2160,Westbrook - 865 Spring St,active,no,yes
+2161,SanfordNet - 678 Main St,active,no,yes
+2162,Rockland - 41 Cranberry Isle Dr,active,no,yes
+2164,MS Test,active,no,yes
+2167,Van Buren - 320 Main St,active,no,yes
+2169,Duncan Cable FTTX  MAP,active,no,yes
+2170,TEMP PHASE I,active,no,yes
+2171,Saco - 743 Portland Rd,active,no,yes
+2172,South Portland - 19 Williston Rd,active,no,yes
+2173,South Berwick - 49 Portland St,active,no,yes
+2174,Springvale - 429 Main St,active,no,yes
+2175,York - 646 US-RT1,active,no,yes
+2176,Whiting - 125 US-RT1,active,no,yes
+2177,SanfordNet - 175 Gatehouse Rd,active,no,yes
+2178,Freeport - 19 Justins Way,active,no,yes
+2179,South Portland - Phase I,active,no,yes
+2180,South Portland - Phase II,active,no,yes
+2181,South Portland - Phase I --> TEMP STRAND,active,no,yes
+2183,South Portland - 258 Highland Ave,active,no,yes
+2184,Bath - 45 Congress Ave,active,no,yes
+2186,Brunswick - 7 Moore Ave,active,no,yes
+2187,Madison - 131 Madison St,active,no,yes
+2188,Brunswick - 23 Pleasant St,active,no,yes
+2189,Pole Polygons - Katahdin,active,no,yes
+2193,Caribou - 14 Sweden St Suite 203,active,no,yes
+2194,Kennebunk - 10 Main St Floor 2,active,no,yes
+2195,Madawaska - 293 Main St,active,no,yes
+2196,Northport 1 - FTTX,active,no,yes
+2197,Northport-PWN-As  Built,active,no,yes
+2198,Brunswick - 9 Pleasant St,active,no,yes
+2199,Pole App Polygons,active,no,yes
+2202,Brewer - 329 Wilson St,active,no,yes
+2203,South Portland- 120 Wescott Rd- New,active,no,yes
+2204,SanfordNet- E-27 Hanger,active,no,yes
+2205,South Portland - 43 D St ,active,no,yes
+2207,Brunswick - 161 Columbia Ave,active,no,yes
+2212,Belfast Extension - Grant Submitted Path,active,no,yes
+2213,SanfordNet - 911 Main St,active,no,yes
+2217,SanfordNet - 2066 Main St,active,no,yes
+2218,TEMP MATRIX POLE INFO,active,no,yes
+2219,Indian Island - 16 Susep LN,active,no,yes
+2220,Belfast - 112 Church St,active,no,yes
+2224,Build Phase 1 BB As-Built ,active,no,yes
+2227,Brunswick - 30 Stanwood St,active,no,yes
+2229,Design - 5/19/23,active,no,yes
+2236,MFC Legacy Network,active,no,yes
+2238,South Portland - 46 A St Unit 1,active,no,yes
+2239,Farmington - 110 Maiden Ln,active,no,yes
+2240,Biddeford - 50 Laconia St,active,no,yes
+2244, BackBone Redesign  2024,active,no,yes
+2245,Northport - 642 Atlantic HWY,active,no,yes
+2246,West Paris Extension,active,no,yes
+2249,SanfordNet - 1744 Main st,active,no,yes
+2250,South Portland - 717 Highland Ave,active,no,yes
+2254,High Level Design v.20230803,active,no,yes
+2255,Saco - 9 Willey Rd,active,no,yes
+2257,FSAs- Katahdin,active,no,yes
+2258,South Portland - 360 Main st,active,no,yes
+2260,Design,active,no,yes
+2262,Northport 2 FSAs,active,no,yes
+2263,Northport 1 FSAs,active,no,yes
+2264,Belmont and Morrill MCA Proposal 2023,active,no,yes
+2265,SanfordNet - 849 Main St,active,no,yes
+2266,Pole Tag Overlap ,active,no,yes
+2267,PoleTag Data V2,active,no,yes
+2268,poletagV3,active,no,yes
+2269,PoleTag To ElcoID - Live Run ,active,no,yes
+2270,October2023,active,no,yes
+2271,Rockport - 12 Franklin St.,active,no,yes
+2272,1013 Meadow Pond Rd.,active,no,yes
+2273,Rockport - 20 Central Street,active,no,yes
+2274,Rockport - 22 Central Street,active,no,yes
+2275,Rockport - 18 Central Street,active,no,yes
+2276,Brunswick - 14 Maine St. Suite 409,active,no,yes
+2278,SalesGenie Business 2023,active,no,yes
+2279,SalesGenie Residential 2023,active,no,yes
+2280,SanfordNet - School St. Extention,active,no,yes
+2281,Expenses,active,no,yes
+2282,Expenses V2,active,no,yes
+2283,Option A,active,no,yes
+2284,Option B,active,no,yes
+2285,Northport 2 - FTTX SNAPSHOT 20231206,active,no,yes
+2287,SanfordNet - Hanger 61,active,no,yes
+2289,Northport 2 - FSA1 (Materials),active,no,yes
+2290,Northport 2 - FSA2 (Materials),active,no,yes
+2291,Northport 2 - FSA3 (Materials),active,no,yes
+2292,Northport 2 - Extensions (Materials),active,no,yes
+2293,VT 2022 Eligible Premise  ,active,no,yes
+2294,CCI Fidium Locations 2023,active,no,yes
+2295,FCC UN/UU  Premise 2023,active,no,yes
+2298,FCC Served Premise 2022,active,no,yes
+2299,Vermont PSD UN <100/20>=25/3,active,no,yes
+2300,Vermont UN<25/3  (No Broadband),active,no,yes
+2301,Vermont UNDER DSL/Wireless ,active,no,yes
+2302,VCBB Eligible 2022,active,no,yes
+2303,BB 2023 Craig/Keith ,active,no,yes
+2309,DVFiber - FSAs,active,no,yes
+2312,Phase 1 BB ALT Design  With WIL to RDS BB,active,no,yes
+2317,York - 439 US-1 RTE,active,no,yes
+2318, Belmont to Northport Extension (MCA Interconnect),active,no,yes
+2319,Portland - 34 W.Presumpscott St,active,no,yes
+2321,Northport 2 - FTTX SNAPSHOT 20240220,active,no,yes
+2325,Northport 2 - OLD,active,no,yes
+2327,Northport 2 - Left to be built,active,no,yes
+2329,Sumner - FSAs,active,no,yes
+2332,FULL - HLD - FSA (1),active,no,yes
+2333,MCA - Fayette - v20240306,active,no,yes
+2334,Backbone Phase 3 & 4 New 2024,active,no,yes
+2338,PHASE 3 FSA HLD New,active,no,yes
+2339,PHASE 4 FSA HLD New ,active,no,yes
+2341, Backbone Phase 1 & 2 New 2024,active,no,yes
+2344,FSA-6B-144 Sub FDH,active,no,yes
+2346,Northport 2 Conduit and Handhole,active,no,yes
+2347,13 Pomerleau Street,active,no,yes
+2348,Belfast Extension - Full Design V2,active,no,yes
+2349,Pole Polygons,active,no,yes
+2350,VT - 2023 PSD Data,active,no,yes
+2351,VT - NWFX FSAs,active,no,yes
+2352,VT - DVF FSAs ,active,no,yes
+2356,FSA016 - Whitingham Premises Survey,active,no,yes
+2357,ME - FCC Fabric SL - Cable,active,no,yes
+2358,ME - FCC Fabric SL - Fiber,active,no,yes
+2359,DVF Cut Service Locations,active,no,yes
+2360,FSA001 - Stamford Premises Survey,active,no,yes
+2361,FSA002 - Stamford Premises Survey,active,no,yes
+2362,FSA003 - Stamford Premises Survey,active,no,yes
+2363,FSA004 - Readsboro Premises Survey,active,no,yes
+2364,FSA005 - Readsboro Premises Survey,active,no,yes
+2365,FSA006 - Readsboro Premises Survey,active,no,yes
+2366,FSA102 - Readsboro Premises Survey,active,no,yes
+2367,FSA011 - Whitingham Premises Survey,active,no,yes
+2368,FSA013 - Whitingham Premises Survey,active,no,yes
+2369,FSA014 - Whitingham Premises Survey,active,no,yes
+2370,FSA017 - Whitingham Premises Survey,active,no,yes
+2371,FSA020 - Whitingham Premises Survey,active,no,yes
+2372,FSA021 - Halifax Premises Survey,active,no,yes
+2373,FSA022 - Halifax Premises Survey,active,no,yes
+2374,FSA023 - Halifax Premises Survey,active,no,yes
+2375,FSA024 - Halifax Premises Survey,active,no,yes
+2376,FSA025 - Halifax Premises Survey,active,no,yes
+2377,FSA026 - Halifax Premises Survey,active,no,yes
+2378,FSA015 Marlboro Premises Survey,active,no,yes
+2379,FSA018 Marlboro Premises Survey,active,no,yes
+2380,FSA019 Marlboro Premises Survey,active,no,yes
+2381,FSAs - Redesign 2024 (1),active,no,yes
+2382,VT - 100MM Expansion Project (MM) ,active,no,yes
+2383,VT - NWFX Fidium Locations 2023,active,no,yes
+2386,ME - Readynet 2024,active,no,yes
+2389,Stone Dr,active,no,yes
+2390,Catching Cove Rd,active,no,yes
+2391,Brunswick - 14 Cedar st,active,no,yes
+2393,Islesboro Municipal Broadband - IMB,active,no,yes
+2394,Belfast Extension - Additional Locations,active,no,yes
+2395,Belfast Extension - Northport Interconnect,active,no,yes
+2396,ME - 100MM Expansion Project (MM),active,no,yes
+2398,Belfast Extension - Basic Grant Design,active,no,yes
+2399,Pole Polygons (NEW),active,no,yes
+2400,NH - 100MM Expansion Project (MM),active,no,yes
+2401,Machias to Wesley,active,no,yes
+2403,Machias to Wesley 5-16-24,active,no,yes
+2412,Portland - 22 Bramhall St,active,no,yes
+2413,kmz for brunswick,active,no,yes
+2415,SanfordNet - 208 Sanford Rd,active,no,yes
+2417,PA State Roads PennDOT 2024,active,no,yes
+2418,VT Cable Providers ,active,no,yes
+2419,VT - NWFX First Light Locations ,active,no,yes
+2420,State Roads Import Test,active,no,yes
+2421,PA Counties Clean  ,active,no,yes
+2423,VT NWFX First Light Routes ,active,no,yes
+2424,PA  UU BSLs,active,no,yes
+2427,ME - e911 Road Data 2024,active,no,yes
+2428,PA Census Roads,active,no,yes
+2429,PA Copper FCC,active,no,yes
+2430,PA Fiber FCC,active,no,yes
+2431,PA Cable FCC,active,no,yes
+2432,PA Fiber Pennstate ,active,no,yes
+2437,FSA-00000129 Rev.01,active,no,yes
+2438,Backbone Rev.02,active,no,yes
+2439,FSA-00000126 Rev.02,active,no,yes
+2440,FSA-00000127 Rev.01,active,no,yes
+2441,FSA-00000128 Rev.01,active,no,yes
+2442,FSA-00000130 Rev.01,active,no,yes
+2443,FSA-00000131 Rev.01,active,no,yes
+2444,FSAs,active,no,yes
+2445,FSA-00000137 Rev1.0,active,no,yes
+2446,FSA-00000138 Rev1.0,active,no,yes
+2447,FSA-00000139 Rev1.0,active,no,yes
+2448,PHASE 1 & 2 FSAs HLD New ,active,no,yes
+2449,VT - 100MM Expansion Project (MM)  (1),active,no,yes
+2450,FULL - HLD - FSA (1) (1),active,no,yes
+2451,VT - 100MM DVF HLD Bohar,active,no,yes
+2452,VT - BEAD Post Challenge Locations DL2024,active,no,yes
+2454,Rockport - 18 Mechanic St,active,no,yes
+2455,VT - Town Boundaries ,active,no,yes
+2456,VT - 100MM DVF HLD Bohar (2),active,no,yes
+2458,PA - TEA Dataset,active,no,yes
+2463,VT - TEA Dataset,active,no,yes
+2464,MA - TEA Dataset,active,no,yes
+2465,NH - TEA Dataset,active,no,yes
+2466,ME - TEA Dataset,active,no,yes
+2467,Snapshot - 20240813,active,no,yes
+2468,NP1 Circuit Path,active,no,yes
+2469,Glenwood Ln,active,no,yes
+2470,HFO Import 20240904,active,no,yes
+2471,Pole Apps,active,no,yes
+2472,MOOSENET SANDBOX,active,no,yes
+2473,PIONEER SEGMENTS,active,no,yes
+2474,HFO SEGMENTS,active,no,yes
+2475,CONTRACTOR SEGMENTS,active,no,yes
+2476,INTERIM,active,no,yes
+2477,PA ReadyNET BSLs,active,no,yes
+2478,TEMP IMPORT,active,no,yes
+2480,Snapshot - 20240919,active,no,yes
+2482,FULL - HLD - FSA (2),active,no,yes
+2483,DVF- BEAD BB HLD - ARPA,active,no,yes
+2484,DVF - BEAD Laterals HLD - ARPA ,active,no,yes
+2485,CCI Fidium Locations 2023 (1),active,no,yes
+2487,VT - BEAD PCL Keith Unofficial pre NITA ,active,no,yes
+2488,PA BSA Draft 20240925,active,no,yes
+2489,VT - BEAD BSLs - 20241001,active,no,yes
+2490,DVF- BEAD FSAs HLD,active,no,yes
+2491,DVF - BEAD Clusters BSLs,active,no,yes
+2492,DVF - BEAD BB & Lat BSLs,active,no,yes
+2493,DVF- BEAD OFF GRID & EHCLs,active,no,yes
+2494,DVF - BEAD Full Town Foot Print ,active,no,yes
+2495,VT - BEAD BSLs - Post Challenge 20241004,active,no,yes
+2496,DVF - BEAD 1 Underserved Bohar,active,no,yes
+2497,DVF- BEAD 0 Unserved Bohar ,active,no,yes
+2502,DVF - BEAD EHCL BSL HLD,active,no,yes
+2504,DVF - BEAD - POPs - HLD,active,no,yes
+2505,DVF - BEAD ADD Laterals HLD,active,no,yes
+2506,DVF - Circuit FSA BEAD HLD,active,no,yes
+2507,DVF - BEAD BSLs in ARPA,active,no,yes
+2509,Northport 2 - Ocean Ridge Rd. - 2024/10/21,active,no,yes
+2512,Biddeford - 557 Elm St,active,no,yes
+2515,BEAD - P5 - Private Investment Expansion,active,no,yes
+2518,ME - 100MM Expansion Project For Export SB,active,no,yes
+2519,NH - 100MM Expansion Project For Export SB,active,no,yes
+2520,BEAD - P6 - Private Investment,active,no,yes
+2522,Maine e911 Roads,active,no,yes
+2523,New Hampshire e911 Roads,active,no,yes
+2524,Vermont e911 Roads,active,no,yes
+2527,FSA-00000137 Rev1.1,active,no,yes
+2528,FSA-00000138 Rev1.1,active,no,yes
+2529,FSA-00000139 Rev1.1,active,no,yes
+2530,ME - BEAD PSAs - OBSOLETE ,active,no,yes
+2535,ME - BEAD CAIs - OBSOLETE,active,no,yes
+2536,Ignore,active,no,yes
+2537,NH - Readynet 20250207,active,no,yes
+2539,ME - BEAD BSLs - OBSOLETE,active,no,yes
+2540,200 Main St. Ellsworth,active,no,yes
+2541,148 Main St. Freeport,active,no,yes
+2543,BEAD - P3 - BEAD Funded,active,no,yes
+2544,BEAD - P4 - BEAD Funded,active,no,yes
+2546,Belfast Extension Grant Overbuild,active,no,yes
+2547,BEAD - P1 - BEAD Funded,active,no,yes
+2548,BEAD - P2 - BEAD Funded,active,no,yes
+2549,VCBB BEAD FPA  0225 (Final Project Areas),active,no,yes
+2550,3RB Addresses Commercial Customers - SEAN,active,no,yes
+2551,2 Oak Grove Ave - Bath,active,no,yes
+2552,8 School St - Freeport,active,no,yes
+2553,FPA042 V3,active,no,yes
+2554,FPA053,active,no,yes
+2555,FPA054,active,no,yes
+2556,FPA055,active,no,yes
+2557,FPA056 V2,active,no,yes
+2558,Removed UUs - Keith 022725,active,no,yes
+2559,BEAD FPAs - Final Project Areas ,active,no,yes
+2560,DVF - BEAD ADD Laterals HLD (1),active,no,yes
+2561,SanfordNet - Traffic Lights,active,no,yes
+2562,Sumner As Built HFO 6/30/25,active,no,yes
+2563,BEAD FPAs KMZ ,active,no,yes
+2565,Hub66 Business Leads,active,no,yes
+2566,"Bridgewater, NH",active,no,yes
+2567,"Bristol, NH",active,no,yes
+2568,"Enfield, NH w/fastroads drops for Ringe",active,no,yes
+2569,"Fitzwilliam, NH",active,no,yes
+2570,"Hebron, NH",active,no,yes
+2571,"Ringe, NH",active,no,yes
+2572,"Rupert, VT (No data)",active,no,yes
+2573,"Moultonborough, NH",active,no,yes
+2574,"Grantham, NH",active,no,yes
+2575,"Haverhill, NH",active,no,yes
+2576,"Plainfield, NH",active,no,yes
+2577,"Grantham, NH",active,no,yes
+2578,"Bristol, NH",active,no,yes
+2579,"Haverhill, NH",active,no,yes
+2580,"Hebron, NH",active,no,yes
+2581,"Grafton County, NH",active,no,yes
+2585,Hub 66 Competitors ,active,no,yes
+2586,Hub66 Business and Mixed Use,active,no,yes
+2587, BackBone Redesign  2024 (1),active,no,yes
+2588,FPA042 Build Sequence ,active,no,yes
+2589,FPA ALL,active,no,yes
+2591,FPA042 V4 BEAD 2 ,active,no,yes
+2592,Licensed Poles,active,no,yes
+2593,Wireless Network,active,no,yes
+2594,Active Service Locations - December 2024,active,no,yes
+2595,"BMGI - Alton, NH",active,no,yes
+2596,"BMGI - Bridgewater, NH",active,no,yes
+2597,"BMGI - Bristol, NH",active,no,yes
+2598,"BMGI - Canaan, NH",active,no,yes
+2599,"BMGI - Plainfield/Cornish, NH",active,no,yes
+2600,"BMGI - Enfield, NH",active,no,yes
+2601,Hub66 - LEASED CIRCUITS,active,no,yes
+2602,100 Saco Falls Way - Biddeford,active,no,yes
+2603,75 Saco Falls way - Biddeford,active,no,yes
+2604,Hub66 - Transport Network,active,no,yes
+2605,Hub66 - POPs,active,no,yes
+2606,Belmont/Northport Interconnect,active,no,yes
+2607,Duncan Cable Poles ,active,no,yes
+2608,126 Tehan Rd,active,no,yes
+2609,Backbone Phase 3 & 4 New 2024 (1),active,no,yes
+2610,Wardsboro Expansion ,active,no,yes
+2611,DVF - Circuit FSA BEAD HLD (1),active,no,yes
+2612,FSAs - Redesign 2024 (2),active,no,yes
+2613, BackBone Redesign  2024 (2),active,no,yes
+2614,CCI Fidium Locations 2023 (2),active,no,yes
+2615,Eastern FSA's Extension ,active,no,yes
+2616,GMP RIDEOUT (1),active,no,yes
+2617,Wardsboro Expansion  FSA007 FSA008  ,active,no,yes
+2618,Guilford Expansion FSAs,active,no,yes
+2619,Rockport GWI Network,active,no,yes
+2623,Rockport Residential - Camden St,active,no,yes
+2624,DVF ARPA Extension Rev 1.2,active,no,yes
+2626,300 Main Rd (Garage),active,no,yes
+2627,Pole Apps Eastern  FPA042,active,no,yes
+2628,Duncan Cable FTTX  MAP (1),active,no,yes
+2629,Nick Data 1 ,active,no,yes
+2630,Fabric 0625,active,no,yes
+2631,Ookla 0625,active,no,yes
+2632,FCC Fabric Nick,active,no,yes
+2633,VCBB Eligible Keith DVF ,active,no,yes
+2634,MM HLD Opportunities  2025 ,active,no,yes
+2635,NWFX FULL HLD,active,no,yes
+2636,NWFX ARPA Build ,active,no,yes
+2637,Eastern FPA042 2024 VCBB Extension ,active,no,yes
+2638,FSA019  B RT9  Rev.2,active,no,yes
+2639,DO NOT USE VT BEAD 2 UU 2024 Keith 070225,active,no,yes
+2640,FPA042 V3 Reference ,active,no,yes
+2642,FPA056 V3 BEAD 2,active,no,yes
+2644,FPA054 V2 BEAD 2,active,no,yes
+2645,FPA053 V2 BEAD 2,active,no,yes
+2646,DVF - BEAD 1 Underserved Bohar (1),active,no,yes
+2647,DVF- BEAD 0 Unserved Bohar  (1),active,no,yes
+2648,107 Abrams Mountain Rd.,active,no,yes
+2649,BEAD FPAs KMZ  (1),active,no,yes
+2650,Eastern Strand FPA042 2024,active,no,yes
+2651,Keith 44 BSLs,active,no,yes
+2652,Test Plan,active,no,yes
+2653,June 2025,active,no,yes
+2654,East Delete ,active,no,yes
+2655,Eastern Route Full FPA042 2024 VCBB Extension ,active,no,yes
+2656,VT BEAD 2 USE UU 2025 Keith 07102025,active,no,yes
+2657,ME - BEAD PSAs - 20250711,active,no,yes
+2659,ME - BEAD CAIs - 20250711,active,no,yes
+2660,BEAD 2025 - P1 - BEAD Funded,active,no,yes
+2661,BEAD 2025 - P2 - BEAD Funded,active,no,yes
+2662,BEAD 2025 - P3 - BEAD Funded,active,no,yes
+2663,BEAD 2025 - P4 - BEAD Funded,active,no,yes
+2664,ME - BEAD BSLs - 20250711,active,no,yes
+2665,SanfordNet - 9 Presidential Ln,active,no,yes
+2666,1077 Collins Rd Redesign,active,no,yes
+2667,FPA ALL V1 BEAD 2,active,no,yes
+2669,LymeFiber,active,no,yes
+2670,1590 Pripet Wood ln ,active,no,yes
+2671,ARPA EXT Passings LLD Passings  (JB),active,no,yes
+2672,June 2025 Active BSL,active,no,yes
+2674,June 2025 DVF Active BSL,active,no,yes
+2675,1047 Main Rd,active,no,yes
+2676,SanfordNet - Traffic Lights (HFO),active,no,yes
+2677,972 Main Rd,active,no,yes
+2678,Pole Sets,active,no,yes
+2680,512 Ferry Rd.,active,no,yes
+2681,Drops - Extension FSAs,active,no,yes
+2682,DVFiber - BSLs,active,no,yes
+2685,DVF Pole Applications ARPA Ext  2025,active,no,yes
+2686,1945 Congress St - Portland,active,no,yes
+2687,JEC Smart Meter Locations ,active,no,yes
+2688,DVFiber - FSAs  ARPA 2024,active,no,yes
+2689,DVF ARPA Ext FSAs 2025,active,no,yes
+2691,VT - Towns - 20230923,active,no,yes
+2692,NH - Towns - 20230923,active,no,yes
+2693,DVF VCBB Q3 2025 BSL Data ,active,no,yes
+2696,31 US 1 - Yarmouth,active,no,yes
+2697,Hawkeye Stranding,active,no,yes
+2700,FSA055 (circuit mod) - Rev 1.0,active,no,yes
+2701,FSA063 (circuit mod) - Rev 1.0,active,no,yes
+2702,FSA056 - Rev 1.0,active,no,yes
+2703,FSA079 (Circuit Mod) - Rev 2.0,active,no,yes
+2704,FSA124 - Rev 1.0,active,no,yes
+2705,Backbone - Rev 1.0,active,no,yes
+2706,160 West Bay Rd.,active,no,yes
+2707,GMV - Service Area,active,no,yes
+2708,ARPA 1 - Pole Apps,active,no,yes
+2709,ARPA 2 - Pole Apps,active,no,yes
+2710,ARPA 1 - Backbone,active,no,yes
+2711,ARPA 2 - Backbone,active,no,yes
+2712,ARPA 1 - FSAs,active,no,yes
+2713,ARPA 2 - FSAs,active,no,yes
+2714,FSA-00000146 - Rev.1.1 ,active,no,yes
+2715,FSA-00000147 - Rev.1.1,active,no,yes
+2716,FSA-00000148 - Rev.1.1,active,no,yes
+2717,FSA-00000150 - Rev.1.1,active,no,yes
+2718,FSA-00000151 - Rev.2.1,active,no,yes
+2719,FSA-00000152 - Rev.2.1,active,no,yes
+2720,FSA-00000153 - Rev.1.2,active,no,yes
+2721,FSA-00000154 - Rev.1.2,active,no,yes
+2722,FSA-00000155 - Rev.1.1,active,no,yes
+2723,FSA-00000156 - Rev.1.2,active,no,yes
+2724,FSA-00000157 - Rev.2.1,active,no,yes
+2725,FSA-00000158 - Rev.1.3,active,no,yes
+2726,FSA-00000159 - Rev.2.1,active,no,yes
+2727,FSA-00000182 - Rev.1.1,active,no,yes
+2728,FSA-00000205 - Rev.1.1,active,no,yes
+2729,ARPA 1 - Hold Areas,active,no,yes
+2730,ARPA 3 - Backbone,active,no,yes
+2731,DVF - GMP ZOI Projects 2026,active,no,yes
+2732,FSA-00000011 - Rev.1.0,active,no,yes
+2733,FSA-00000012 - Rev.1.0,active,no,yes
+2734,FSA-00000014 - Rev.1.0,active,no,yes
+2735,FSA-00000015 - Rev.1.0,active,no,yes
+2736,FSA-00000149 - Rev.1.1,active,no,yes
+2737,FSA-00000151 - Rev.1.1,active,no,yes
+2738,FSA-00000157 - Rev.1.1,active,no,yes
+2739,FSA-00000159 - Rev.1.1,active,no,yes
+2740,FSA-00000152 - Rev.1.1,active,no,yes
+2741,FSA-00000031,active,no,yes
+2742,FSA-00000032,active,no,yes
+2743,FSA-00000033,active,no,yes
+2744,FSA-00000034,active,no,yes
+2745,FSA-00000035,active,no,yes
+2746,FSA-00000036,active,no,yes
+2748,Rumford - 986 Prospect Ave,active,no,yes
+2749,GWI FTTX - BSLs,active,no,yes
+2750,GWI FTTX - FSAs,active,no,yes
+2751,IMB - BSLs,active,no,yes
+2752,IMB - FSAs,active,no,yes
+2753,NWFX - BSLs,active,no,yes
+2754,NWFX - FSAs,active,no,yes
+2755,MKs Imports,active,no,yes
+2756,LymeFiber - BSLs,active,no,yes
+2757,LymeFiber - FSAs,active,no,yes
+2758,GWI Enterprise - BSLs,active,no,yes
+2759,CCI Fidium Network 10/2025,active,no,yes
+2760,Kennebunk - 9 High St,active,no,yes
+2761,SCRATCH PAD - CW,active,no,yes
+2762,Global Objects to be Reorganzied,active,no,yes
+2764,SLFRF Indian Springs ,active,no,yes
+2766,BSLs - Sandy Valley,active,no,yes
+2767,BSLs - Pahrump,active,no,yes
+2768,BSLs - Goodsprings and Jean,active,no,yes
+2769,BSLs - Indian Springs,active,no,yes
+2770,Design - Sandy Valley,active,no,yes
+2771,Sky Canyon,active,no,yes

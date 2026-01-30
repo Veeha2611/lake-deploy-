@@ -1,0 +1,198 @@
+# Source Exports Manifest (2026-01-30)
+
+Root: /Users/patch/vetro/lake_deploy_intake/source_exports
+
+- /Users/patch/vetro/lake_deploy_intake/source_exports/00_notion_index.sql
+- /Users/patch/vetro/lake_deploy_intake/source_exports/01_passings_split.sql
+- /Users/patch/vetro/lake_deploy_intake/source_exports/01_projects_enriched.sql
+- /Users/patch/vetro/lake_deploy_intake/source_exports/02_gl_revenue.sql
+- /Users/patch/vetro/lake_deploy_intake/source_exports/03_gl_freshness.sql
+- /Users/patch/vetro/lake_deploy_intake/source_exports/ANSWER_FORMAT_RUNBOOK.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/Dockerfile
+- /Users/patch/vetro/lake_deploy_intake/source_exports/REBUILD_GUIDE (1).md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/REBUILD_GUIDE.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/RELEASE_LOG.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/RUNBOOKS.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/Skye Canyon Short Form Model_v3.xlsx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/architecture_export_2026-01-09.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/architecture_export_2026-01-30.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/cci_margin_bands_from_lake.csv
+- /Users/patch/vetro/lake_deploy_intake/source_exports/coverage_map.json
+- /Users/patch/vetro/lake_deploy_intake/source_exports/deploy.sh
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/2025-11 – Lake-mapped export.csv
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Data Lake Project new chat 11252025.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Data Lake Project new chat 12032025.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Data Lake Project.pdf
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/FWQ! runbook SOW.pdf
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/FWQ1 – Financial Model Schema.pdf
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/GWI Customer Data Classification & Architecture.xlsx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/GWI Data Lake – Chat Archive 2025-12-23.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/LC_Pipeline_2025.10.10.xlsx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/LC_Pipeline_2025.10.10__dup2.xlsx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/LC_Pipeline_2025.12.04 MK NWFX Picks.xlsx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/LC_Pipeline_2025V1.xlsx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Plat 7 Schema Details.xlsx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Vetro Plasn list.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Vetro filtered list.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Vetro transcript.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Vetro_Plans_list.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/architecture_export_2026-01-14.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/architecture_export_2026-01-15 (1).md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/architecture_export_2026-01-15 (2).md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/architecture_export_2026-01-15.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/architecture_export_2026-01-16.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/architecture_export_2026-01-17 (1).md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/architecture_export_2026-01-17.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/architecture_export_2026-01-19.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/data lake chat 12092025.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/data lake chat 2.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/data lake chat history 01212026.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/data lake chat history 01222026.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/data lake history 12052025.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/lc_pipeline__acquisition_opps__20250110.csv
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/lc_pipeline__funnel_summary__20250110.csv
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/lc_pipeline__pipeline_summary__20250110.csv
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/manifest_local_20260107_112500.pdf
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/notion MAC runbook.pdf
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/notion vetro fail.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/schema.csv
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/table schema.csv
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/v6schema.pdf
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/v6schema__dup2.pdf
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/vetro developer details.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/vetro log in details.txt
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/~$se44 build schema.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/handoff_runbook_full_2026-01-26.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/handoff_runbook_self_contained_2026-01-26.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/index.js
+- /Users/patch/vetro/lake_deploy_intake/source_exports/integration_gaps.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/inventory_tables.csv
+- /Users/patch/vetro/lake_deploy_intake/source_exports/investor_answers.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/investor_memo.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/investor_proof_pack.json
+- /Users/patch/vetro/lake_deploy_intake/source_exports/investor_questions_2026-01-30/Investor Questions - GWI Business (1).xlsx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/investor_questions_2026_v2_all_lines.csv
+- /Users/patch/vetro/lake_deploy_intake/source_exports/investor_questions_2026_v2_questions.csv
+- /Users/patch/vetro/lake_deploy_intake/source_exports/investor_questions_2026_v2_review.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/RUNBOOKS_ssot.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/architecture_export_2026-01-27.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/handoff_runbook_2026-01-26.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/lc_pipeline_formula_map.json
+- /Users/patch/vetro/lake_deploy_intake/source_exports/mac_comprehensive_audit_1769521199212.json
+- /Users/patch/vetro/lake_deploy_intake/source_exports/mac_full_export_1769521214820.json
+- /Users/patch/vetro/lake_deploy_intake/source_exports/notion_access_runbook.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/notion_fetch.py
+- /Users/patch/vetro/lake_deploy_intake/source_exports/package-lock.json
+- /Users/patch/vetro/lake_deploy_intake/source_exports/package.json
+- /Users/patch/vetro/lake_deploy_intake/source_exports/perms_datalake_01_15_2026.csv
+- /Users/patch/vetro/lake_deploy_intake/source_exports/rebuild_package (1).json
+- /Users/patch/vetro/lake_deploy_intake/source_exports/rebuild_package.json
+- /Users/patch/vetro/lake_deploy_intake/source_exports/run_manifest.json
+- /Users/patch/vetro/lake_deploy_intake/source_exports/ssot_global_orchestrator.py
+- /Users/patch/vetro/lake_deploy_intake/source_exports/validate.sh
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_geometry_runbook.md
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_layers_preview.html
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_layers_preview_all_non_fcc.html
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_layers_preview_full.html
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_lines.geojson
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_lines_by_owner.geojson
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_lines_by_placement.geojson
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/1013-meadow-pond-rd-plan--Qm_wFMOITJ4UKtfh-OL6.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/1047-main-rd-plan-n_KCmXlz5zH0kOB-2Rx6c.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/107-abrams-mountain-rd-plan-aUWW9B_acNqcLGggIFJdh.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/126-tehan-rd-plan-TTyVLHKv2JkaVMNzmBu8x.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/150-bluff-rd-plan-LOFgJLOWAoQ5XjroHLdvL.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/160-west-bay-rd-plan-a-sJx60EoSmR3FLGozi3A.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/300-main-rd-garage-plan-TJr4DrZdOFW0Kw6RaFleD.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/512-ferry-rd-plan-thaKGqegPS5G5GF4cgYF-.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/buckfield-re-connect-locations-plan-EZEJRedmqY7WjZ9mNNio4.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/camden-fttx-option-1-plan-bXhG9XQ8Ig4vpd0QYwwEg.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/camden-fttx-option-2-plan-K7tXmehIecOBu1U-JArQb.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/canton-re-connect-locations-plan-8k49jZ2YPMXaPZG7T_9MP.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/cumberland-pine-lane-fttx-plan-36hPSuB1p-HAs0tHcKnfn.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/deer-isles-re-connect-v-2-plan-m2YI-uVh8Ms0lwftcsP_V.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/hartford-re-connect-locations-plan-j8wzOnzFcC0PlBpadGtzS.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/initial-rockport-fttx-network-plan-G0f6e_R-qNiafJIp58LUI.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/islesboro-municipal-broadband-imb-plan-u6dnXfTt4XIN8Mr4_Gnp6.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/madrid-re-connect-locations-plan-KTlrbKBevD3gz8kL5E5Hr.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/phillips-re-connect-locations-plan-12O_b1V5dYC_5cq_iXz1j.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/rockport-gwi-network-plan-mB27qbbElaHgDz5HKSgak.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/somerville-re-connect-locations-plan-VhOwcRezYtgIMlqEuGS5u.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/strong-re-connect-locations-plan-hh9gBmPcmMnSk8aUUM682.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/sumner-full-town-fttx-plan-re6Ns2NjLzQRkBcndp1Ax.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/sumner-re-connect-locations-plan-s-riHNXDCNdoaW59RybHp.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch1_2026-01-30/whitefield-re-connect-v-2-plan--4EzMxg8kLXbdFy8379ZV.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/arundel-large-scale-hood-plan-jwlSdgJnXxrZRlMA7jWvH.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/auburn-large-scale-hood-plan-L_pOxBbeCC_HyeSUCnsaA.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/belfast-opp-zone-plan-Ipjipla98R1-lpFH10yYM.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/belfast-oz-route-1-and-downtown-plan-GjSuOL7xpA5rW-2GwWZLP.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/biddeford-large-scale-hood-plan-YGFCRbPaxWpWolDkUpCR-.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/brunswick-large-scale-hood-plan-Kbud-RMOInRR_8Iy_rkdt.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/brunswick-opp-zone-plan-UIELpi6iWQ5b4qub4D412.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/brunswick-oz-old-bath-rd-plan-Dss6QvPZgN2a5DwyWRZFv.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/brunswick-oz-wildwood-plan-tYjdHtkOc-OZgQcNldXZt.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/canaan-rus-hood-plan-sxLCy-w--m0rkSikkzbBj.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/casco-rus-hood-plan-yXPecVDFZHqAEmhkw5y5B.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/chesterville-rus-hood-plan-8BVvxgGYCWh06y8Qm8lRK.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/cumberland-large-scale-hood-plan-8P9QtLobXwHJf_IC400iM.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/deer-isle-all-premises-plan-a3aO3HhrS85pSvGMAGnrJ.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/deer-isle-fttx-backbone-plan-_unCn6WKSAQCPyNafpWvQ.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/dixfield-rus-hood-plan-YdikujV-XWkJUOVWiHRJX.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/falmouth-large-scale-hood-plan-zK56o8TPoKK6GNu7w4juG.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/farmington-rus-hood-plan-Wiv3pFrUmCJNaN2P6oYkX.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/freeport-large-scale-hood-plan-8kXFjxcpgatbqwpJgS4XE.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/gorham-large-scale-hood-plan-6i4anOwPfJauA0DlSc9TJ.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/hebron-re-connect-locations-plan-Tz1nJBDR7UaQVRx0DAizW.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/kennebunk-large-scale-hood-plan-oiDx58JjYHR_9nBA8x7xV.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/kennebunkport-large-scale-hood-plan-p2bZZFGgvVGOeDYF7b89Y.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/lewiston-large-scale-hood-plan-JTMGyFf2FUS7oMHX7E0OW.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/lewiston-opp-zone-plan-epJXOCzFYXX7BumriAIM3.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/madison-opp-zone-downtown-plan-hawbjbTSeZUQU8lttV262.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/madison-opp-zone-plan-eL_nUeP6NM3ikVt6x7rg2.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/madison-rus-hood-plan-prKcCaNJyVJkM65yeGmtO.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/millinocket-opp-zone-east-millinocket-plan-J-eVq4BKJx3i2HVJ3PhRK.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/millinocket-opp-zone-plan-1wQrFjyiPkfmsbzz_aEOm.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/millinocket-oz-millinocket-plan-GF17v6twUrlDalBKh3BBW.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/new-sharon-rus-hood-plan-sbOGn03CxgytfocY-gUf9.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/norridgewock-rus-hood-plan-zUYkFPjY7UKKS9QH-6_Yb.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/paris-norway-opp-zone-plan-GuS2OvLBhrvtRd2Fii9H5.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/paris-norway-oz-downtown-plan-QoAm19VrDhS61Sx_j7CKp.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/penobscot-rfp-proposed-area-plan-OdASWhp1HvwV-gT75NwOd.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/portland-deering-ctr-to-nasons-corner-plan-7EzNJTPWBKYaERcYB5rzF.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/portland-forest-and-woodford-plan-HiNROUPiGRA6M_RdBgcdu.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/portland-rosemont-large-scale-plan-XTXeI-sSrNofbu_7hfN9N.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/portland-west-end-plan-EInEN1Qh3jCpPeOspVAat.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/rangeley-rus-hood-plan-ae5Mnr2SSC2aPGGeveOdu.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/raymond-rus-hood-plan-P3y_QvIcAG0QpQbgnqLBA.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/route-4-rus-hood-plan-O_t9u7fB-bgN7K_e8obQO.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/rumford-mexico-large-scale-hood-plan-CCBjM0Gp7m2-JC7zzrE0W.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/rumford-oz-downtown-and-mexico-plan-uUC2hphZJHmymRg2fsuu6.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/rumford-oz-downtown-plan-sXGTZdK36gwa5petnCqhv.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/rumford-to-hanover-opp-plan-LL-LyLfdFRz06UwHcTRTE.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/saco-large-scale-hood-plan-f3GyWbQo7DuQxSKmwwDes.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/saco-opp-zone-downtown-plan-3mVYBlrb9wk-XgvNcwLoa.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/saco-opp-zone-plan-6eKBQEc198neRFLAY3VgO.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/saco-opp-zone-route-1-plan-g6AjsTNiQ187zRly_wCx9.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/sanford-large-scale-hood-plan-nBjPWFOzsJUw-yg1_BfF6.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/scarborough-large-scale-hood-plan-9y9ZQeoWHUqxwcaUoJ5i6.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/sebago-rus-hood-plan-RX7heuwVqwZAOzJyuNHuY.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/skowhegan-rus-hood-plan--Zgpud7TjAmQaLrNu2iFt.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/somerville-rus-hood-plan-TrZf9hwiipITtoPMswTvg.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/south-bath-opp-zone-dense-plan-JHP2_MY1Mwe9s9Zk0Ko27.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/south-bath-opp-zone-plan-NLfP_bZyuEzTJJyFBLQds.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/south-paris-re-connect-locations-plan-Raxr7nqKu4vgzRThmHrWw.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/south-portland-large-scale-hood-plan-1Rwe2OXJrMIpGC_LIZDdK.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/stonington-all-premises-plan-BatwX_TO7Xc7APD1ALZFW.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/topsham-large-scale-hood-plan-OkG2SSi-jaYDbRGSgATMz.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/turner-re-connect-locations-plan-tpRYj8hCDS_wJz1dkfRNc.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/wells-large-scale-hood-plan-tFELQavuwHdUQvL3Dy3hz.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/west-paris-re-connect-locations-plan--xVkL0bKouXU80nZbCfd5.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/westbrook-large-scale-hood-plan-bAoebBarO1NTsDjFSQsyD.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/windham-large-scale-hood-plan-OZh07jK-zA2Wsw3UMVWJk.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/yarmouth-large-scale-hood-plan-cujEk7LI8h6LBnNK9wvkV.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/york-large-scale-hood-plan-h8o04_-3Qkf_FKYy4PHAk.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_network_map_1768533914995.csv
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_network_map_1768535215664.csv
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_pins.geojson
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_polygons.geojson
+- /Users/patch/vetro/lake_deploy_intake/source_exports/views.md

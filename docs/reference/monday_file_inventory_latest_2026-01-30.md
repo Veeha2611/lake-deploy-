@@ -1,0 +1,11 @@
+# monday file inventory (latest 10 by mtime)
+- 2026-01-30 11:32:05 | 40021 bytes | /Users/patch/lake_deploy/apps/mac-mountain-insights-console/src/pages/Dashboard.jsx
+- 2026-01-30 11:32:05 | 20764 bytes | /Users/patch/lake_deploy/apps/mac-mountain-insights-console/functions/auditDashboardTiles.ts
+- 2026-01-30 11:32:05 | 15343 bytes | /Users/patch/lake_deploy/apps/mac-mountain-insights-console/src/components/dashboard/GLClosePack.jsx
+- 2026-01-30 11:32:05 | 14521 bytes | /Users/patch/lake_deploy/apps/mac-mountain-insights-console/src/components/dashboard/TileModal.jsx
+- 2026-01-30 11:32:05 | 13044 bytes | /Users/patch/lake_deploy/apps/mac-mountain-insights-console/functions/syncMondayToAWS.ts
+- 2026-01-30 11:32:05 | 12860 bytes | /Users/patch/lake_deploy/apps/mac-mountain-insights-console/functions/syncDeliverablesToMonday.ts
+- 2026-01-30 11:32:05 | 12027 bytes | /Users/patch/lake_deploy/apps/mac-mountain-insights-console/functions/mondaySchemaForProjects.ts
+- 2026-01-30 11:32:05 | 11851 bytes | /Users/patch/lake_deploy/apps/mac-mountain-insights-console/functions/ingestMondayUpdateWithCalcs.ts
+- 2026-01-30 11:32:05 | 11608 bytes | /Users/patch/lake_deploy/apps/mac-mountain-insights-console/src/components/dashboard/MRRFy2025Tile.jsx
+- 2026-01-30 11:32:05 | 11103 bytes | /Users/patch/lake_deploy/apps/mac-mountain-insights-console/src/components/dashboard/DashboardTile.jsx

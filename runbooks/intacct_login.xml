@@ -1,22 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
 <request>
   <control>
-    <senderid>GWI2</senderid>
-    <password>W5FTLV2kkXJ67^</password>
-    <controlid>loginTest</controlid>
+    <senderid>&lt;INTACCT_SENDER_ID&gt;</senderid>
+    <password>&lt;INTACCT_SENDER_PASSWORD&gt;</password>
+    <controlid>login_test</controlid>
     <uniqueid>false</uniqueid>
     <dtdversion>3.0</dtdversion>
   </control>
   <operation>
     <authentication>
       <login>
-        <userid>datalake</userid>
-        <companyid>GWI-sandbox</companyid>
-        <password>2hXOM@79dOS</password>
+        <userid>&lt;INTACCT_USER_ID&gt;</userid>
+        <companyid>&lt;INTACCT_COMPANY_ID&gt;</companyid>
+        <password>&lt;INTACCT_WS_USER_PASSWORD&gt;</password>
       </login>
     </authentication>
     <content>
-      <function controlid="testFunc">
-        <getAPISession/>
+      <function controlid="get_session">
+        <getAPISession />
       </function>
     </content>
   </operation>

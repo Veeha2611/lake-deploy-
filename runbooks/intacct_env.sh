@@ -1,45 +1,19 @@
 #!/usr/bin/env bash
+# Intacct environment template (no secrets). Fill via your secret manager or local .env and source it.
 
-# ========================================
-# Intacct Credential Export Script
-# ========================================
+export INTACCT_SENDER_ID="<INTACCT_SENDER_ID>"
+export INTACCT_SENDER_REDACTED
+export INTACCT_COMPANY_ID="<INTACCT_COMPANY_ID>"
+export INTACCT_USER_ID="<INTACCT_USER_ID>"
+export INTACCT_WS_USER_REDACTED
 
-# Intacct XML Gateway endpoint (same for all envs)
-export INTACCT_ENDPOINT_URL="https://api.intacct.com/ia/xml/xmlgw.phtml"
-
-# Shared sender credentials (same for all envs)
-export INTACCT_SENDER_ID="GWI2"
-export INTACCT_SENDER_PASSWORD="W5FTLV2kkXJ67^"
-
-# ========================================
-# Environment selector
-# Usage: source ~/intacct_env.sh [DEV|SANDBOX|PROD]
-# Default: PROD
-# ========================================
-
-INTACCT_ENV="${1:-PROD}"
-
-case "$INTACCT_ENV" in
-  DEV)
-    export INTACCT_COMPANY_ID="GWI2-DEV"
-    export INTACCT_WS_USER_ID="datalake"
-    export INTACCT_WS_USER_PASSWORD="691TKY#QEJc"
-    ;;
-  SANDBOX)
-    export INTACCT_COMPANY_ID="GWI-sandbox"
-    export INTACCT_WS_USER_ID="datalake"
-    export INTACCT_WS_USER_PASSWORD="2hXOM@79dOS"
-    ;;
-  PROD)
-    export INTACCT_COMPANY_ID="GWI"
-    export INTACCT_WS_USER_ID="datalake"
-    export INTACCT_WS_USER_PASSWORD="3vdhJ=Xc8V4"
-    ;;
-  *)
-    echo "Unknown Intacct environment: $INTACCT_ENV"
-    # Play nice when sourced or executed
-    return 1 2>/dev/null || exit 1
-    ;;
-esac
-
-echo "Intacct environment set: $INTACCT_ENV"
+# Optional per-environment overrides
+# export INTACCT_COMPANY_ID_DEV="<INTACCT_COMPANY_ID_DEV>"
+# export INTACCT_USER_ID_DEV="<INTACCT_USER_ID_DEV>"
+# export INTACCT_WS_USER_PASSWORD_DEV="<INTACCT_WS_USER_PASSWORD_DEV>"
+# export INTACCT_COMPANY_ID_SANDBOX="<INTACCT_COMPANY_ID_SANDBOX>"
+# export INTACCT_USER_ID_SANDBOX="<INTACCT_USER_ID_SANDBOX>"
+# export INTACCT_WS_USER_PASSWORD_SANDBOX="<INTACCT_WS_USER_PASSWORD_SANDBOX>"
+# export INTACCT_COMPANY_ID_PROD="<INTACCT_COMPANY_ID_PROD>"
+# export INTACCT_USER_ID_PROD="<INTACCT_USER_ID_PROD>"
+# export INTACCT_WS_USER_PASSWORD_PROD="<INTACCT_WS_USER_PASSWORD_PROD>"

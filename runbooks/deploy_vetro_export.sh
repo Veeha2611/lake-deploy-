@@ -25,7 +25,7 @@ aws cloudformation deploy \
       LambdaCodeBucket="${LAMBDA_CODE_BUCKET}" \
       LambdaCodeKey="${LAMBDA_CODE_KEY}" \
       PlanIds="${PLAN_IDS}" \
-      VetroTokenSecret="vetro_api/token" \
+      VetroTokenSecret="<vetro_token_secret_name>" \
       ExportBucket="${LAMBDA_CODE_BUCKET}" \
       ExportPrefix="${EXPORT_PREFIX}" \
       StateBucket="${LAMBDA_CODE_BUCKET}" \

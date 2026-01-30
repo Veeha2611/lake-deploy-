@@ -1,0 +1,11 @@
+# platt file inventory (latest 10 by mtime)
+- 2026-01-30 07:25:15 | 1039 bytes | /Users/patch/lake_deploy/docs/integrations/platt.md
+- 2026-01-30 07:21:30 | 303 bytes | /Users/patch/lake_deploy/athena/curated/legacy_ctas/curated_platt_customer.sql
+- 2026-01-30 07:21:30 | 472 bytes | /Users/patch/lake_deploy/athena/raw/legacy_ddls/raw_platt_customer.sql
+- 2026-01-29 23:04:42 | 328 bytes | /Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/curated/22_curated_platt_billing_summary.sql
+- 2026-01-29 23:04:42 | 627 bytes | /Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/curated/21_platt_reconciliation.sql
+- 2026-01-29 23:04:42 | 1177 bytes | /Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/curated/20_curated_platt.sql
+- 2026-01-29 23:04:42 | 11014 bytes | /Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/raw/03_raw_platt_tables.sql
+- 2026-01-29 23:04:17 | 14944 bytes | /Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/platt_schema.csv
+- 2026-01-29 23:04:17 | 1307 bytes | /Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/platt_mapping.md
+- 2026-01-29 23:04:17 | 1177 bytes | /Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/athena/curated/20_curated_platt.sql

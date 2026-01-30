@@ -1,27 +1,18 @@
-cat > ~/intacct_creds.sh <<'EOF'
 #!/usr/bin/env bash
+# Load Intacct env vars from a local file (no secrets committed).
+# Usage: ./intacct_env_from_file.sh /path/to/intacct.env
 
-# Intacct XML Gateway endpoint
-INTACCT_ENDPOINT_URL="https://api.intacct.com/ia/xml/xmlgw.phtml"
+set -euo pipefail
 
-# Shared sender (same across envs in your current setup)
-SENDER_ID="GWI2"
-SENDER_PASSWORD="W5FTLV2kkXJ67^"
+ENV_FILE="${1:-}"
+if [[ -z "$ENV_FILE" || ! -f "$ENV_FILE" ]]; then
+  echo "Usage: $0 /path/to/intacct.env" >&2
+  exit 1
+fi
 
-# DEV
-COMPANY_ID_DEV=""GWI2-DEV"
-WS_USER_ID_DEV="datalake"
-WS_USER_PASSWORD_DEV="691TKY#QEJc"
+set -a
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+set +a
 
-# SANDBOX
-COMPANY_ID_SANDBOX="GWI-sandbox"
-WS_USER_ID_SANDBOX="datalake"
-WS_USER_PASSWORD_SANDBOX="2hXOM@79dOS"
-
-# PROD
-COMPANY_ID_PROD= "GWI"
-WS_USER_ID_PROD="datalake"
-WS_USER_PASSWORD_PROD="3vdhJ=Xc8V4"
-EOF
-
-chmod 600 ~/intacct_creds.sh
+echo "Loaded INTACCT_* variables from $ENV_FILE"

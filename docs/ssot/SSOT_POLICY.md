@@ -1,29 +1,38 @@
-# SSOT Policy (Lake-wide)
+# SSOT Policy (Single Source of Truth)
 
-## Core rule
-All reporting and user-facing answers must be derived from `curated_core.<entity>_current` views/tables only.
+## Principles
+- **S3 is the system of record.** All ingests land in S3 first.
+- **Curated tables are the canonical layer** for operational analytics and application use.
+- **Current tables drive SSOT guards**; exception tables record gaps without blocking the run unless thresholds are exceeded.
 
-## Layers (required)
-- `curated_core.<system>_<entity>_curated_raw`: typed, complete, no exclusions
-- `curated_core.<system>_<entity>_current`: policy-applied SSOT
-- `curated_recon.<system>_<entity>_exceptions`: excluded rows + reason codes
+## SSOT Layers
+- **Raw**: Source-native extracts staged in S3.
+- **Curated Core**: Normalized, query-ready tables/views.
+- **Curated Recon**: Exceptions and reconciliation deltas.
+- **Curated SSOT**: Summary/guard tables for daily status.
 
-## Default policy
-- **Dedup**: latest by `updated_at` else `ingested_at`
-- **As-of**: exclude business dates > `run_date + 1 day`
-- **Quality**: required columns present, non-zero counts, sane deltas vs prior day
+## Daily Guard Policy
+- Each system writes a **manifest** to:
+  `s3://gwi-raw-us-east-2-pc/orchestration/<system>_daily/run_date=YYYY-MM-DD/manifest.json`
+- Guard status reads from `*_current` tables.
+- Exceptions are recorded to `curated_recon.*` and only fail if thresholds are breached.
 
-## Evidence
-Every daily run writes:
-`orchestration/<system>_daily/run_date=YYYY-MM-DD/manifest.json`
+## Canonical Deliverables (SSOT)
+- Config: `config/deliverables_config.json`
+- Schema: `sql/ssot/02_deliverables_schema.sql`
+- Daily load: `sql/ssot/03_deliverables_insert.sql` (replace `<RUN_DATE>`)
+- Proof query:
+  ```
+  SELECT deliverable_id, status, ssot_guard_ok, exception_count
+  FROM curated_ssot.deliverables
+  WHERE dt='<YYYY-MM-DD>';
+  ```
 
-Manifest must include:
-- ssot_count
-- max_business_date
-- exception_count
-- guard_ok
-- query IDs (QIDs)
+## Deployed Today
+- SSOT daily summary: `curated_recon.ssot_daily_summary`
+- Deliverables SSOT: `curated_ssot.deliverables`
 
-## Exceptions
-Exceptions do **not** fail the run unless thresholds exceeded.
-They are recorded and surfaced in `curated_recon.ssot_daily_summary`.
+## Planned / Future
+- Threshold enforcement and automated paging on guard failures.
+- Expanded SSOT coverage for additional sources.
+

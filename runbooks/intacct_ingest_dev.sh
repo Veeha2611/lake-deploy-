@@ -5,7 +5,7 @@ source "${HOME}/intacct_env.sh"
 
 COMPANY_ID="${COMPANY_ID_DEV}"
 WS_USER_ID="${WS_USER_ID_DEV}"
-WS_USER_PASSWORD="${WS_USER_PASSWORD_DEV}"
+WS_USER_REDACTED
 
 RUN_DATE="$(date +%F)"
 RUN_DIR="${HOME}/intacct_ingest/${COMPANY_ID}/${RUN_DATE}"

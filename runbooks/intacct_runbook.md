@@ -22,7 +22,7 @@ This file mirrors the runbook notes we would log in Notion; store it locally so 
 - When the UI shows “Top level” journal entries, it appears to be filtering by the `Location ID` (`GWI` = 10) rather than the `companyid` alone. The ingest now accepts `LOCATION_ID`—export it before running `lake_deploy/intacct_ingest.sh` so we can replicate that UI scope in the login block. Once GL entries return, record the used `LOCATION_ID` and response in this runbook.
 
 ## Vet‌ro sandbox readiness + prompt guidance
-1. To bring a new teammate up to speed on the Vetro + Intacct + SolarWinds data lake build, point them at `Downloads/Codex/vetro_geometry_runbook.md` (current geometry export workflow) and note that `topic state — Vetro + Sage Intacct + SolarWinds (Reconcile Hub)` captures the broader integration state (links noted in that Markdown).  
+1. To bring a new teammate up to speed on the Vetro + Intacct + SolarWinds data lake build, point them at `docs/vetro_geometry_export_runbook.md` (current geometry export workflow) and `docs/integration_status.md` (integration state and dependencies).
 2. Provide the following prompt whenever you spawn a new chat:
    > “Set up the dedicated Vet‌ro sandbox: export `VETRO_API_TOKEN`, `VETRO_BASE_URL_V3`, `VETRO_BASE_URL_V2`, and run the pin/line/polygon SQLs plus the `/features?limit=1` and `/plans` connectivity checks. Capture Athena/HTTP evidence and paste it back here so the pipeline runs with the latest evidence.”  
    This ensures no blocker language deters future agents—everything they need is scripted and waiting for the token/context.

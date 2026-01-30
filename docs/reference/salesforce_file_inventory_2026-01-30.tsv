@@ -1,0 +1,11 @@
+1769788861	1526	/Users/patch/lake_deploy/runbooks/intacct_glaccount_keys_test.sh
+1769775690	355	/Users/patch/lake_deploy/athena/curated/legacy_ctas/curated_salesforce_opportunities.sql
+1769775690	339	/Users/patch/lake_deploy/athena/curated/legacy_ctas/curated_salesforce_accounts.sql
+1769775690	508	/Users/patch/lake_deploy/athena/raw/legacy_ddls/raw_salesforce_opportunities.sql
+1769775690	501	/Users/patch/lake_deploy/athena/raw/legacy_ddls/raw_salesforce_accounts.sql
+1769750362	459	/Users/patch/lake_deploy/docs/integrations/salesforce.md
+1769575795	978	/Users/patch/lake_deploy/athena/curated/ssot/20_ssot_salesforce_accounts.sql
+1769013693	355	/Users/patch/lake_deploy/external_sources/curation/athena_ctas/curated_salesforce_opportunities.sql
+1769013688	339	/Users/patch/lake_deploy/external_sources/curation/athena_ctas/curated_salesforce_accounts.sql
+1769013664	508	/Users/patch/lake_deploy/external_sources/curation/athena_ddl/raw_salesforce_opportunities.sql
+1769013656	501	/Users/patch/lake_deploy/external_sources/curation/athena_ddl/raw_salesforce_accounts.sql

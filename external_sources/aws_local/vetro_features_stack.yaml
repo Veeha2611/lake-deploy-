@@ -1,0 +1,151 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Vetro features ingestion (plan discovery + per-plan features)
+
+Parameters:
+  LambdaCodeBucket:
+    Type: String
+    Default: gwi-raw-us-east-2-pc
+  LambdaCodeKey:
+    Type: String
+    Default: orchestration/lambda-code/vetro-features.zip
+  SecretArn:
+    Type: String
+    Default: arn:aws:secretsmanager:us-east-2:702127848627:secret:vetro/api_token
+  S3Bucket:
+    Type: String
+    Default: gwi-raw-us-east-2-pc
+
+Resources:
+  VetroFeaturesFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: vetro-features-ingest
+      Runtime: python3.11
+      Handler: vetro_features_lambda.lambda_handler
+      Timeout: 900
+      MemorySize: 512
+      Role: !GetAtt VetroFeaturesRole.Arn
+      Code:
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref LambdaCodeKey
+      Environment:
+        Variables:
+          VETRO_BASE_URL: https://api.vetro.io/v3/
+          S3_BUCKET: !Ref S3Bucket
+          TOKEN_SECRET_NAME: vetro/api_token
+
+  VetroFeaturesRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: vetro-features-lambda-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: vetro-features-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub "${SecretArn}*"
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource: !Sub "arn:aws:s3:::${S3Bucket}"
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource: !Sub "arn:aws:s3:::${S3Bucket}/*"
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+
+  VetroFeaturesLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/vetro-features-ingest
+      RetentionInDays: 30
+
+  VetroFeaturesDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: vetro-features-dlq
+
+  VetroFeaturesSchedule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: vetro-features-ingest-schedule
+      ScheduleExpression: rate(60 minutes)
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt VetroFeaturesFunction.Arn
+          Id: VetroFeaturesIngestTarget
+          DeadLetterConfig:
+            Arn: !GetAtt VetroFeaturesDLQ.Arn
+          Input: '{"mode":"INGEST"}'
+
+  VetroFeaturesDiscoverSchedule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: vetro-features-discover-schedule
+      ScheduleExpression: rate(24 hours)
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt VetroFeaturesFunction.Arn
+          Id: VetroFeaturesDiscoverTarget
+          DeadLetterConfig:
+            Arn: !GetAtt VetroFeaturesDLQ.Arn
+          Input: '{"mode":"DISCOVER"}'
+
+  PermissionForEventsToInvokeIngest:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref VetroFeaturesFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt VetroFeaturesSchedule.Arn
+
+  PermissionForEventsToInvokeDiscover:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref VetroFeaturesFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt VetroFeaturesDiscoverSchedule.Arn
+
+  VetroFeatures429MetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: /aws/lambda/vetro-features-ingest
+      FilterPattern: '"429"'
+      MetricTransformations:
+        - MetricValue: "1"
+          MetricNamespace: VetroFeatures
+          MetricName: RateLimited
+
+  VetroFeatures429Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: vetro-features-429-alarm
+      Namespace: VetroFeatures
+      MetricName: RateLimited
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+Outputs:
+  FunctionName:
+    Value: !Ref VetroFeaturesFunction

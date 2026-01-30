@@ -16,10 +16,10 @@ source "$HOME/intacct_env.sh"
 ############################################################
 
 SENDER_ID="${SENDER_ID}"
-SENDER_PASSWORD="${SENDER_PASSWORD}"
+SENDER_REDACTED
 
 WS_USER_ID="${WS_USER_ID_SANDBOX}"
-WS_USER_PASSWORD="${WS_USER_PASSWORD_SANDBOX}"
+WS_USER_REDACTED
 
 COMPANY_ID="${COMPANY_ID_SANDBOX}"
 
