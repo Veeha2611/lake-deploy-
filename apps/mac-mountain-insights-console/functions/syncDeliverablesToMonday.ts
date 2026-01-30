@@ -24,12 +24,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'MONDAY_API_KEY not set in environment variables' }, { status: 500 });
     }
     
-    // Direct fetch from AWS AI Layer (bypassing aiLayerQuery function)
+    // Direct fetch from AWS Query Layer (bypassing aiLayerQuery function)
     const AWS_AI_LAYER_API_KEY = Deno.env.get('AWS_AI_LAYER_API_KEY');
     const AWS_AI_LAYER_INVOKE_URL = Deno.env.get('AWS_AI_LAYER_INVOKE_URL');
 
     if (!AWS_AI_LAYER_API_KEY || !AWS_AI_LAYER_INVOKE_URL) {
-      return Response.json({ error: 'AWS AI Layer credentials not configured' }, { status: 500 });
+      return Response.json({ error: 'AWS Query Layer credentials not configured' }, { status: 500 });
     }
 
     console.log('[syncDeliverablesToMonday] Fetching latest partition...');

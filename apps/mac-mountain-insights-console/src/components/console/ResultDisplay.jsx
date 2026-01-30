@@ -146,7 +146,7 @@ export default function ResultDisplay({ result }) {
               <div className="flex items-center gap-2">
                 <EvidenceDrawer 
                   evidence={result.evidence}
-                  title="AI Console - Query Evidence"
+                  title="Query Console - Query Evidence"
                 />
                 <Button
                   variant="outline"

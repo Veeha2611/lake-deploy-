@@ -418,7 +418,7 @@ export default function Settings({ user }) {
             <div className="p-4 bg-slate-50 rounded-xl">
               <h4 className="font-medium text-slate-800 mb-2">Query History</h4>
               <p className="text-sm text-slate-500 mb-3">
-                Your query history is stored securely and helps improve AI suggestions
+                Your query history is stored securely and helps improve query suggestions
               </p>
               <Button variant="outline" size="sm">
                 Export My Data

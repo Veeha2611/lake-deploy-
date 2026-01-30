@@ -333,7 +333,7 @@ ${sql}
 - **SQL Attempted**: \`${sql}\`
 
 **Next Steps**:
-1. Check AWS AI Layer connectivity
+1. Check AWS Query Layer connectivity
 2. Review backend function logs`,
           evidence: {
             run_at,
@@ -454,7 +454,7 @@ Based on the **Data Lake Project** definitions:
 - **Exception Type**: ${error.name || 'Unknown'}
 
 **Next Steps**:
-1. Verify the customer_count_v1 template exists in the AWS AI Layer
+1. Verify the customer_count_v1 template exists in the AWS Query Layer
 2. Check AWS Lambda permissions for template execution
 3. Review backend function logs for detailed stack trace`,
           evidence: {
@@ -597,16 +597,16 @@ Extract the relevant information:`,
     if (skipDataLake) {
       console.log('[answerQuestion] [STRATEGY_OR_PLAYBOOK] Complete answer from knowledge S3, skipping data lake...');
       
-      // Enhance with AI suggestions
+      // Enhance with query suggestions
       const enrichedAnswer = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are the GWI/Mac Mountain AI assistant. A user asked: "${question}"
+        prompt: `You are the GWI/Mac Mountain data lake analyst. A user asked: "${question}"
 
 Here is the factual information from our knowledge base:
 ${knowledgeBaseAnswer}
 
 Your task:
 1. Present the knowledge base facts clearly and professionally
-2. Add a "💡 AI Insights & Suggestions" section with:
+2. Add a "💡 Insights & Suggestions" section with:
    - Strategic recommendations based on the facts
    - Potential deeper dive questions the user might want to explore
    - Connections to operational metrics or data they could review
@@ -642,7 +642,7 @@ Format in clear markdown with sections. Start with the facts, then add insights.
     }
 
     // Step A: Generate query plan using LLM
-    const planPrompt = `You are the AI assistant for the GWI / Mac Mountain Commercial Data Lake (AWS Athena).
+    const planPrompt = `You are the analyst for the GWI / Mac Mountain Commercial Data Lake (AWS Athena).
 
 ═══════════════════════════════════════════════════════════════════════════
 PRIME DIRECTIVE — DO NOT BREAK WHAT WORKS
@@ -1105,7 +1105,7 @@ Query must:
       return Response.json({
         ok: false,
         error: 'All query attempts exhausted',
-        answer_markdown: `I tried multiple approaches to get your answer but ran into persistent data access issues. This might require additional IAM permissions on the AWS side.\n\nPlease check:\n1. IAM permissions for the AI Layer Lambda\n2. Athena workgroup permissions\n3. S3 bucket access for query results\n\nError details have been logged for your data team to investigate.`,
+        answer_markdown: `I tried multiple approaches to get your answer but ran into persistent data access issues. This might require additional IAM permissions on the AWS side.\n\nPlease check:\n1. IAM permissions for the Query Layer Lambda\n2. Athena workgroup permissions\n3. S3 bucket access for query results\n\nError details have been logged for your data team to investigate.`,
         data_results: [],
         visualization_type: 'none',
         evidence: {
@@ -1117,7 +1117,7 @@ Query must:
     }
 
     // Step C: Compose final answer using LLM
-    const composePrompt = `You are the GWI Data Lake AI assistant answering: "${question}"
+    const composePrompt = `You are the GWI Data Lake analyst answering: "${question}"
 
 ═══════════════════════════════════════════════════════════════════════════
 INTERNAL SOURCES (PRIORITY ORDER)
@@ -1146,7 +1146,7 @@ YOU MUST structure your answer in this exact order:
 1. **Internal Data First** - Present GWI's actual data/facts from queries and knowledge base
 2. **Knowledge Base Integration** - If relevant KB context exists, weave it naturally into your analysis
 3. **External Comparison** - Only if external context provided, compare as secondary insight
-4. **AI Insights & Suggestions** - REQUIRED section at the end with:
+4. **Insights & Suggestions** - REQUIRED section at the end with:
    - Strategic recommendations based on the data
    - Deeper dive questions to explore
    - Specific next steps (3-5 actionable items)
@@ -1267,12 +1267,12 @@ Based on your margin analysis, **23 C-band accounts** generating **$8,400 MRR** 
 3. Track conversion rate monthly
 
 ═══════════════════════════════════════════════════════════════════════════
-MANDATORY: AI INSIGHTS & SUGGESTIONS SECTION
+MANDATORY: INSIGHTS & SUGGESTIONS SECTION
 ═══════════════════════════════════════════════════════════════════════════
 
 Every response MUST end with:
 
-## 💡 AI Insights & Suggestions
+## 💡 Insights & Suggestions
 
 **Strategic Recommendations:**
 - (Based on the data, what actions should be prioritized?)

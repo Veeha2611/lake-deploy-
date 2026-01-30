@@ -18,8 +18,8 @@ flowchart LR
     ATHENA[Athena Views]
   end
 
-  subgraph SSOT
-    SSOT[(SSOT Views)]
+  subgraph SSOT_Layer
+    SSOT_VIEW[(SSOT Views)]
   end
 
   subgraph Consumption
@@ -35,5 +35,5 @@ flowchart LR
   GA --> RAW_S3
   B44 --> RAW_S3
 
-  RAW_S3 --> CUR_S3 --> ATHENA --> SSOT --> APP
-  SSOT --> BI
+  RAW_S3 --> CUR_S3 --> ATHENA --> SSOT_VIEW --> APP
+  SSOT_VIEW --> BI

@@ -126,7 +126,7 @@ LIMIT 200
 
 ---
 
-### Module 4: AI Intelligence Console
+### Module 4: Query Intelligence Console
 
 **Data Sources (dual-lane):**
 - **Lane A (Numerical):** curated_core.* views via aiLayerQuery
@@ -454,14 +454,14 @@ date,month_number,subscribers,penetration_pct,arpu,revenue,opex,ebitda,capex,fcf
 - **Region:** us-east-2
 - **Bucket:** gwi-raw-us-east-2-pc
 - **Athena Database:** curated_core
-- **AI Layer:** Lambda proxy via AWS_AI_LAYER_INVOKE_URL
+- **Query Layer:** Lambda proxy via AWS_QUERY_LAYER_INVOKE_URL
 
 ---
 
 ## 8. Data Sources
 
 ### Lane A: Empirical/Numerical Data (Athena)
-- All numerical queries via `aiLayerQuery` → AWS AI Layer → Athena
+- All numerical queries via `aiLayerQuery` → AWS Query Layer → Athena
 - Restricted to `curated_core` views only
 - Fail-closed: Show error + SQL + evidence on failure
 

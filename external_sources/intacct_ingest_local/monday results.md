@@ -914,7 +914,7 @@ patch@MacBook-Pro ~ % python monday_schema.py Query --field items_page_by_column
     },
     {
       "name": "marketplace_ai_search",
-      "description": "Search for marketplace apps using AI",
+      "description": "Search for marketplace apps using automation",
       "args": [
         {
           "name": "input",

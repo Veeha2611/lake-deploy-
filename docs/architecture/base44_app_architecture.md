@@ -11,10 +11,10 @@ App source (local):
 - Frontend: React 18 + Tailwind CSS + shadcn/ui
 - Backend: Base44 Functions (Deno)
 - Data: AWS Athena + S3
-- AI: AWS AI Layer API
+- Query: AWS Query Layer API
 
 ## Primary Data Flow
-User → React Page → Base44 Function → AI Layer API → Athena → Curated Views → UI
+User → React Page → Base44 Function → Query Layer API → Athena → Curated Views → UI
 
 ## Pages & Core Functions
 - **Dashboard** (`/Dashboard`): KPIs & tiles → `aiLayerQuery`

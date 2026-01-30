@@ -22,11 +22,11 @@
 - Frontend: React 18 + Tailwind CSS + shadcn/ui
 - Backend: Base44 Functions (Deno)
 - Data: AWS Athena (SQL queries) + S3 (object storage)
-- AI: AWS AI Layer API (natural language to SQL)
+- Query: AWS Query Layer API (natural language to SQL)
 
 **Data Flow:**
 ```
-User → React Page → Backend Function → AWS AI Layer API → Athena → Views → Results → UI
+User → React Page → Backend Function → AWS Query Layer API → Athena → Views → Results → UI
 ```
 
 ---
@@ -113,10 +113,10 @@ User profile and preferences
 ### Core Data Access
 
 **aiLayerQuery** - Primary data access function
-- **Purpose:** Execute SQL queries via AWS AI Layer HTTP API
+- **Purpose:** Execute SQL queries via AWS Query Layer HTTP API
 - **Inputs:** `{ template_id, params: { sql } }`
 - **Outputs:** `{ ok, data_rows, columns, evidence }`
-- **Env Vars:** AWS_AI_LAYER_API_KEY, AWS_AI_LAYER_INVOKE_URL
+- **Env Vars:** AWS_QUERY_LAYER_API_KEY, AWS_QUERY_LAYER_INVOKE_URL
 
 **answerQuestion** - Natural language query
 - **Purpose:** Convert natural language to SQL and execute
@@ -197,8 +197,8 @@ s3://mac-intelligence-platform/
 ```bash
 AWS_ACCESS_KEY_ID=<your-iam-access-key>
 AWS_SECRET_ACCESS_KEY=<your-iam-secret>
-AWS_AI_LAYER_API_KEY=<ai-layer-api-key>
-AWS_AI_LAYER_INVOKE_URL=<ai-layer-endpoint-url>
+AWS_QUERY_LAYER_API_KEY=<query-layer-api-key>
+AWS_QUERY_LAYER_INVOKE_URL=<query-layer-endpoint-url>
 BASE44_APP_ID=<auto-populated>
 ```
 
@@ -230,7 +230,7 @@ BASE44_APP_ID=<auto-populated>
 - [ ] Provision AWS Athena workspace
 - [ ] Create S3 bucket: `mac-intelligence-platform`
 - [ ] Set up IAM user with Athena + S3 permissions
-- [ ] Deploy or configure AWS AI Layer API endpoint
+- [ ] Deploy or configure AWS Query Layer API endpoint
 - [ ] Create Base44 app (or equivalent React app)
 
 ### Phase 2: Data Layer
@@ -303,7 +303,7 @@ Console.jsx
   ↓
   answerQuestion function
   ↓
-  AWS AI Layer API (NL → SQL)
+  AWS Query Layer API (NL → SQL)
   ↓
   Athena (executes generated SQL)
   ↓

@@ -38,7 +38,7 @@ The data lake is built on AWS S3 + Athena with scheduled ingestion and curated v
 - **Evidence**: `athena_query_execution_id`, `generated_sql`, `rows_returned`, `rows_truncated`
 - **Status**: Deployed
 
-### AI Intelligence Console
+### Query Intelligence Console
 - **Lane A (Numerical)**: Athena curated views
 - **Lane B (Knowledge)**: `s3://gwi-raw-us-east-2-pc/knowledge_base/`
 - **Evidence**: multi-query execution IDs, SQL, view list, KB sources

@@ -210,7 +210,7 @@ export default function QueryResult({ query, onPin, onFollowUp }) {
         </Card>
       )}
 
-      {/* AI Suggestions */}
+      {/* Suggestions */}
       {query.suggested_follow_ups && query.suggested_follow_ups.length > 0 && (
         <Card className="p-6 bg-gradient-to-r from-[#5C7B5F]/5 to-[#C5E4ED]/20 border-[#5C7B5F]/20">
           <div className="flex items-center gap-2 mb-4">

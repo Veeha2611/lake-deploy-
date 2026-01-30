@@ -229,7 +229,7 @@ Focus on topics like financial performance, growth metrics, market position, com
               onClick={() => navigate(createPageUrl('Console'))}
               className="bg-white text-[var(--mac-forest)] px-8 py-3 rounded-xl font-semibold hover:bg-slate-100 transition-colors shadow-lg"
             >
-              Go to AI Console →
+              Go to Query Console →
             </button>
           </CardContent>
         </Card>

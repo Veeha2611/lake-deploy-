@@ -146,7 +146,7 @@ Root: /Users/patch/vetro/lake_deploy_intake/source_exports
 - /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/kennebunk-large-scale-hood-plan-oiDx58JjYHR_9nBA8x7xV.zip
 - /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/kennebunkport-large-scale-hood-plan-p2bZZFGgvVGOeDYF7b89Y.zip
 - /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/lewiston-large-scale-hood-plan-JTMGyFf2FUS7oMHX7E0OW.zip
-- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/lewiston-opp-zone-plan-epJXOCzFYXX7BumriAIM3.zip
+- /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/lewiston-opp-zone-plan-epJXOCzFYXX7BumriQueryM3.zip
 - /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/madison-opp-zone-downtown-plan-hawbjbTSeZUQU8lttV262.zip
 - /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/madison-opp-zone-plan-eL_nUeP6NM3ikVt6x7rg2.zip
 - /Users/patch/vetro/lake_deploy_intake/source_exports/vetro_manual_batch2_2026-01-30/madison-rus-hood-plan-prKcCaNJyVJkM65yeGmtO.zip

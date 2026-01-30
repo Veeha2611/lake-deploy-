@@ -22,12 +22,12 @@ Deno.serve(async (req) => {
 
     if (!AWS_AI_LAYER_API_KEY || !AWS_AI_LAYER_INVOKE_URL) {
       return Response.json({ 
-        error: 'AWS AI Layer credentials not configured',
+        error: 'AWS Query Layer credentials not configured',
         missing: !AWS_AI_LAYER_API_KEY ? 'AWS_AI_LAYER_API_KEY' : 'AWS_AI_LAYER_INVOKE_URL'
       }, { status: 500 });
     }
 
-    // Helper function to query AI Layer directly
+    // Helper function to query Query Layer directly
     async function queryAILayer(sql, tileName) {
       const url = `${AWS_AI_LAYER_INVOKE_URL}/query`;
       
@@ -45,13 +45,13 @@ Deno.serve(async (req) => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`AI Layer returned ${response.status}: ${errorText}`);
+        throw new Error(`Query Layer returned ${response.status}: ${errorText}`);
       }
 
       const result = await response.json();
       
       if (result.ok === false) {
-        throw new Error(result.error || 'AI Layer query failed');
+        throw new Error(result.error || 'Query Layer query failed');
       }
 
       return result;

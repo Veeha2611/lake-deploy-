@@ -14,8 +14,8 @@ Source: `lake_deploy_intake/source_exports/REBUILD_GUIDE (1).md`
 ## Required Environment Variables (names only)
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
-- AWS_AI_LAYER_API_KEY
-- AWS_AI_LAYER_INVOKE_URL
+- AWS_Query_LAYER_API_KEY
+- AWS_Query_LAYER_INVOKE_URL
 
 ## Known Issues (from export)
 - Console query history is session-only.

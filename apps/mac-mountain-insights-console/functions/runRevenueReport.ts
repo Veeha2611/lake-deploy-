@@ -66,11 +66,11 @@ LIMIT 200000;
     console.log('🔍 RevenueReport SQL:', sql);
 
     const queryResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `Execute this SQL query via the AI Layer and return the results:\n\n${sql}`,
+      prompt: `Execute this SQL query via the Query Layer and return the results:\n\n${sql}`,
       add_context_from_internet: false
     });
 
-    // Parse AI Layer response
+    // Parse Query Layer response
     const aiResponse = queryResponse;
     
     // Build CSV

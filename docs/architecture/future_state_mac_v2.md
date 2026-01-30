@@ -16,13 +16,13 @@
 
 The backend does **not** implement business logic or recompute metrics. All metrics are computed in Athena views.
 
-## 3) AI Capabilities (Sidecar Only)
-AI is optional and bounded:
+## 3) Advanced Capabilities (Sidecar Only)
+Query is optional and bounded:
 - Classify natural-language questions → `question_id`
 - Suggest filters (date, market)
 - Explain results and flag missing data
 
-AI does **not** generate or alter metrics, queries, or joins.
+Query does **not** generate or alter metrics, queries, or joins.
 
 **Runtime options:**
 - Bedrock (preferred for private governance)
@@ -31,7 +31,7 @@ AI does **not** generate or alter metrics, queries, or joins.
 ## 4) Request Flow
 ```
 User question
-  → AI router (optional)
+  → Query router (optional)
   → MAC backend (Lambda)
   → Athena view (predefined)
   → Results + QID + evidence

@@ -120,7 +120,7 @@ Return JSON:
 
         console.log('[nlToSqlAndQuery] Final SQL (preview):', sql.slice(0, 300));
 
-        // Step 3: Call AWS AI Layer via aiLayerQuery backend function
+        // Step 3: Call AWS Query Layer via aiLayerQuery backend function
         const result = await base44.functions.invoke('aiLayerQuery', {
             template_id: 'freeform_sql_v1',
             params: { sql }
@@ -130,7 +130,7 @@ Return JSON:
             console.error('[nlToSqlAndQuery] No data in result:', result);
             return Response.json({
                 ok: false,
-                error: 'No response from AWS AI Layer',
+                error: 'No response from AWS Query Layer',
                 http_status: 500,
                 generated_sql: sql,
                 template_id: 'freeform_sql_v1'

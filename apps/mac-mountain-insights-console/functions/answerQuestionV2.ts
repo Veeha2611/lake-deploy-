@@ -361,7 +361,7 @@ ANSWER REQUIREMENTS:
    - Views used
    - Row counts
    - Partition dates if available
-4. **AI Insights & Recommendations** (3-5 actionable next steps)
+4. **Insights & Recommendations** (3-5 actionable next steps)
 
 **Formatting**:
 - Use **bold** for numbers
@@ -439,7 +439,7 @@ This is a system-level error. The SSOT query engine encountered an unexpected ex
 
 **Next Steps**:
 1. Check backend function logs
-2. Verify AWS AI Layer connectivity
+2. Verify AWS Query Layer connectivity
 3. Review IAM permissions`,
       evidence: {
         run_at: runTimestamp,

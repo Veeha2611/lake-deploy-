@@ -1355,7 +1355,7 @@ export default function MACAppEngine() {
             }
           }
           
-          debugLog.steps.push({ step: 'Routing to AI Layer', result: 'Executing real-time query against data lake' });
+          debugLog.steps.push({ step: 'Routing to Query Layer', result: 'Executing real-time query against data lake' });
           
           try {
             const queryTemplate = QUERY_TEMPLATES[financialIntent.type];

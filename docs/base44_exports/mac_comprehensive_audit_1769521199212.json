@@ -90,8 +90,8 @@
         "test_id": "DASH-KPI-001",
         "page": "Dashboard",
         "feature": "KPI Tiles from Notion",
-        "status": "FAIL",
-        "error": "AI Layer returned 500: {\"ok\":false,\"error\":\"Athena FAILED: TABLE_NOT_FOUND: line 1:100: Table 'awsdatacatalog.curated_core.kpis_notion' does not exist\"}"
+        "status": "FQueryL",
+        "error": "Query Layer returned 500: {\"ok\":false,\"error\":\"Athena FQueryLED: TABLE_NOT_FOUND: line 1:100: Table 'awsdatacatalog.curated_core.kpis_notion' does not exist\"}"
       },
       {
         "test_id": "PROJ-DATA-001",
@@ -154,7 +154,7 @@
       {
         "test_id": "CONS-QUERY-001",
         "page": "Console",
-        "feature": "Natural Language Query - AI Layer Connection",
+        "feature": "Natural Language Query - Query Layer Connection",
         "status": "PASS",
         "ui_path": "Console → Query Input → Submit",
         "backend_function": "answerQuestion → aiLayerQuery",
@@ -163,7 +163,7 @@
           "athena_execution_id": "e963eb09-54a4-43d3-8e36-704171be96eb",
           "test_query_successful": true
         },
-        "note": "AI Layer connection verified. Full NL query requires LLM which is tested in production."
+        "note": "Query Layer connection verified. Full NL query requires LLM which is tested in production."
       },
       {
         "test_id": "CONS-HISTORY-001",
@@ -274,10 +274,10 @@
         "backend_function": "aiLayerQuery",
         "evidence": {
           "function_exists": true,
-          "aws_integration": "AWS AI Layer via Lambda",
+          "aws_integration": "AWS Query Layer via Lambda",
           "env_vars": [
-            "AWS_AI_LAYER_API_KEY",
-            "AWS_AI_LAYER_INVOKE_URL"
+            "AWS_QUERY_LAYER_API_KEY",
+            "AWS_QUERY_LAYER_INVOKE_URL"
           ],
           "response_enrichment": [
             "athena_query_execution_id",
@@ -421,7 +421,7 @@
         "page": "Dashboard",
         "feature": "Network Map Tile - Data Availability",
         "status": "BLOCKED",
-        "error": "AI Layer returned 500: {\"ok\":false,\"error\":\"Athena FAILED: TABLE_NOT_FOUND: line 1:61: Table 'awsdatacatalog.curated_core.network_locations' does not exist\"}",
+        "error": "Query Layer returned 500: {\"ok\":false,\"error\":\"Athena FQueryLED: TABLE_NOT_FOUND: line 1:61: Table 'awsdatacatalog.curated_core.network_locations' does not exist\"}",
         "note": "Network locations view not available - uses sample data"
       }
     ],
@@ -433,7 +433,7 @@
       "warnings": 1
     },
     "execution_time_ms": 30710,
-    "assessment": "❌ CRITICAL FAILURES - Core features not operational",
+    "assessment": "❌ CRITICAL FQueryLURES - Core features not operational",
     "recommendation": "Fix critical failures before production use"
   },
   "system_architecture": {
@@ -466,14 +466,14 @@
     {
       "test_id": "DASH-KPI-001",
       "feature": "KPI Tiles from Notion",
-      "status": "FAIL",
-      "error": "AI Layer returned 500: {\"ok\":false,\"error\":\"Athena FAILED: TABLE_NOT_FOUND: line 1:100: Table 'awsdatacatalog.curated_core.kpis_notion' does not exist\"}"
+      "status": "FQueryL",
+      "error": "Query Layer returned 500: {\"ok\":false,\"error\":\"Athena FQueryLED: TABLE_NOT_FOUND: line 1:100: Table 'awsdatacatalog.curated_core.kpis_notion' does not exist\"}"
     },
     {
       "test_id": "GIS-MAP-001",
       "feature": "Network Map Tile - Data Availability",
       "status": "BLOCKED",
-      "error": "AI Layer returned 500: {\"ok\":false,\"error\":\"Athena FAILED: TABLE_NOT_FOUND: line 1:61: Table 'awsdatacatalog.curated_core.network_locations' does not exist\"}",
+      "error": "Query Layer returned 500: {\"ok\":false,\"error\":\"Athena FQueryLED: TABLE_NOT_FOUND: line 1:61: Table 'awsdatacatalog.curated_core.network_locations' does not exist\"}",
       "recommendation": "Network locations view not available - uses sample data"
     }
   ],

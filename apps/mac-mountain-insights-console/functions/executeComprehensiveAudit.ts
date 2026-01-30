@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
     const AWS_AI_LAYER_API_KEY = Deno.env.get('AWS_AI_LAYER_API_KEY');
     const AWS_AI_LAYER_INVOKE_URL = Deno.env.get('AWS_AI_LAYER_INVOKE_URL');
 
-    // Helper to query AI Layer directly
+    // Helper to query Query Layer directly
     async function queryAILayerDirect(sql, testName) {
       const url = `${AWS_AI_LAYER_INVOKE_URL}/query`;
       
@@ -52,13 +52,13 @@ Deno.serve(async (req) => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`AI Layer returned ${response.status}: ${errorText}`);
+        throw new Error(`Query Layer returned ${response.status}: ${errorText}`);
       }
 
       const result = await response.json();
       
       if (result.ok === false) {
-        throw new Error(result.error || 'AI Layer query failed');
+        throw new Error(result.error || 'Query Layer query failed');
       }
 
       return result;
@@ -453,7 +453,7 @@ Deno.serve(async (req) => {
       auditLog.tests.push({
         test_id: 'CONS-QUERY-001',
         page: 'Console',
-        feature: 'Natural Language Query - AI Layer Connection',
+        feature: 'Natural Language Query - Query Layer Connection',
         status: result.ok ? 'PASS' : 'FAIL',
         ui_path: 'Console → Query Input → Submit',
         backend_function: 'answerQuestion → aiLayerQuery',
@@ -462,7 +462,7 @@ Deno.serve(async (req) => {
           athena_execution_id: result.evidence?.athena_query_execution_id,
           test_query_successful: true
         },
-        note: 'AI Layer connection verified. Full NL query requires LLM which is tested in production.'
+        note: 'Query Layer connection verified. Full NL query requires LLM which is tested in production.'
       });
       auditLog.summary.total++;
       auditLog.summary.passed++;
@@ -470,7 +470,7 @@ Deno.serve(async (req) => {
       auditLog.tests.push({
         test_id: 'CONS-QUERY-001',
         page: 'Console',
-        feature: 'Natural Language Query - AI Layer Connection',
+        feature: 'Natural Language Query - Query Layer Connection',
         status: 'FAIL',
         error: error.message
       });
@@ -601,7 +601,7 @@ Deno.serve(async (req) => {
       backend_function: 'aiLayerQuery',
       evidence: {
         function_exists: true,
-        aws_integration: 'AWS AI Layer via Lambda',
+        aws_integration: 'AWS Query Layer via Lambda',
         env_vars: ['AWS_AI_LAYER_API_KEY', 'AWS_AI_LAYER_INVOKE_URL'],
         response_enrichment: ['athena_query_execution_id', 'generated_sql', 'rows_returned', 'rows_truncated'],
         tested_in_previous_audits: true

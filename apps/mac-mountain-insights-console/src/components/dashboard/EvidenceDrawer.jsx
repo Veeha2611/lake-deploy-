@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 /**
  * EVIDENCE DRAWER
  * 
- * Shows query execution evidence for any tile or AI answer:
+ * Shows query execution evidence for any tile or query answer:
  * - Athena QueryExecutionId (QID)
  * - Executed SQL
  * - Referenced views/tables

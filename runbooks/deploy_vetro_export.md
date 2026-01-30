@@ -1,7 +1,7 @@
 # Deploy Vetro Export
 
 ## Overview
-Deliver the MAC + AI Layer governance export by defining Athena artifacts, shipping Lambda code, and deploying the automation stack.
+Deliver the MAC + Query Layer governance export by defining Athena artifacts, shipping Lambda code, and deploying the automation stack.
 
 ## Steps
 1. **Create Athena DB (if missing)** – Run `CREATE DATABASE IF NOT EXISTS vetro_raw_db;` in Athena; this ensures the raw table has a home.

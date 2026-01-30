@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
       backend_functions: {
         core_data_access: {
           aiLayerQuery: {
-            description: "Primary data access function - executes SQL queries via AWS AI Layer HTTP API",
+            description: "Primary data access function - executes SQL queries via AWS Query Layer HTTP API",
             file: "functions/aiLayerQuery.js",
             inputs: {
               template_id: "string (e.g., 'freeform_sql_v1', 'mrr_summary_v1')",
@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
                 views_used: "array"
               }
             },
-            env_vars: ["AWS_AI_LAYER_API_KEY", "AWS_AI_LAYER_INVOKE_URL"],
+            env_vars: ["AWS_QUERY_LAYER_API_KEY", "AWS_QUERY_LAYER_INVOKE_URL"],
             retry_logic: "3 attempts with exponential backoff (2s, 4s)"
           },
           answerQuestion: {
@@ -162,7 +162,7 @@ Deno.serve(async (req) => {
               evidence: "object"
             },
             dependencies: ["Uses aiLayerQuery internally"],
-            env_vars: ["AWS_AI_LAYER_API_KEY", "AWS_AI_LAYER_INVOKE_URL"]
+            env_vars: ["AWS_QUERY_LAYER_API_KEY", "AWS_QUERY_LAYER_INVOKE_URL"]
           }
         },
         
@@ -516,7 +516,7 @@ ORDER BY created_date DESC`,
           athena: {
             purpose: "Data warehouse querying",
             databases: ["curated_core", "curated_gis", "curated_projects", "raw_finance"],
-            access: "Via AWS AI Layer HTTP API proxy"
+            access: "Via AWS Query Layer HTTP API proxy"
           },
           s3: {
             purpose: "Object storage for projects, exports, knowledge base",
@@ -528,8 +528,8 @@ ORDER BY created_date DESC`,
         ai_services: {
           aws_ai_layer: {
             purpose: "Natural language to SQL, query execution, response generation",
-            endpoint: "AWS_AI_LAYER_INVOKE_URL env var",
-            auth: "AWS_AI_LAYER_API_KEY header"
+            endpoint: "AWS_QUERY_LAYER_INVOKE_URL env var",
+            auth: "AWS_QUERY_LAYER_API_KEY header"
           }
         },
 
@@ -571,8 +571,8 @@ ORDER BY created_date DESC`,
           required: [
             "AWS_ACCESS_KEY_ID",
             "AWS_SECRET_ACCESS_KEY",
-            "AWS_AI_LAYER_API_KEY",
-            "AWS_AI_LAYER_INVOKE_URL"
+            "AWS_QUERY_LAYER_API_KEY",
+            "AWS_QUERY_LAYER_INVOKE_URL"
           ],
           auto_populated: ["BASE44_APP_ID"]
         },
@@ -598,7 +598,7 @@ ORDER BY created_date DESC`,
           flow: [
             "1. Dashboard.jsx renders",
             "2. FinanceKPITiles fetches MRR data via aiLayerQuery",
-            "3. aiLayerQuery → AWS AI Layer API → Athena → v_monthly_mrr_platt",
+            "3. aiLayerQuery → AWS Query Layer API → Athena → v_monthly_mrr_platt",
             "4. Results returned and cached by React Query",
             "5. UI updates with live data every 60s",
             "6. DashboardRefreshProvider manages global refresh state"
@@ -610,7 +610,7 @@ ORDER BY created_date DESC`,
           flow: [
             "1. QueryInput.jsx captures question",
             "2. answerQuestion function called with question text",
-            "3. AWS AI Layer converts to SQL + executes via Athena",
+            "3. AWS Query Layer converts to SQL + executes via Athena",
             "4. Results + visualization config returned",
             "5. ResultDisplay.jsx renders table/chart based on viz type",
             "6. Query saved to Query entity for history"
@@ -636,7 +636,7 @@ ORDER BY created_date DESC`,
           "✓ Set up AWS Athena with curated_core, curated_gis, curated_projects databases",
           "✓ Create S3 bucket: mac-intelligence-platform",
           "✓ Configure IAM user with Athena + S3 permissions",
-          "✓ Deploy AWS AI Layer API (or equivalent NL-to-SQL service)",
+          "✓ Deploy AWS Query Layer API (or equivalent NL-to-SQL service)",
           "✓ Set up Base44 app with React + environment variables"
         ],
         
@@ -719,11 +719,11 @@ function generateMarkdownDoc(pkg) {
 - Frontend: React 18 + Tailwind CSS + shadcn/ui
 - Backend: Base44 Functions (Deno)
 - Data: AWS Athena (SQL queries) + S3 (object storage)
-- AI: AWS AI Layer API (natural language to SQL)
+- Query Layer API (natural language to SQL)
 
 **Data Flow:**
 \`\`\`
-User → React Page → Backend Function → AWS AI Layer API → Athena → Views → Results → UI
+User → React Page → Backend Function → AWS Query Layer API → Athena → Views → Results → UI
 \`\`\`
 
 ---
@@ -747,10 +747,10 @@ ${page.access ? `**Access:** ${page.access}` : ''}
 ### Core Data Access
 
 **aiLayerQuery** - Primary data access function
-- **Purpose:** Execute SQL queries via AWS AI Layer HTTP API
+- **Purpose:** Execute SQL queries via AWS Query Layer HTTP API
 - **Inputs:** \`{ template_id, params: { sql } }\`
 - **Outputs:** \`{ ok, data_rows, columns, evidence }\`
-- **Env Vars:** AWS_AI_LAYER_API_KEY, AWS_AI_LAYER_INVOKE_URL
+- **Env Vars:** AWS_QUERY_LAYER_API_KEY, AWS_QUERY_LAYER_INVOKE_URL
 
 **answerQuestion** - Natural language query
 - **Purpose:** Convert natural language to SQL and execute
@@ -831,8 +831,8 @@ s3://mac-intelligence-platform/
 \`\`\`bash
 AWS_ACCESS_KEY_ID=<your-iam-access-key>
 AWS_SECRET_ACCESS_KEY=<your-iam-secret>
-AWS_AI_LAYER_API_KEY=<ai-layer-api-key>
-AWS_AI_LAYER_INVOKE_URL=<ai-layer-endpoint-url>
+AWS_QUERY_LAYER_API_KEY=<query-layer-api-key>
+AWS_QUERY_LAYER_INVOKE_URL=<query-layer-endpoint-url>
 BASE44_APP_ID=<auto-populated>
 \`\`\`
 
@@ -864,7 +864,7 @@ BASE44_APP_ID=<auto-populated>
 - [ ] Provision AWS Athena workspace
 - [ ] Create S3 bucket: \`mac-intelligence-platform\`
 - [ ] Set up IAM user with Athena + S3 permissions
-- [ ] Deploy or configure AWS AI Layer API endpoint
+- [ ] Deploy or configure AWS Query Layer API endpoint
 - [ ] Create Base44 app (or equivalent React app)
 
 ### Phase 2: Data Layer
@@ -937,7 +937,7 @@ Console.jsx
   ↓
   answerQuestion function
   ↓
-  AWS AI Layer API (NL → SQL)
+  AWS Query Layer API (NL → SQL)
   ↓
   Athena (executes generated SQL)
   ↓

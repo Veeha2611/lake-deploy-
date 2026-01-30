@@ -6,7 +6,7 @@ This summary reflects the 2026-01-30 Base44 exports.
 - Network Map (GIS) — `vetro_raw_db.vetro_raw_json_lines`
 - Projects Pipeline — `curated_core.projects_enriched`
 - Revenue Reconciliation Pack — `curated_core.invoice_line_item_repro_v1`, `curated_core.v_monthly_revenue_platt_long`
-- AI Intelligence Console — curated_core views + S3 knowledge lane
+- Query Intelligence Console — curated_core views + S3 knowledge lane
 - Dashboard Tiles — curated_core KPI views
 
 ## Evidence Fields (Standard)

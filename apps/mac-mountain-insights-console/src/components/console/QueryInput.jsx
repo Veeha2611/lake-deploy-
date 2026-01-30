@@ -45,7 +45,7 @@ export default function QueryInput({ onSubmit, isLoading }) {
             ) : (
               <>
                 <Send className="w-4 h-4 mr-2" />
-                Ask AI
+                Ask Query
               </>
             )}
           </Button>

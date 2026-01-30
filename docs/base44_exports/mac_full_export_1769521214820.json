@@ -336,10 +336,10 @@
       {
         "name": "aiLayerQuery",
         "path": "functions/aiLayerQuery.js",
-        "purpose": "Execute SQL via AWS AI Layer → Athena",
+        "purpose": "Execute SQL via AWS Query Layer → Athena",
         "required_env": [
-          "AWS_AI_LAYER_API_KEY",
-          "AWS_AI_LAYER_INVOKE_URL"
+          "AWS_QUERY_LAYER_API_KEY",
+          "AWS_QUERY_LAYER_INVOKE_URL"
         ],
         "s3_action": "None (external Athena API)",
         "request_schema": {
@@ -371,8 +371,8 @@
         "path": "functions/answerQuestion.js",
         "purpose": "Natural language query processing (Lane A + Lane B)",
         "required_env": [
-          "AWS_AI_LAYER_API_KEY",
-          "AWS_AI_LAYER_INVOKE_URL"
+          "AWS_QUERY_LAYER_API_KEY",
+          "AWS_QUERY_LAYER_INVOKE_URL"
         ],
         "s3_action": "Reads knowledge_base/ for Lane B"
       },
@@ -401,8 +401,8 @@
         "path": "functions/getVetroPlanIndex.js",
         "purpose": "GIS: List available Vetro plans",
         "required_env": [
-          "AWS_AI_LAYER_API_KEY",
-          "AWS_AI_LAYER_INVOKE_URL"
+          "AWS_QUERY_LAYER_API_KEY",
+          "AWS_QUERY_LAYER_INVOKE_URL"
         ],
         "s3_action": "Queries curated_vetro.service_locations"
       },
@@ -411,8 +411,8 @@
         "path": "functions/getVetroFeaturesForPlan.js",
         "purpose": "GIS: Fetch features for a specific plan",
         "required_env": [
-          "AWS_AI_LAYER_API_KEY",
-          "AWS_AI_LAYER_INVOKE_URL"
+          "AWS_QUERY_LAYER_API_KEY",
+          "AWS_QUERY_LAYER_INVOKE_URL"
         ],
         "s3_action": "Queries curated_vetro.service_locations with filters"
       },
@@ -440,8 +440,8 @@
         "required_env": [
           "AWS_ACCESS_KEY_ID",
           "AWS_SECRET_ACCESS_KEY",
-          "AWS_AI_LAYER_API_KEY",
-          "AWS_AI_LAYER_INVOKE_URL"
+          "AWS_QUERY_LAYER_API_KEY",
+          "AWS_QUERY_LAYER_INVOKE_URL"
         ],
         "s3_action": "Writes to S3, queries Athena"
       },
@@ -450,8 +450,8 @@
         "path": "functions/auditDashboardTiles.js",
         "purpose": "Audit all dashboard tiles",
         "required_env": [
-          "AWS_AI_LAYER_API_KEY",
-          "AWS_AI_LAYER_INVOKE_URL"
+          "AWS_QUERY_LAYER_API_KEY",
+          "AWS_QUERY_LAYER_INVOKE_URL"
         ],
         "s3_action": "Queries multiple curated_core views"
       },
@@ -655,7 +655,7 @@
   "instructions_for_ui": {
     "step_1": "Display this report on Architecture page",
     "step_2": "Provide \"Download Proof Pack\" button that downloads this JSON",
-    "step_3": "For each test in test_plan.critical_flows, execute manually and mark PASS/FAIL/BLOCKED",
+    "step_3": "For each test in test_plan.critical_flows, execute manually and mark PASS/FQueryL/BLOCKED",
     "step_4": "For each test in test_plan.tile_tests, execute SQL via aiLayerQuery and record results",
     "step_5": "Populate results back into this structure",
     "step_6": "Generate final downloadable artifact with all evidence"
@@ -669,7 +669,7 @@
   },
   "pass_fail_criteria": {
     "PASS": "Feature works as documented with expected output",
-    "FAIL": "Feature returns error, wrong data, or does not execute",
+    "FQueryL": "Feature returns error, wrong data, or does not execute",
     "BLOCKED": "Cannot test due to permissions, missing data, or platform limitation",
     "WARN": "Feature works but with degraded performance or missing optional data"
   }

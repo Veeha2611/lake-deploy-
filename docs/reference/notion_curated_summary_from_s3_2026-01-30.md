@@ -10,7 +10,7 @@ Source: /Users/patch/lake_deploy_intake/source_exports/notion_s3_snapshot_2026-0
 - ### Phase 2 (weeks 3–6) — aggressive but realistic expansion
 - ### Phase 3 (weeks 6–10) — “operations cockpit”
 - ### Evidence & governance (non-negotiable)
-- # Data Lake Project – Chat-Derived Summary (Patch vs AI)
+- # Data Lake Project – Chat-Derived Summary (Patch vs Query)
 - ## Data Lake Project – Chat-Derived Summary
 - ### How to use this page
 - ## 1. Scope and Objectives
@@ -30,18 +30,18 @@ Source: /Users/patch/lake_deploy_intake/source_exports/notion_s3_snapshot_2026-0
 - ### 2.2 Core Schemas (v1 Opinionated)
 - ### 2.3 Write Path – Change-File Pattern
 - ### 2.4 Read Path – Views & Exports
-- ### 2.5 AI Contract (Projects & Pipeline)
+- ### 2.5 Query Contract (Projects & Pipeline)
 - ### 2.6 Open Decisions (Scott)
 - ### 3. Module 2 – IPv4 Cleanup & Infra Alignment
 - ### 3.1 Storage Pattern
 - ### 3.2 Core Schemas (v1 Opinionated)
 - ### 3.3 Ingestion & Change Pattern
 - ### 3.4 Views, Reporting, and ARIN/Broker Packet
-- ### 3.5 AI Contract (IPv4 & Infra)
+- ### 3.5 Query Contract (IPv4 & Infra)
 - ### 3.6 Open Decisions (Scott)
 - ### 4. Linkage Back to the Sanity Page & Build Log
 - # Chat Data Lake Back up 12032025
-- # backup AI recount.
+- # backup Query recount.
 - ### Current truth (don’t fight this)
 - ### Canonical reference pages
 - ### Non-negotiable operating rules
@@ -131,7 +131,7 @@ Source: /Users/patch/lake_deploy_intake/source_exports/notion_s3_snapshot_2026-0
 - # Chat Thread Digest Runbook — Data Lake (Reusable Template)
 - ### 0) Inputs (copy/paste at top of every run)
 - ### 1) Standard “Chat-History Page” format (copy into the new page)
-- ### 2) “AI prompt” to run inside any chat thread (paste this as-is)
+- ### 2) “Query prompt” to run inside any chat thread (paste this as-is)
 - ### 3) Reconciliation playbook (merge multiple chat threads on the same topic)
 - ### 4) Reference-page update rules (to avoid thrash)
 - ### 5) Checklist: “Done” criteria for a digested thread
@@ -292,7 +292,7 @@ Source: /Users/patch/lake_deploy_intake/source_exports/notion_s3_snapshot_2026-0
 - ### Deliverables
 - # ### Global Customer Count v1
 - # ### Hosted PBX v1 — Sangoma Replacement Economics
-- # ### AI Layer v1 – Scope & Data Sources
+- # ### Query Layer v1 – Scope & Data Sources
 - ## runbook
 - ### AWS Data Lake V1 — Zero to First Working Version
 - ### Phase 1 — Buckets (S3 + KMS)
@@ -342,5 +342,5 @@ Source: /Users/patch/lake_deploy_intake/source_exports/notion_s3_snapshot_2026-0
 - Glue DB:
 - Athena views with the same names are fine; Q/Bedrock will just see them as queryable tables.
 - Glue database and these three tables; allow read‑only Athena access.”
-- Scope for v1 AI:
-- Scope for V1 AI interface (Alex / Donna / Derek):
+- Scope for v1 Query:
+- Scope for V1 Query interface (Alex / Donna / Derek):

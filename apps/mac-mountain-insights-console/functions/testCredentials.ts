@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
     results.credentials.ai_layer_invoke_url = AWS_AI_LAYER_INVOKE_URL ? `✅ SET (${AWS_AI_LAYER_INVOKE_URL?.split('/')[2]})` : '❌ MISSING';
     results.credentials.monday_api_key = MONDAY_API_KEY ? '✅ SET' : '❌ MISSING';
 
-    // Test AI Layer connectivity
+    // Test Query Layer connectivity
     if (AWS_AI_LAYER_INVOKE_URL && AWS_AI_LAYER_API_KEY) {
       try {
         const testResp = await fetch(`${AWS_AI_LAYER_INVOKE_URL}/query`, {

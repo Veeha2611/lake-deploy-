@@ -1,2 +1,0 @@
-Reference Scan (2026-01-30)
-Files containing restricted assistant/tooling labels (content not included).

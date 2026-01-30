@@ -226,10 +226,10 @@ ORDER BY table_name LIMIT 10`;
     auditLog.modules_tested.push(glModule);
     
     // ═════════════════════════════════════════════════════════════════════════
-    // Module 4: AI Console (answerQuestion -> multiple curated views)
+    // Module 4: Query Console (answerQuestion -> multiple curated views)
     // ═════════════════════════════════════════════════════════════════════════
     const consoleModule = {
-      module_name: 'AI Console (Intelligence Console)',
+      module_name: 'Query Console (Intelligence Console)',
       component_path: 'functions/answerQuestion.js',
       data_source: 'Multiple curated_core views (v_monthly_mrr_platt, v_customer_fully_loaded_margin_banded, etc.)',
       expected_behavior: 'Natural language → SQL generation → Athena execution',
@@ -354,7 +354,7 @@ ORDER BY table_schema`;
       });
       
       macEngineModule.status = 'PASS';
-      macEngineModule.validation_result = '✅ aiLayerQuery correctly proxies to AWS AI Layer with evidence surfacing';
+      macEngineModule.validation_result = '✅ aiLayerQuery correctly proxies to AWS Query Layer with evidence surfacing';
       auditLog.summary.passed++;
       
     } catch (error) {
@@ -373,7 +373,7 @@ ORDER BY table_schema`;
     auditLog.next_steps = [
       {
         priority: 'HIGH',
-        module: 'AI Console (answerQuestion)',
+        module: 'Query Console (answerQuestion)',
         action: 'Grant AWS IAM service role permissions to curated_core.v_monthly_mrr_platt and v_customer_fully_loaded_margin_banded',
         reason: 'Direct aiLayerQuery works, but answerQuestion orchestrator fails with 403 Forbidden',
         owner: 'AWS/DevOps'

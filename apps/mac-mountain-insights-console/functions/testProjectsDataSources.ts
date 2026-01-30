@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
           status_code: response.status,
           project_count: data.data_rows?.[0]?.[0] || 0,
           execution_id: data.execution_id,
-          message: 'Direct AWS AI Layer access successful'
+          message: 'Direct AWS Query Layer access successful'
         };
       } else {
         const errorText = await response.text();
@@ -69,14 +69,14 @@ Deno.serve(async (req) => {
         test1.evidence = {
           status_code: response.status,
           error: errorText,
-          message: 'AWS AI Layer returned error'
+          message: 'AWS Query Layer returned error'
         };
       }
     } catch (error) {
       test1.status = 'FAIL';
       test1.evidence = {
         error: error.message,
-        message: 'Failed to connect to AWS AI Layer'
+        message: 'Failed to connect to AWS Query Layer'
       };
     }
 

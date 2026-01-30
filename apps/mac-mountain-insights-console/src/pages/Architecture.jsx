@@ -785,9 +785,9 @@ LIMIT 2000`}</pre>
                 </div>
               </div>
 
-              {/* Module 4: AI Console */}
+              {/* Module 4: Query Console */}
               <div className="border-2 border-amber-500 rounded-lg p-4 bg-amber-50/50 dark:bg-amber-950/20">
-                <h3 className="text-lg font-bold mb-3 text-amber-900 dark:text-amber-100">4. AI Intelligence Console</h3>
+                <h3 className="text-lg font-bold mb-3 text-amber-900 dark:text-amber-100">4. Query Intelligence Console</h3>
                 
                 <div className="space-y-3">
                   <div className="bg-white dark:bg-slate-900 p-3 rounded border">
@@ -1239,7 +1239,7 @@ New run outputs written to S3
                   <div className="border-l-4 border-green-500 pl-3 py-1">
                     <strong>Lane A: Empirical/Numerical Data (Athena)</strong>
                     <div className="text-xs text-muted-foreground mt-1">
-                      All numerical queries via <code className="bg-slate-800 text-emerald-400 px-1 rounded">aiLayerQuery</code> → AWS AI Layer → Athena.
+                      All numerical queries via <code className="bg-slate-800 text-emerald-400 px-1 rounded">aiLayerQuery</code> → AWS Query Layer → Athena.
                       Restricted to <code>curated_core</code> views only. Schema discovery with <code>SHOW COLUMNS</code> mandatory before complex queries.
                     </div>
                   </div>
@@ -3102,7 +3102,7 @@ payback_months,48`}
                       <td className="p-3">
                         <strong>Initial MAC Intelligence Launch</strong>
                         <div className="text-xs text-muted-foreground mt-1">
-                          Dashboard, AI Console with natural language queries, Topics navigation, Knowledge Base integration via s3KnowledgeCatalog.
+                          Dashboard, Query Console with natural language queries, Topics navigation, Knowledge Base integration via s3KnowledgeCatalog.
                         </div>
                       </td>
                       <td className="p-3 text-xs">

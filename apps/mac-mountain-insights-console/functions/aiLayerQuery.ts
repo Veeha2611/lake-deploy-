@@ -1,5 +1,5 @@
 // Base44 Backend Function: aiLayerQuery
-// Purpose: Proxy to AWS AI Layer (API Gateway -> Lambda -> Athena)
+// Purpose: Proxy to AWS Query Layer (API Gateway -> Lambda -> Athena)
 // 
 // DATA ACCESS:
 // 1. Queries can access ALL data sources (curated_ssot, curated_core, raw, etc.)
@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     if (!AWS_AI_LAYER_API_KEY || !AWS_AI_LAYER_INVOKE_URL) {
       return Response.json({
         ok: false,
-        error: 'AWS AI Layer credentials not configured',
+        error: 'AWS Query Layer credentials not configured',
         http_status: 500,
         hint: 'Set AWS_AI_LAYER_INVOKE_URL and AWS_AI_LAYER_API_KEY in Base44 secrets'
       }, { status: 200 });
@@ -165,7 +165,7 @@ Deno.serve(async (req) => {
       });
       
       // Extract specific error message from AWS response
-      let errorMessage = 'AWS AI Layer request failed';
+      let errorMessage = 'AWS Query Layer request failed';
       if (json?.error) {
         errorMessage = json.error;
       } else if (json?.message) {

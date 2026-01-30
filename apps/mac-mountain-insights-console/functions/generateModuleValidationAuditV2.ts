@@ -244,10 +244,10 @@ LIMIT 10`,
     auditLog.modules_tested.push(glModule);
     
     // ═════════════════════════════════════════════════════════════════════════
-    // Module 4: AI Console
+    // Module 4: Query Console
     // ═════════════════════════════════════════════════════════════════════════
     const consoleModule = {
-      module_name: 'AI Console (Intelligence Console)',
+      module_name: 'Query Console (Intelligence Console)',
       component_path: 'functions/answerQuestion.js',
       data_contract: {
         primary_views: [

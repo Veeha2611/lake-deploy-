@@ -157,7 +157,7 @@
   "backend_functions": {
     "core_data_access": {
       "aiLayerQuery": {
-        "description": "Primary data access function - executes SQL queries via AWS AI Layer HTTP API",
+        "description": "Primary data access function - executes SQL queries via AWS Query Layer HTTP API",
         "file": "functions/aiLayerQuery.js",
         "inputs": {
           "template_id": "string (e.g., 'freeform_sql_v1', 'mrr_summary_v1')",
@@ -174,8 +174,8 @@
           }
         },
         "env_vars": [
-          "AWS_AI_LAYER_API_KEY",
-          "AWS_AI_LAYER_INVOKE_URL"
+          "AWS_QUERY_LAYER_API_KEY",
+          "AWS_QUERY_LAYER_INVOKE_URL"
         ],
         "retry_logic": "3 attempts with exponential backoff (2s, 4s)"
       },
@@ -195,8 +195,8 @@
           "Uses aiLayerQuery internally"
         ],
         "env_vars": [
-          "AWS_AI_LAYER_API_KEY",
-          "AWS_AI_LAYER_INVOKE_URL"
+          "AWS_QUERY_LAYER_API_KEY",
+          "AWS_QUERY_LAYER_INVOKE_URL"
         ]
       }
     },
@@ -554,7 +554,7 @@
           "curated_projects",
           "raw_finance"
         ],
-        "access": "Via AWS AI Layer HTTP API proxy"
+        "access": "Via AWS Query Layer HTTP API proxy"
       },
       "s3": {
         "purpose": "Object storage for projects, exports, knowledge base",
@@ -565,8 +565,8 @@
     "ai_services": {
       "aws_ai_layer": {
         "purpose": "Natural language to SQL, query execution, response generation",
-        "endpoint": "AWS_AI_LAYER_INVOKE_URL env var",
-        "auth": "AWS_AI_LAYER_API_KEY header"
+        "endpoint": "AWS_QUERY_LAYER_INVOKE_URL env var",
+        "auth": "AWS_QUERY_LAYER_API_KEY header"
       }
     },
     "npm_packages": {
@@ -605,8 +605,8 @@
       "required": [
         "AWS_ACCESS_KEY_ID",
         "AWS_SECRET_ACCESS_KEY",
-        "AWS_AI_LAYER_API_KEY",
-        "AWS_AI_LAYER_INVOKE_URL"
+        "AWS_QUERY_LAYER_API_KEY",
+        "AWS_QUERY_LAYER_INVOKE_URL"
       ],
       "auto_populated": [
         "BASE44_APP_ID"
@@ -648,7 +648,7 @@
       "flow": [
         "1. Dashboard.jsx renders",
         "2. FinanceKPITiles fetches MRR data via aiLayerQuery",
-        "3. aiLayerQuery → AWS AI Layer API → Athena → v_monthly_mrr_platt",
+        "3. aiLayerQuery → AWS Query Layer API → Athena → v_monthly_mrr_platt",
         "4. Results returned and cached by React Query",
         "5. UI updates with live data every 60s",
         "6. DashboardRefreshProvider manages global refresh state"
@@ -659,7 +659,7 @@
       "flow": [
         "1. QueryInput.jsx captures question",
         "2. answerQuestion function called with question text",
-        "3. AWS AI Layer converts to SQL + executes via Athena",
+        "3. AWS Query Layer converts to SQL + executes via Athena",
         "4. Results + visualization config returned",
         "5. ResultDisplay.jsx renders table/chart based on viz type",
         "6. Query saved to Query entity for history"
@@ -683,7 +683,7 @@
       "✓ Set up AWS Athena with curated_core, curated_gis, curated_projects databases",
       "✓ Create S3 bucket: mac-intelligence-platform",
       "✓ Configure IAM user with Athena + S3 permissions",
-      "✓ Deploy AWS AI Layer API (or equivalent NL-to-SQL service)",
+      "✓ Deploy AWS Query Layer API (or equivalent NL-to-SQL service)",
       "✓ Set up Base44 app with React + environment variables"
     ],
     "phase_2_data_layer": [

@@ -238,7 +238,7 @@ Deno.serve(async (req) => {
         {
           name: 'aiLayerQuery',
           path: 'functions/aiLayerQuery.js',
-          purpose: 'Execute SQL via AWS AI Layer → Athena',
+          purpose: 'Execute SQL via AWS Query Layer → Athena',
           required_env: ['AWS_AI_LAYER_API_KEY', 'AWS_AI_LAYER_INVOKE_URL'],
           s3_action: 'None (external Athena API)',
           request_schema: {
