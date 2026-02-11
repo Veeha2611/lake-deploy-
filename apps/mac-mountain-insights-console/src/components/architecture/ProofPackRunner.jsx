@@ -4,8 +4,32 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Loader2, CheckCircle2, XCircle, AlertTriangle, Download, PlayCircle, FileJson } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { MAC_AWS_ONLY, MAC_API_BASE } from '@/lib/mac-app-flags';
 import { toast } from 'sonner';
+
+let base44ClientPromise = null;
+const getBase44Client = async () => {
+  if (!base44ClientPromise) {
+    base44ClientPromise = import('@/api/base44Client').then((mod) => mod.base44);
+  }
+  return base44ClientPromise;
+};
+
+const invokeBase44 = async (fnName, payload) => {
+  const base44Client = await getBase44Client();
+  return base44Client.functions.invoke(fnName, payload);
+};
+
+const normalizeRows = (rows, columns) => {
+  if (!Array.isArray(rows) || rows.length === 0) return rows || [];
+  if (!Array.isArray(columns) || columns.length === 0) return rows;
+  const first = rows[0];
+  if (!Array.isArray(first) || first.length !== columns.length) return rows;
+  const matchesHeader = first.every((val, idx) =>
+    String(val).trim().toLowerCase() === String(columns[idx]).trim().toLowerCase()
+  );
+  return matchesHeader ? rows.slice(1) : rows;
+};
 
 export default function ProofPackRunner({ onComplete }) {
   const [running, setRunning] = useState(false);
@@ -13,6 +37,53 @@ export default function ProofPackRunner({ onComplete }) {
   const [currentTest, setCurrentTest] = useState('');
   const [results, setResults] = useState(null);
   const [fullReport, setFullReport] = useState(null);
+
+  const macApiFetch = async (path, { method = 'POST', body } = {}) => {
+    if (!MAC_API_BASE) {
+      throw new Error('MAC API base URL not configured');
+    }
+    const url = `${MAC_API_BASE.replace(/\/$/, '')}${path}`;
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    const text = await res.text();
+    let payload = {};
+    try {
+      payload = text ? JSON.parse(text) : {};
+    } catch (_) {
+      payload = { ok: false, error: 'Non-JSON response', raw: text };
+    }
+    if (!res.ok || payload.ok === false) {
+      throw new Error(payload.error || `MAC API error (${res.status})`);
+    }
+    return payload;
+  };
+
+  const macAwsQuery = async ({ queryId, sql, label, params } = {}) => {
+    const payload = queryId
+      ? { question_id: queryId, params: params || {} }
+      : { sql, params: params || {} };
+    if (!payload.question_id && !payload.sql) {
+      throw new Error('MAC query missing question_id or sql');
+    }
+    const response = await macApiFetch('/query', { body: payload });
+    return {
+      data: {
+        ok: true,
+        columns: response.columns || [],
+        data_rows: normalizeRows(response.rows || [], response.columns || []),
+        evidence: {
+          athena_query_execution_id: response.query_execution_id || null,
+          generated_sql: response.sql || sql || null,
+          views_used: response.views_used || [],
+          query_id: response.question_id || queryId || null,
+          query_name: label || null
+        }
+      }
+    };
+  };
 
   const runFullAudit = async () => {
     setRunning(true);
@@ -35,29 +106,65 @@ export default function ProofPackRunner({ onComplete }) {
       setProgress(10);
 
       try {
-        const dashboardAudit = await base44.functions.invoke('auditDashboardTiles', {});
-        
-        if (dashboardAudit.data.success) {
+        if (MAC_AWS_ONLY) {
+          const networkMix = await macAwsQuery({
+            queryId: 'network_health',
+            label: 'Network Mix (Billing-Aligned)'
+          });
+          const finance = await macAwsQuery({
+            queryId: 'platt_billing_mrr_latest',
+            label: 'Finance KPIs (Billing Aligned)'
+          });
+          const mixRows = networkMix?.data?.data_rows?.length || 0;
+          const financeRows = finance?.data?.data_rows?.length || 0;
+          const ok = mixRows > 0 && financeRows > 0;
           auditLog.tests.push({
             test_id: 'AUDIT-001',
-            test_name: 'Dashboard Tiles Audit',
-            status: 'PASS',
-            details: dashboardAudit.data.audit_log,
+            test_name: 'Dashboard Tiles Audit (AWS)',
+            status: ok ? 'PASS' : 'FAIL',
+            details: {
+              network_mix_rows: mixRows,
+              finance_rows: financeRows
+            },
             evidence: {
-              tiles_tested: dashboardAudit.data.audit_log.tiles_tested.length,
-              summary: dashboardAudit.data.audit_log.summary,
-              assessment: dashboardAudit.data.audit_log.assessment
+              network_mix_qid: networkMix?.data?.evidence?.athena_query_execution_id || null,
+              finance_qid: finance?.data?.evidence?.athena_query_execution_id || null,
+              sources: [
+                'curated_recon.v_network_mix_billing_aligned_latest',
+                'curated_core.v_platt_billing_mrr_monthly'
+              ]
             }
           });
-          auditLog.summary.passed++;
-        } else {
-          auditLog.tests.push({
-            test_id: 'AUDIT-001',
-            test_name: 'Dashboard Tiles Audit',
-            status: 'FAIL',
-            error: 'Dashboard audit returned non-success'
-          });
-          auditLog.summary.failed++;
+          if (ok) {
+            auditLog.summary.passed++;
+          } else {
+            auditLog.summary.failed++;
+          }
+          } else {
+          const dashboardAudit = await invokeBase44('auditDashboardTiles', {});
+          
+          if (dashboardAudit.data.success) {
+            auditLog.tests.push({
+              test_id: 'AUDIT-001',
+              test_name: 'Dashboard Tiles Audit',
+              status: 'PASS',
+              details: dashboardAudit.data.audit_log,
+              evidence: {
+                tiles_tested: dashboardAudit.data.audit_log.tiles_tested.length,
+                summary: dashboardAudit.data.audit_log.summary,
+                assessment: dashboardAudit.data.audit_log.assessment
+              }
+            });
+            auditLog.summary.passed++;
+          } else {
+            auditLog.tests.push({
+              test_id: 'AUDIT-001',
+              test_name: 'Dashboard Tiles Audit',
+              status: 'FAIL',
+              error: 'Dashboard audit returned non-success'
+            });
+            auditLog.summary.failed++;
+          }
         }
       } catch (error) {
         auditLog.tests.push({
@@ -78,14 +185,21 @@ export default function ProofPackRunner({ onComplete }) {
       setCurrentTest('Testing Projects Page Data Loading...');
 
       try {
-        const projectsSQL = `SELECT project_id, entity, project_name, project_type, state, COALESCE(stage, 'Unknown') AS stage, COALESCE(priority, 'Unranked') AS priority, owner, partner_share_raw, investor_label, notes FROM curated_core.projects_enriched ORDER BY entity, project_name LIMIT 200`;
-        
-        const projectsResult = await base44.functions.invoke('aiLayerQuery', {
-          template_id: 'freeform_sql_v1',
-          params: { sql: projectsSQL }
-        });
+        let projectsResult;
+        if (MAC_AWS_ONLY) {
+          projectsResult = await macAwsQuery({
+            queryId: 'projects_pipeline',
+            label: 'Projects Pipeline (AWS)'
+          });
+        } else {
+          const projectsSQL = `SELECT project_id, entity, project_name, project_type, state, COALESCE(stage, 'Unknown') AS stage, COALESCE(priority, 'Unranked') AS priority, owner, partner_share_raw, investor_label, notes FROM curated_core.projects_enriched ORDER BY entity, project_name LIMIT 200`;
+          projectsResult = await invokeBase44('aiLayerQuery', {
+            template_id: 'freeform_sql_v1',
+            params: { sql: projectsSQL }
+          });
+        }
 
-        if (projectsResult.data.ok && projectsResult.data.data_rows) {
+        if (projectsResult?.data?.ok && projectsResult.data.data_rows) {
           auditLog.tests.push({
             test_id: 'AUDIT-002',
             test_name: 'Projects Page - Athena Load',
@@ -134,9 +248,14 @@ export default function ProofPackRunner({ onComplete }) {
       setCurrentTest('Testing Projects S3 Fallback...');
 
       try {
-        const s3Files = await base44.functions.invoke('listProjectUpdates', {
-          action: 'list'
-        });
+        let s3Files;
+        if (MAC_AWS_ONLY) {
+          s3Files = { data: await macApiFetch('/projects/updates', { body: { action: 'list' } }) };
+        } else {
+          s3Files = await invokeBase44('listProjectUpdates', {
+            action: 'list'
+          });
+        }
 
         if (s3Files.data.files && Array.isArray(s3Files.data.files)) {
           auditLog.tests.push({
@@ -184,35 +303,62 @@ export default function ProofPackRunner({ onComplete }) {
       setCurrentTest('Testing Console Natural Language Query...');
 
       try {
-        const consoleQuery = await base44.functions.invoke('answerQuestion', {
-          question: 'What is the total MRR?'
-        });
-
-        if (consoleQuery.data.answer) {
+        if (MAC_AWS_ONLY) {
+          const consoleQuery = await macApiFetch('/query', {
+            body: { question: 'What is the total MRR?' }
+          });
+          const rows = consoleQuery.rows || [];
+          const ok = consoleQuery.ok && rows.length > 0;
           auditLog.tests.push({
             test_id: 'AUDIT-004',
-            test_name: 'Console - Natural Language Query',
-            status: 'PASS',
+            test_name: 'Console - Deterministic Query (AWS)',
+            status: ok ? 'PASS' : 'FAIL',
             details: {
               question: 'What is the total MRR?',
-              answer_length: consoleQuery.data.answer.length,
-              has_data: !!consoleQuery.data.data_results,
-              evidence_included: !!consoleQuery.data.evidence
+              rows_returned: rows.length,
+              columns: consoleQuery.columns || []
             },
             evidence: {
-              lane: consoleQuery.data.evidence?.lane || 'unknown',
-              athena_queries: consoleQuery.data.evidence?.athena_query_execution_ids?.length || 0
+              query_execution_id: consoleQuery.query_execution_id || null,
+              views_used: consoleQuery.views_used || []
             }
           });
-          auditLog.summary.passed++;
+          if (ok) {
+            auditLog.summary.passed++;
+          } else {
+            auditLog.summary.failed++;
+          }
         } else {
-          auditLog.tests.push({
-            test_id: 'AUDIT-004',
-            test_name: 'Console - Natural Language Query',
-            status: 'FAIL',
-            error: 'No answer returned'
+          const consoleQuery = await invokeBase44('answerQuestion', {
+            question: 'What is the total MRR?'
           });
-          auditLog.summary.failed++;
+
+          if (consoleQuery.data.answer) {
+            auditLog.tests.push({
+              test_id: 'AUDIT-004',
+              test_name: 'Console - Natural Language Query',
+              status: 'PASS',
+              details: {
+                question: 'What is the total MRR?',
+                answer_length: consoleQuery.data.answer.length,
+                has_data: !!consoleQuery.data.data_results,
+                evidence_included: !!consoleQuery.data.evidence
+              },
+              evidence: {
+                lane: consoleQuery.data.evidence?.lane || 'unknown',
+                athena_queries: consoleQuery.data.evidence?.athena_query_execution_ids?.length || 0
+              }
+            });
+            auditLog.summary.passed++;
+          } else {
+            auditLog.tests.push({
+              test_id: 'AUDIT-004',
+              test_name: 'Console - Natural Language Query',
+              status: 'FAIL',
+              error: 'No answer returned'
+            });
+            auditLog.summary.failed++;
+          }
         }
       } catch (error) {
         auditLog.tests.push({
@@ -233,33 +379,67 @@ export default function ProofPackRunner({ onComplete }) {
       setCurrentTest('Testing GIS Network Map...');
 
       try {
-        const planIndex = await base44.functions.invoke('getVetroPlanIndex', {});
-
-        if (planIndex.data.success && planIndex.data.plans) {
+        if (MAC_AWS_ONLY) {
+          const counts = await macAwsQuery({
+            queryId: 'network_map_counts',
+            label: 'Network Map Counts (AWS)'
+          });
+          const points = await macAwsQuery({
+            queryId: 'network_map_points',
+            label: 'Network Map Points (AWS)'
+          });
+          const countsRow = counts?.data?.data_rows?.[0] || [];
+          const totalLocations = countsRow[1] || 0;
+          const ok = (points?.data?.data_rows?.length || 0) > 0 && Number(totalLocations) >= 0;
           auditLog.tests.push({
             test_id: 'AUDIT-005',
-            test_name: 'GIS Network Map - Plan Index',
-            status: 'PASS',
+            test_name: 'GIS Network Map - Counts',
+            status: ok ? 'PASS' : 'FAIL',
             details: {
-              total_plans: planIndex.data.total_plans,
-              plans_with_data: planIndex.data.plans.filter(p => p.service_location_count > 0).length,
-              sample_plan: planIndex.data.plans[0]
+              plans: countsRow[0] || 0,
+              total_locations: totalLocations,
+              served_count: countsRow[2] || 0,
+              sample_points: points?.data?.data_rows?.length || 0
             },
             evidence: {
-              source: 'curated_vetro or vetro_raw_db',
-              method: 'getVetroPlanIndex'
+              counts_qid: counts?.data?.evidence?.athena_query_execution_id || null,
+              points_qid: points?.data?.evidence?.athena_query_execution_id || null
             }
           });
-          auditLog.summary.passed++;
+          if (ok) {
+            auditLog.summary.passed++;
+          } else {
+            auditLog.summary.failed++;
+          }
         } else {
-          auditLog.tests.push({
-            test_id: 'AUDIT-005',
-            test_name: 'GIS Network Map - Plan Index',
-            status: 'BLOCKED',
-            details: planIndex.data,
-            note: 'Vetro data not available or sample data returned'
-          });
-          auditLog.summary.blocked++;
+          const planIndex = await invokeBase44('getVetroPlanIndex', {});
+
+          if (planIndex.data.success && planIndex.data.plans) {
+            auditLog.tests.push({
+              test_id: 'AUDIT-005',
+              test_name: 'GIS Network Map - Plan Index',
+              status: 'PASS',
+              details: {
+                total_plans: planIndex.data.total_plans,
+                plans_with_data: planIndex.data.plans.filter(p => p.service_location_count > 0).length,
+                sample_plan: planIndex.data.plans[0]
+              },
+              evidence: {
+                source: 'curated_vetro or vetro_raw_db',
+                method: 'getVetroPlanIndex'
+              }
+            });
+            auditLog.summary.passed++;
+          } else {
+            auditLog.tests.push({
+              test_id: 'AUDIT-005',
+              test_name: 'GIS Network Map - Plan Index',
+              status: 'BLOCKED',
+              details: planIndex.data,
+              note: 'Vetro data not available or sample data returned'
+            });
+            auditLog.summary.blocked++;
+          }
         }
       } catch (error) {
         auditLog.tests.push({
@@ -280,37 +460,48 @@ export default function ProofPackRunner({ onComplete }) {
       setCurrentTest('Testing Knowledge Base Catalog...');
 
       try {
-        const kbCatalog = await base44.functions.invoke('s3KnowledgeCatalog', {
-          action: 'list'
-        });
-
-        if (kbCatalog.data.documents) {
+        if (MAC_AWS_ONLY) {
           auditLog.tests.push({
             test_id: 'AUDIT-006',
             test_name: 'Knowledge Base - Lane B Catalog',
-            status: kbCatalog.data.documents.length > 0 ? 'PASS' : 'WARN',
-            details: {
-              total_documents: kbCatalog.data.documents.length,
-              sample_docs: kbCatalog.data.documents.slice(0, 3).map(d => d.name)
-            },
-            evidence: {
-              s3_prefix: 'knowledge_base/',
-              purpose: 'Lane B unstructured docs for policy/strategy questions'
-            }
+            status: 'BLOCKED',
+            details: 'Knowledge base catalog not exposed in AWS-only API',
+            evidence: { note: 'Requires non-AWS lane B service' }
           });
-          if (kbCatalog.data.documents.length > 0) {
-            auditLog.summary.passed++;
-          } else {
-            auditLog.summary.warnings++;
-          }
+          auditLog.summary.blocked++;
         } else {
-          auditLog.tests.push({
-            test_id: 'AUDIT-006',
-            test_name: 'Knowledge Base - Lane B Catalog',
-            status: 'FAIL',
-            error: 'No documents array returned'
+          const kbCatalog = await invokeBase44('s3KnowledgeCatalog', {
+            action: 'list'
           });
-          auditLog.summary.failed++;
+
+          if (kbCatalog.data.documents) {
+            auditLog.tests.push({
+              test_id: 'AUDIT-006',
+              test_name: 'Knowledge Base - Lane B Catalog',
+              status: kbCatalog.data.documents.length > 0 ? 'PASS' : 'WARN',
+              details: {
+                total_documents: kbCatalog.data.documents.length,
+                sample_docs: kbCatalog.data.documents.slice(0, 3).map(d => d.name)
+              },
+              evidence: {
+                s3_prefix: 'knowledge_base/',
+                purpose: 'Lane B unstructured docs for policy/strategy questions'
+              }
+            });
+            if (kbCatalog.data.documents.length > 0) {
+              auditLog.summary.passed++;
+            } else {
+              auditLog.summary.warnings++;
+            }
+          } else {
+            auditLog.tests.push({
+              test_id: 'AUDIT-006',
+              test_name: 'Knowledge Base - Lane B Catalog',
+              status: 'FAIL',
+              error: 'No documents array returned'
+            });
+            auditLog.summary.failed++;
+          }
         }
       } catch (error) {
         auditLog.tests.push({
@@ -347,20 +538,33 @@ export default function ProofPackRunner({ onComplete }) {
       setResults(auditLog);
       setCurrentTest('Audit complete!');
 
-      // Generate full proof pack
-      const proofPackResponse = await base44.functions.invoke('generateFullSystemProofPack', {});
-      
-      if (proofPackResponse.data.success) {
+      if (MAC_AWS_ONLY) {
         const fullPackage = {
           audit_execution: auditLog,
-          system_export: proofPackResponse.data.proof_pack,
-          generated_at: new Date().toISOString()
+          system_export: null,
+          generated_at: new Date().toISOString(),
+          note: 'Full system proof pack generation is not available in AWS-only mode.'
         };
-        
         setFullReport(fullPackage);
-        
         if (onComplete) {
           onComplete(fullPackage);
+        }
+      } else {
+        // Generate full proof pack
+        const proofPackResponse = await invokeBase44('generateFullSystemProofPack', {});
+        
+        if (proofPackResponse.data.success) {
+          const fullPackage = {
+            audit_execution: auditLog,
+            system_export: proofPackResponse.data.proof_pack,
+            generated_at: new Date().toISOString()
+          };
+          
+          setFullReport(fullPackage);
+          
+          if (onComplete) {
+            onComplete(fullPackage);
+          }
         }
       }
 
