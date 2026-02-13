@@ -5,11 +5,27 @@ import sys
 import urllib.request
 
 
-def load_questions():
+def load_suite():
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    path = os.path.join(base_dir, "metadata", "golden_questions.json")
-    with open(path, "r", encoding="utf-8") as fh:
-        return json.load(fh)
+    candidates = [
+        os.path.join(base_dir, "automation", "tests", "alex_questions.json"),
+        os.path.join(
+            base_dir,
+            "apps",
+            "mac-app-v2",
+            "lambda",
+            "query-broker",
+            "metadata",
+            "golden_questions.json",
+        ),
+        os.path.join(base_dir, "metadata", "golden_questions.json"),
+    ]
+    for path in candidates:
+        if not os.path.exists(path):
+            continue
+        with open(path, "r", encoding="utf-8") as fh:
+            return json.load(fh)
+    raise FileNotFoundError("No golden questions suite found in known locations.")
 
 
 def post_json(url, payload):
@@ -34,13 +50,17 @@ def main():
     base = os.environ.get("MAC_APP_API_BASE", "https://0vyy63hwe5.execute-api.us-east-2.amazonaws.com/prod")
     url = base.rstrip("/") + "/query"
     action_url = base.rstrip("/") + "/cases/action"
-    suite = load_questions()
+    suite = load_suite()
     questions = suite.get("questions", [])
     failures = []
 
     for item in questions:
         qid = item.get("id")
         question = item.get("question")
+        expected_metric_key = item.get("expected_metric_key")
+        expect_ok = item.get("expect_ok", True)
+        expect_evidence = item.get("expect_evidence_pack", True)
+        expect_err_contains = item.get("expect_error_contains") or []
         payload = {"question": question}
         try:
             resp = post_json(url, payload)
@@ -48,7 +68,19 @@ def main():
             failures.append((qid, f"request_failed: {exc}"))
             continue
 
-        if not resp.get("evidence_pack"):
+        ok = bool(resp.get("ok", False))
+        if ok != bool(expect_ok):
+            failures.append((qid, f"unexpected_ok: got={ok} expected={expect_ok}"))
+            continue
+
+        # For expected failures (guardrails), assert the error contains one of the expected fragments.
+        if not expect_ok:
+            haystack = json.dumps(resp).lower()
+            if expect_err_contains and not any(str(frag).lower() in haystack for frag in expect_err_contains):
+                failures.append((qid, "missing_expected_error_fragment"))
+            continue
+
+        if expect_evidence and not resp.get("evidence_pack"):
             failures.append((qid, "missing_evidence_pack"))
             continue
 
@@ -60,8 +92,8 @@ def main():
             failures.append((qid, "invalid_plan"))
             continue
 
-        if not resp.get("ok", False):
-            failures.append((qid, "response_not_ok"))
+        if expected_metric_key and resp.get("metric_key") and resp.get("metric_key") != expected_metric_key:
+            failures.append((qid, f"metric_key_mismatch: got={resp.get('metric_key')} expected={expected_metric_key}"))
             continue
 
         # Minimal end-to-end action checks (contract requirements).

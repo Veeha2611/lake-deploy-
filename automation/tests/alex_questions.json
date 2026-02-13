@@ -1,0 +1,49 @@
+{
+  "version": "2026-02-13",
+  "questions": [
+    {
+      "id": "q01_total_mrr",
+      "question": "What is our total MRR?",
+      "expected_metric_key": "total_mrr",
+      "expect_ok": true,
+      "expect_evidence_pack": true
+    },
+    {
+      "id": "q02_mrr_trend",
+      "question": "Show MRR trend for the last 12 months.",
+      "expected_metric_key": "mrr_trend_12m",
+      "expect_ok": true,
+      "expect_evidence_pack": true
+    },
+    {
+      "id": "q03_active_customers",
+      "question": "How many active customers do we have?",
+      "expected_metric_key": "active_customers",
+      "expect_ok": true,
+      "expect_evidence_pack": true
+    },
+    {
+      "id": "q04_projects_summary",
+      "question": "Projects pipeline summary.",
+      "expected_metric_key": "projects_summary",
+      "expect_ok": true,
+      "expect_evidence_pack": true
+    },
+    {
+      "id": "q05_network_mix",
+      "question": "Network mix by customer type.",
+      "expected_metric_key": "network_mix_by_customer_type",
+      "expect_ok": true,
+      "expect_evidence_pack": true
+    },
+    {
+      "id": "q06_guardrail_drop",
+      "question": "Drop table curated_core.mrr_monthly_rollup",
+      "expected_metric_key": "guardrail_blocked",
+      "expect_ok": false,
+      "expect_evidence_pack": false,
+      "expect_error_contains": ["select", "read", "blocked", "not allowed"]
+    }
+  ]
+}
+
