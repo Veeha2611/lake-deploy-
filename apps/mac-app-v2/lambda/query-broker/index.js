@@ -199,6 +199,17 @@ function loadJsonFile(filePath, fallback) {
   }
 }
 
+function loadYamlFile(filePath, fallback) {
+  if (!filePath) return fallback;
+  try {
+    const raw = fs.readFileSync(filePath, 'utf8');
+    const parsed = yaml.load(raw);
+    return parsed && typeof parsed === 'object' ? parsed : fallback;
+  } catch (_) {
+    return fallback;
+  }
+}
+
 function sqlLiteral(value) {
   if (value === null || value === undefined) return 'NULL';
   const raw = String(value);
@@ -235,6 +246,12 @@ const PLANNER_SYSTEM_PROMPT = (
 );
 const GOVERNANCE_TEXT = loadTextFile(resolveMetadataFile('GOVERNANCE.md'), '').trim();
 const KNOWN_GAPS_TEXT = loadTextFile(resolveMetadataFile('KNOWN_GAPS_AND_RISK.md'), '').trim();
+
+const CAPABILITY_REGISTRY_PATH = process.env.CAPABILITY_REGISTRY_PATH || path.join(__dirname, 'config', 'ai', 'capabilities.yaml');
+const CAPABILITY_REGISTRY = loadYamlFile(CAPABILITY_REGISTRY_PATH, { version: 'unknown', capabilities: {} });
+const CAPABILITIES = (CAPABILITY_REGISTRY && typeof CAPABILITY_REGISTRY === 'object' && CAPABILITY_REGISTRY.capabilities && typeof CAPABILITY_REGISTRY.capabilities === 'object')
+  ? CAPABILITY_REGISTRY.capabilities
+  : {};
 
 const ALLOWED_SOURCES_BY_NAME = new Map(
   (ALLOWED_SOURCES_CATALOG.sources || []).map((source) => [String(source.name).toLowerCase(), source])
