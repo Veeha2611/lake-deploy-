@@ -158,6 +158,12 @@ export class MacAppV2Stack extends Stack {
         KB_ENABLED: process.env.KB_ENABLED || 'false',
         VERIFY_ACTION_ENABLED: process.env.VERIFY_ACTION_ENABLED || 'false',
         REPORT_EXPORT_ENABLED: process.env.REPORT_EXPORT_ENABLED || 'false',
+        // Capability routing (safe defaults).
+        TEMPLATES_ONLY: process.env.TEMPLATES_ONLY || 'true',
+        PLANNER_ALLOWED: process.env.PLANNER_ALLOWED || 'false',
+        NATIVE_VERIFY_ENABLED: process.env.NATIVE_VERIFY_ENABLED || 'false',
+        CAPABILITY_ROUTER_ENABLED: process.env.CAPABILITY_ROUTER_ENABLED || 'false',
+        IPV4_ENABLED: process.env.IPV4_ENABLED || 'false',
         AUTH_ENABLED: authEnabled ? 'true' : 'false',
         AUTH_ALLOWED_DOMAIN: 'macmtn.com',
         AUTH_ADMIN_GROUPS: 'mac-admin',
