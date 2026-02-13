@@ -807,6 +807,24 @@
     "sql": "WITH modeled AS (\n  SELECT\n    SUM(COALESCE(passings, 0)) AS owned_passings,\n    SUM(COALESCE(subscriptions, 0)) AS owned_subscriptions,\n    SUM(COALESCE(mrr, 0)) AS owned_mrr_modeled,\n    MAX(dt) AS modeled_dt\n  FROM curated_core.v_network_health\n  WHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n    AND LOWER(COALESCE(network_type, '')) = 'owned fttp'\n    AND LOWER(COALESCE(customer_type, '')) = 'owned customer'\n), investor AS (\n  SELECT\n    SUM(COALESCE(plat_id_count, 0)) AS owned_plat_id_count,\n    SUM(COALESCE(revenue, 0)) AS owned_mrr_billed,\n    MAX(as_of_date) AS investor_as_of_date\n  FROM curated_core.v_investor_revenue_mix_latest\n  WHERE LOWER(COALESCE(network_type, '')) LIKE '%owned%'\n)\nSELECT\n  investor.owned_plat_id_count,\n  modeled.owned_subscriptions,\n  modeled.owned_passings,\n  COALESCE(investor.owned_mrr_billed, modeled.owned_mrr_modeled) AS owned_mrr,\n  CAST(investor.investor_as_of_date AS timestamp) AS investor_as_of_date,\n  CAST(modeled.modeled_dt AS timestamp) AS modeled_dt\nFROM investor\nCROSS JOIN modeled\nLIMIT 1;",
     "params": []
   },
+  "owned_customers_multiscope": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt",
+      "curated_core.v_bucket_summary_latest",
+      "curated_core.v_network_health",
+      "curated_core.v_investor_revenue_mix_latest"
+    ],
+    "sql": "WITH latest_month AS (\n  SELECT MAX(period_month) AS period_month\n  FROM curated_core.v_monthly_mrr_platt\n), bucketed AS (\n  SELECT\n    customer_count AS owned_billing_customers_bucket,\n    total_mrr AS owned_mrr_bucket\n  FROM curated_core.v_bucket_summary_latest\n  WHERE bucket = 'owned_fttp'\n  LIMIT 1\n), modeled AS (\n  SELECT\n    SUM(COALESCE(passings, 0)) AS owned_passings,\n    SUM(COALESCE(subscriptions, 0)) AS owned_subscriptions,\n    SUM(COALESCE(mrr, 0)) AS owned_mrr_modeled,\n    MAX(dt) AS modeled_dt\n  FROM curated_core.v_network_health\n  WHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n    AND LOWER(COALESCE(network_type, '')) = 'owned fttp'\n    AND LOWER(COALESCE(customer_type, '')) = 'owned customer'\n), investor AS (\n  SELECT\n    SUM(COALESCE(plat_id_count, 0)) AS owned_plat_id_count,\n    SUM(COALESCE(revenue, 0)) AS owned_mrr_billed,\n    MAX(as_of_date) AS investor_as_of_date\n  FROM curated_core.v_investor_revenue_mix_latest\n  WHERE LOWER(COALESCE(network_type, '')) LIKE '%owned%'\n)\nSELECT\n  CAST(lm.period_month AS timestamp) AS billing_period_month,\n  COALESCE(b.owned_billing_customers_bucket, 0) AS owned_billing_customers_bucket,\n  investor.owned_plat_id_count,\n  modeled.owned_subscriptions,\n  modeled.owned_passings,\n  COALESCE(investor.owned_mrr_billed, modeled.owned_mrr_modeled) AS owned_mrr,\n  CAST(investor.investor_as_of_date AS timestamp) AS investor_as_of_date,\n  CAST(modeled.modeled_dt AS timestamp) AS modeled_dt\nFROM latest_month lm\nCROSS JOIN investor\nCROSS JOIN modeled\nLEFT JOIN bucketed b\n  ON 1 = 1\nLIMIT 1;",
+    "params": []
+  },
+  "owned_networks_list": {
+    "views_used": [
+      "curated_core.v_network_health",
+      "curated_core.v_investor_revenue_mix_latest"
+    ],
+    "sql": "WITH modeled AS (\n  SELECT\n    network,\n    network_norm,\n    network_type,\n    customer_type,\n    passings,\n    subscriptions,\n    mrr,\n    dt\n  FROM curated_core.v_network_health\n  WHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n    AND LOWER(COALESCE(network_type, '')) = 'owned fttp'\n    AND LOWER(COALESCE(customer_type, '')) = 'owned customer'\n    AND network IS NOT NULL\n    AND TRIM(network) <> ''\n    AND network <> 'Unmapped'\n), investor AS (\n  SELECT\n    network,\n    network_type,\n    as_of_date,\n    plat_id_count,\n    revenue\n  FROM curated_core.v_investor_revenue_mix_latest\n  WHERE LOWER(COALESCE(network_type, '')) LIKE '%owned%'\n    AND network IS NOT NULL\n    AND TRIM(network) <> ''\n    AND network <> 'Total'\n)\nSELECT\n  'modeled_network_health' AS source,\n  m.network,\n  m.network_norm,\n  m.network_type,\n  m.customer_type,\n  CAST(m.dt AS timestamp) AS as_of,\n  m.passings,\n  m.subscriptions,\n  CAST(NULL AS double) AS plat_id_count,\n  CAST(NULL AS double) AS billed_mrr\nFROM modeled m\n\nUNION ALL\n\nSELECT\n  'investor_revenue_mix' AS source,\n  i.network,\n  CAST(NULL AS varchar) AS network_norm,\n  i.network_type,\n  'Owned Customer' AS customer_type,\n  CAST(i.as_of_date AS timestamp) AS as_of,\n  CAST(NULL AS double) AS passings,\n  CAST(NULL AS double) AS subscriptions,\n  i.plat_id_count,\n  i.revenue AS billed_mrr\nFROM investor i\n\nORDER BY source, network\nLIMIT 500;",
+    "params": []
+  },
   "platt_billing_customers_by_system_latest": {
     "views_used": [
       "curated_core.v_monthly_mrr_platt",

@@ -1163,6 +1163,7 @@ function resolveDeterministicQuestion(questionText) {
   const isCountQuestion = includesAny(['how many', 'count', 'number of', 'total']);
   const isListQuestion = includesAny(['list', 'show', 'display', 'which', 'what are', 'what is']);
   const wantsInvestigation = detectInvestigationIntent(normalized);
+  const wantsOwned = includesAny(['owned', 'oned']);
 
   // Vetro construction / phase questions: don't let these fall into generic "network KPI" routing.
   if (
@@ -1257,6 +1258,26 @@ function resolveDeterministicQuestion(questionText) {
       return { questionId: 'copper_customers_multiscope', params: hasCopperScope ? copperParams : {} };
     }
     return { questionId: 'copper_customers_count', params: hasCopperScope ? copperParams : {} };
+  }
+
+  // Owned networks / owned customers (multi-scope). Users will not always say "investor workbook".
+  // Return a reconciled view of "owned" counts across:
+  // - bucketed billing customers (latest Platt MRR month)
+  // - investor workbook PLAT ID COUNT (owned networks)
+  // - modeled subscriptions/passings (Owned FTTP + Owned Customer)
+  if (
+    wantsOwned &&
+    (includesAny(['customer', 'customers']) || isCountQuestion) &&
+    includesAny(['network', 'networks', 'fttp', 'fiber', 'sub', 'subs', 'subscription', 'subscriptions', 'plat id', 'platid', 'billed'])
+  ) {
+    return { questionId: 'owned_customers_multiscope', params: {} };
+  }
+
+  if (
+    wantsOwned &&
+    (includesAny(['what networks', 'which networks', 'list', 'show']) || (includesAny(['network', 'networks']) && isListQuestion))
+  ) {
+    return { questionId: 'owned_networks_list', params: {} };
   }
 
   // Investor Questions workbook: "owned networks" is ambiguous across tabs.
@@ -4118,6 +4139,28 @@ function buildAnswerMarkdown(questionId, columns, rows) {
       `- Active SSOT customers (Platt active flag): ${formatNumber(record.active_ssot_customers)}.`,
       `- Total SSOT customers (non-sensitive): ${formatNumber(record.total_ssot_customers)}.`,
       '_Subscriptions count services and can exceed unique customers; billing customers are distinct PLAT IDs with billed MRR._'
+    ].join('\n');
+  }
+
+  if (questionId === 'owned_customers_multiscope') {
+    const billingPeriod = formatMonth(record.billing_period_month);
+    const investorPeriod = formatMonth(record.investor_as_of_date);
+    const modeledDt = formatMonth(record.modeled_dt);
+    return [
+      '**Owned Networks — Customers (multi-scope, deterministic)**',
+      `- Bucketed billing customers (owned_fttp) as of ${billingPeriod}: ${formatNumber(record.owned_billing_customers_bucket)}.`,
+      `- Investor workbook billed customers (PLAT ID COUNT, Owned;*) as of ${investorPeriod}: ${formatNumber(record.owned_plat_id_count)}.`,
+      `- Modeled subscriptions (Owned FTTP + Owned Customer) as of ${modeledDt}: ${formatNumber(record.owned_subscriptions)} across ${formatNumber(record.owned_passings)} passings.`,
+      `- Owned MRR (billed preferred, modeled fallback): ${formatCurrency(record.owned_mrr)}.`,
+      '_Note: these are different definitions/paths (billing customers vs PLAT ID COUNT vs modeled subscriptions). Ask “list owned networks” to see the underlying networks._'
+    ].join('\n');
+  }
+
+  if (questionId === 'owned_networks_list') {
+    return [
+      '**Owned Networks List (deterministic)**',
+      `- Rows returned: ${dataRows.length}.`,
+      '_See table for networks and their source (modeled_network_health vs investor_revenue_mix)._'
     ].join('\n');
   }
 
