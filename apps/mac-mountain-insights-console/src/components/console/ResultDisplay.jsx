@@ -178,6 +178,17 @@ export default function ResultDisplay({ result, onFollowup }) {
     const isCustomer = normalized.includes('customer') || answerText.includes('customer');
     const isRevenue = normalized.includes('mrr') || normalized.includes('revenue') || answerText.includes('mrr');
     const isTickets = normalized.includes('ticket') || normalized.includes('outage') || answerText.includes('outage');
+    const isOwned =
+      normalized.includes('owned_') ||
+      normalized.includes('owned') ||
+      answerText.includes('owned fttp') ||
+      answerText.includes('owned networks');
+
+    // Owned: push the most useful drilldown first so users can immediately see "what counts as owned".
+    if (isOwned) {
+      suggestions.push('List owned networks');
+      suggestions.push('Explain the difference between billing customers vs subscriptions vs PLAT ID COUNT');
+    }
 
     if (isCustomer) {
       suggestions.push('Verify across systems for this metric');
@@ -511,7 +522,7 @@ export default function ResultDisplay({ result, onFollowup }) {
                   value={followupText}
                   onChange={(e) => setFollowupText(e.target.value)}
                   placeholder="Ask a follow-up question (uses this answer as context)"
-                  className="flex-1 min-w-[220px] bg-background text-foreground placeholder:text-muted-foreground border-slate-200 focus-visible:ring-[var(--mac-forest)]"
+                  className="flex-1 min-w-[220px] bg-white text-slate-900 placeholder:text-slate-500 border-slate-200 focus-visible:ring-[var(--mac-forest)]"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && followupText.trim()) {
                       e.preventDefault();
