@@ -6,12 +6,62 @@ import { Send, Loader2, Sparkles, Users, TrendingUp, AlertCircle, Network, Ticke
 import { MAC_API_BASE } from '@/lib/mac-app-flags';
 import { getAuthToken } from '@/lib/cognitoAuth';
 import { addQueryHistory } from '@/lib/queryHistoryStore';
+import { macEngineInvoke } from '@/api/macEngineClient';
 import ResultDisplay from '@/components/console/ResultDisplay';
 import QueryHistory from '@/components/console/QueryHistory';
 import TopicQueryModal from '@/components/topics/TopicQueryModal';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const looksLikeSql = (input) => /^\s*(select|with)\b/i.test(input);
+
+function resolveCaseAction(text) {
+  const normalized = String(text || '').trim().toLowerCase();
+  if (!normalized) return null;
+
+  const isVerify =
+    normalized === 'verify' ||
+    normalized.startsWith('verify ') ||
+    normalized.includes('verify across') ||
+    normalized.includes('review all systems') ||
+    normalized.includes('investigate across systems') ||
+    normalized.includes('cross system') ||
+    normalized.includes('cross-system') ||
+    normalized.includes('cross check') ||
+    normalized.includes('cross-check');
+  if (isVerify) return 'VERIFY_ACROSS_SYSTEMS';
+
+  const isShowEvidence =
+    normalized === 'show evidence' ||
+    normalized.startsWith('show evidence') ||
+    normalized === 'evidence' ||
+    normalized.startsWith('evidence');
+  if (isShowEvidence) return 'SHOW_EVIDENCE';
+
+  const isExportCsv =
+    normalized === 'export csv' ||
+    normalized.startsWith('export csv') ||
+    (normalized.startsWith('export') && normalized.includes('csv'));
+  if (isExportCsv) return 'EXPORT_CSV';
+
+  const isExportXlsx =
+    normalized === 'export xlsx' ||
+    normalized.startsWith('export xlsx') ||
+    normalized === 'export excel' ||
+    normalized.startsWith('export excel') ||
+    (normalized.startsWith('export') && (normalized.includes('xlsx') || normalized.includes('excel')));
+  if (isExportXlsx) return 'EXPORT_XLSX';
+
+  const isBuildReport =
+    normalized === 'build report' ||
+    normalized.startsWith('build report') ||
+    normalized === 'generate report' ||
+    normalized.startsWith('generate report') ||
+    normalized === 'create report' ||
+    normalized.startsWith('create report');
+  if (isBuildReport) return 'BUILD_REPORT';
+
+  return null;
+}
 
 function normalizeRows(rows, columns) {
   if (!Array.isArray(rows) || rows.length === 0) return rows || [];
@@ -149,6 +199,65 @@ export default function Console() {
     setConversation((prev) => [...prev, pendingEntry]);
 
     try {
+      const caseAction = resolveCaseAction(trimmedQuery);
+      const contextCaseId = fallbackContext?.result?.case_id || null;
+      if (caseAction && !contextCaseId) {
+        const errorResult = {
+          ok: false,
+          error: 'No prior answer found to apply that action. Ask a metric question first.'
+        };
+        setResult(errorResult);
+        setConversation((prev) =>
+          prev.map((entry) =>
+            entry.id === entryId ? { ...entry, status: 'error', result: errorResult } : entry
+          )
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      if (caseAction && contextCaseId) {
+        const { data } = await macEngineInvoke('caseAction', {
+          case_id: contextCaseId,
+          action: caseAction
+        });
+        const verification = data?.verification || (caseAction === 'VERIFY_ACROSS_SYSTEMS' ? data : null);
+        const evidencePack = data?.evidence_pack || fallbackContext?.result?.evidence_pack || null;
+        const answerMarkdown =
+          caseAction === 'VERIFY_ACROSS_SYSTEMS'
+            ? `**Cross-System Verification**\n${verification?.message || 'Verification completed.'}`
+            : caseAction === 'SHOW_EVIDENCE'
+              ? '**Evidence Pack**'
+              : data?.message || `**Action ${caseAction} completed.**`;
+
+        const actionResult = {
+          ok: true,
+          answer_markdown: answerMarkdown,
+          columns: [],
+          rows: [],
+          data_rows: [],
+          data_results: [],
+          case_id: contextCaseId,
+          metric_key: fallbackContext?.result?.metric_key || null,
+          verification,
+          agent_steps: fallbackContext?.result?.agent_steps || [],
+          evidence_pack: evidencePack,
+          actions_available: fallbackContext?.result?.actions_available || [],
+          question_id: `case_action_${caseAction.toLowerCase()}`,
+          question_text: trimmedQuery,
+          evidence: fallbackContext?.result?.evidence || {}
+        };
+
+        setResult(actionResult);
+        setConversation((prev) =>
+          prev.map((entry) =>
+            entry.id === entryId ? { ...entry, status: 'complete', result: actionResult } : entry
+          )
+        );
+        setIsLoading(false);
+        return;
+      }
+
       if (looksLikeSql(trimmedQuery)) {
         const errorResult = {
           ok: false,

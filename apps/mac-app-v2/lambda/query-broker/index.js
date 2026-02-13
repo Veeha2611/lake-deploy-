@@ -1435,7 +1435,7 @@ async function invokeBedrockPlanToolUse(modelId, prompt) {
 }
 
 async function generatePlanWithBedrock(question, validationErrors = []) {
-  if (!BEDROCK_ENABLED || !BEDROCK_MODEL_ID) {
+  if (!BEDROCK_ENABLED || !BEDROCK_MODEL_ID || !BEDROCK_TOOL_USE_ENABLED) {
     throw new Error('Bedrock planner not enabled');
   }
   const prompt = buildBedrockPlanPrompt(question, validationErrors);
@@ -1451,9 +1451,7 @@ async function generatePlanWithBedrock(question, validationErrors = []) {
   let lastError = null;
   for (const modelId of modelIds) {
     try {
-      const plan = BEDROCK_TOOL_USE_ENABLED
-        ? await invokeBedrockPlanToolUse(modelId, prompt)
-        : await invokeBedrockPlan(modelId, prompt);
+      const plan = await invokeBedrockPlanToolUse(modelId, prompt);
       if (!plan) throw new Error('Bedrock returned invalid plan JSON');
       return plan;
     } catch (err) {
@@ -8976,7 +8974,7 @@ LIMIT 200000;`;
         views_used: queryDef?.views_used || cached.result?.views_used || [],
         ...cached.result,
         last_success_ts: cached.last_success_ts,
-        case_id: caseId,
+        case_id: CASE_RUNTIME_ENABLED ? caseId : undefined,
         actions_available: buildCaseActions(payloadOut)
       });
     }
@@ -9013,7 +9011,7 @@ LIMIT 200000;`;
         views_used: payloadOut.views_used || [],
         ...payloadOut,
         last_success_ts: Math.floor(Date.now() / 1000),
-        case_id: caseId,
+        case_id: CASE_RUNTIME_ENABLED ? caseId : undefined,
         actions_available: buildCaseActions(payloadOut)
       });
     }
@@ -9030,7 +9028,7 @@ LIMIT 200000;`;
       result.request_params = resolvedParams;
       viewsUsed = effectiveQueryDef.views_used || extractReferencedTables(effectiveQueryDef.sql);
     } else if (!inlineSql && questionText) {
-      if (!BEDROCK_ENABLED || !BEDROCK_MODEL_ID) {
+      if (!BEDROCK_ENABLED || !BEDROCK_MODEL_ID || !BEDROCK_TOOL_USE_ENABLED) {
         const suggestions = suggestRegistryMatches(questionText, 5);
         const suggestionLines = suggestions.map((item) => `- ${item.id}`).join('\n');
         const answerMarkdown = suggestions.length
@@ -9144,7 +9142,7 @@ LIMIT 200000;`;
         ...enrichedPayloadOut,
         last_success_ts: Math.floor(Date.now() / 1000),
         plan_errors: planResult.errors || null,
-        case_id: caseId,
+        case_id: CASE_RUNTIME_ENABLED ? caseId : undefined,
         actions_available: buildCaseActions(enrichedPayloadOut)
       });
     } else {
@@ -9264,7 +9262,7 @@ LIMIT 200000;`;
       views_used: viewsUsed,
       ...payloadOut,
       last_success_ts: Math.floor(Date.now() / 1000),
-      case_id: caseId,
+      case_id: CASE_RUNTIME_ENABLED ? caseId : undefined,
       actions_available: buildCaseActions(payloadOut)
     });
   } catch (err) {
@@ -9291,7 +9289,7 @@ LIMIT 200000;`;
         ...cached.result,
         last_success_ts: cached.last_success_ts,
         error: err.message,
-        case_id: caseId,
+        case_id: CASE_RUNTIME_ENABLED ? caseId : undefined,
         actions_available: buildCaseActions(payloadOut)
       });
     }

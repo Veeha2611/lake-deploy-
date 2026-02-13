@@ -137,7 +137,8 @@ export class MacAppV2Stack extends Stack {
         ALLOWED_VIEW_PREFIXES: 'curated_core.,curated_ssot.,curated_recon.,curated_platt.,curated_intacct.,curated_vetro.,curated_gis.,information_schema.',
         MONDAY_SECRET_ID: 'monday/prod',
         MONDAY_PIPELINE_BOARD_ID: '18397523070',
-        BEDROCK_ENABLED: 'true',
+        // Feature-flagged: only enable Bedrock planning when explicitly turned on.
+        BEDROCK_ENABLED: process.env.BEDROCK_ENABLED || 'false',
         // Prefer Sonnet 4 via the system-defined inference profile for consistent throughput.
         // Override with BEDROCK_MODEL_ID / BEDROCK_INFERENCE_PROFILE_ID if needed.
         BEDROCK_MODEL_ID: process.env.BEDROCK_MODEL_ID || 'anthropic.claude-sonnet-4-20250514-v1:0',
@@ -151,12 +152,12 @@ export class MacAppV2Stack extends Stack {
         ].join(','),
         BEDROCK_MAX_TOKENS: process.env.BEDROCK_MAX_TOKENS || '1200',
         BEDROCK_STRUCTURED_OUTPUTS: 'true',
-        AUTO_VERIFY_ALL: process.env.AUTO_VERIFY_ALL || 'true',
-        CASE_RUNTIME_ENABLED: process.env.CASE_RUNTIME_ENABLED || 'true',
+        AUTO_VERIFY_ALL: process.env.AUTO_VERIFY_ALL || 'false',
+        CASE_RUNTIME_ENABLED: process.env.CASE_RUNTIME_ENABLED || 'false',
         BEDROCK_TOOL_USE_ENABLED: process.env.BEDROCK_TOOL_USE_ENABLED || 'false',
         KB_ENABLED: process.env.KB_ENABLED || 'false',
-        VERIFY_ACTION_ENABLED: process.env.VERIFY_ACTION_ENABLED || 'true',
-        REPORT_EXPORT_ENABLED: process.env.REPORT_EXPORT_ENABLED || 'true',
+        VERIFY_ACTION_ENABLED: process.env.VERIFY_ACTION_ENABLED || 'false',
+        REPORT_EXPORT_ENABLED: process.env.REPORT_EXPORT_ENABLED || 'false',
         AUTH_ENABLED: authEnabled ? 'true' : 'false',
         AUTH_ALLOWED_DOMAIN: 'macmtn.com',
         AUTH_ADMIN_GROUPS: 'mac-admin',
