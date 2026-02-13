@@ -47,7 +47,6 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import Architecture from './pages/Architecture';
 import Console from './pages/Console';
 import Dashboard from './pages/Dashboard';
 import DebugProjects from './pages/DebugProjects';
@@ -57,7 +56,6 @@ import MACAppEngine from './pages/MACAppEngine';
 import Projects from './pages/Projects';
 import ProofDebug from './pages/ProofDebug';
 import RevenueReproPack from './pages/RevenueReproPack';
-import SSOTTestPack from './pages/SSOTTestPack';
 import SchemaDiscovery from './pages/SchemaDiscovery';
 import Settings from './pages/Settings';
 import Topics from './pages/Topics';
@@ -65,7 +63,6 @@ import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Architecture": Architecture,
     "Console": Console,
     "Dashboard": Dashboard,
     "DebugProjects": DebugProjects,
@@ -75,7 +72,6 @@ export const PAGES = {
     "Projects": Projects,
     "ProofDebug": ProofDebug,
     "RevenueReproPack": RevenueReproPack,
-    "SSOTTestPack": SSOTTestPack,
     "SchemaDiscovery": SchemaDiscovery,
     "Settings": Settings,
     "Topics": Topics,

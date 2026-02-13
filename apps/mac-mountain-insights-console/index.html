@@ -12,9 +12,10 @@
         awsOnly: true,
         // Breakglass toggle: set to `true` to bypass Cognito in the UI.
         // Note: if the MAC API is Cognito-protected, leaving this `true` will cause 401s.
-        disableAuth: true,
-        authProvider: 'cognito',
-        authProviders: ['cognito'],
+        disableAuth: false,
+        // Prefer Google via Cognito Hosted UI (stable + simplest for @macmtn.com access).
+        authProvider: 'google',
+        authProviders: ['google'],
         cognitoDomain: 'https://mac-app-702127848627.auth.us-east-2.amazoncognito.com',
         cognitoClientId: '1dpdo8i74fkjvt3v2kt75mu4o9',
         cognitoUserPoolId: 'us-east-2_eDzFeDgIz',

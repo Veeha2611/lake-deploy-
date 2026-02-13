@@ -5,16 +5,16 @@ CREATE DATABASE IF NOT EXISTS curated_recon;
 CREATE OR REPLACE VIEW curated_recon.v_network_mrr_recon_latest AS
 WITH latest_period AS (
   SELECT MAX(period_month) AS period_month
-  FROM curated_core.v_platt_billing_customer_month_latest
-  WHERE mrr_total_customer_month > 0
+  FROM curated_core.v_monthly_mrr_platt
+  WHERE mrr_total > 0
 ),
 billed_base AS (
   SELECT
     customer_id,
     period_month,
-    mrr_total_customer_month AS mrr_total
-  FROM curated_core.v_platt_billing_customer_month_latest
-  WHERE mrr_total_customer_month > 0
+    mrr_total AS mrr_total
+  FROM curated_core.v_monthly_mrr_platt
+  WHERE mrr_total > 0
     AND period_month = (SELECT period_month FROM latest_period)
 ),
 billed_by_network AS (
@@ -78,16 +78,16 @@ FULL OUTER JOIN modeled m
 CREATE OR REPLACE VIEW curated_recon.v_network_mrr_recon_exceptions AS
 WITH latest_period AS (
   SELECT MAX(period_month) AS period_month
-  FROM curated_core.v_platt_billing_customer_month_latest
-  WHERE mrr_total_customer_month > 0
+  FROM curated_core.v_monthly_mrr_platt
+  WHERE mrr_total > 0
 ),
 billed_base AS (
   SELECT
     customer_id,
     period_month,
-    mrr_total_customer_month AS mrr_total
-  FROM curated_core.v_platt_billing_customer_month_latest
-  WHERE mrr_total_customer_month > 0
+    mrr_total AS mrr_total
+  FROM curated_core.v_monthly_mrr_platt
+  WHERE mrr_total > 0
     AND period_month = (SELECT period_month FROM latest_period)
 ),
 modeled_keys AS (

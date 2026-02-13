@@ -316,6 +316,105 @@
       "default_time_window": {
         "type": "latest"
       }
+    },
+    "owned_fttp_subscriptions": {
+      "description": "Owned FTTP subscriptions (subscriptions grain, workbook-aligned).",
+      "query_id": "owned_fttp_subscriptions_bucket",
+      "value_column": "owned_fttp_subscriptions",
+      "grain": "subscriptions",
+      "scope": "owned_fttp",
+      "tolerance_pct": 0.0,
+      "tolerance_abs": 0,
+      "source_views": [
+        "curated_core.v_bucket_summary_latest",
+        "curated_core.v_network_health"
+      ],
+      "cross_check_query_ids": [
+        {
+          "query_id": "owned_fttp_subscriptions_nh",
+          "value_column": "owned_fttp_subscriptions",
+          "label": "Network Health (subscriptions)",
+          "tolerance_pct": 0.0
+        }
+      ],
+      "system_compare_query_ids": [
+        {
+          "query_id": "owned_fttp_subscriptions_bucket",
+          "value_column": "owned_fttp_subscriptions",
+          "label": "Bucket Summary (subscriptions)"
+        },
+        {
+          "query_id": "owned_fttp_subscriptions_nh",
+          "value_column": "owned_fttp_subscriptions",
+          "label": "Network Health (subscriptions)"
+        }
+      ]
+    },
+    "contracted_fttp_subscriptions": {
+      "description": "Contracted FTTP subscriptions (subscriptions grain, workbook-aligned).",
+      "query_id": "contracted_fttp_subscriptions_bucket",
+      "value_column": "contracted_fttp_subscriptions",
+      "grain": "subscriptions",
+      "scope": "contracted_fttp",
+      "tolerance_pct": 0.0,
+      "tolerance_abs": 0,
+      "source_views": [
+        "curated_core.v_bucket_summary_latest",
+        "curated_core.v_network_health"
+      ],
+      "cross_check_query_ids": [
+        {
+          "query_id": "contracted_fttp_subscriptions_nh",
+          "value_column": "contracted_fttp_subscriptions",
+          "label": "Network Health (subscriptions)",
+          "tolerance_pct": 0.0
+        }
+      ],
+      "system_compare_query_ids": [
+        {
+          "query_id": "contracted_fttp_subscriptions_bucket",
+          "value_column": "contracted_fttp_subscriptions",
+          "label": "Bucket Summary (subscriptions)"
+        },
+        {
+          "query_id": "contracted_fttp_subscriptions_nh",
+          "value_column": "contracted_fttp_subscriptions",
+          "label": "Network Health (subscriptions)"
+        }
+      ]
+    },
+    "clec_subscriptions": {
+      "description": "CLEC subscriptions (subscriptions grain, workbook-aligned).",
+      "query_id": "clec_subscriptions_bucket",
+      "value_column": "clec_subscriptions",
+      "grain": "subscriptions",
+      "scope": "clec_business",
+      "tolerance_pct": 0.0,
+      "tolerance_abs": 0,
+      "source_views": [
+        "curated_core.v_bucket_summary_latest",
+        "curated_core.v_network_health"
+      ],
+      "cross_check_query_ids": [
+        {
+          "query_id": "clec_subscriptions_nh",
+          "value_column": "clec_subscriptions",
+          "label": "Network Health (subscriptions)",
+          "tolerance_pct": 0.0
+        }
+      ],
+      "system_compare_query_ids": [
+        {
+          "query_id": "clec_subscriptions_bucket",
+          "value_column": "clec_subscriptions",
+          "label": "Bucket Summary (subscriptions)"
+        },
+        {
+          "query_id": "clec_subscriptions_nh",
+          "value_column": "clec_subscriptions",
+          "label": "Network Health (subscriptions)"
+        }
+      ]
     }
   }
 }

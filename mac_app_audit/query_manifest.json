@@ -1,0 +1,59 @@
+{
+  "version": "2026-02-13",
+  "queries": {
+    "bucket_summary": {
+      "description": "Subscriptions-aligned bucket rollup (Owned/Contracted/CLEC).",
+      "freshness_checks": [
+        { "view": "curated_core.v_network_health", "max_age_days": 2 }
+      ]
+    },
+    "network_health": {
+      "description": "Network mix table used by Network Mix dashboard.",
+      "freshness_checks": [
+        { "view": "curated_core.v_network_health", "max_age_days": 2 },
+        { "view": "raw_platt.iheader_raw", "max_age_days": 2 }
+      ]
+    },
+    "passings_subscribers": {
+      "description": "Passings/subscriptions summary tile.",
+      "freshness_checks": [
+        { "view": "curated_core.v_network_health", "max_age_days": 2 },
+        { "view": "raw_platt.iheader_raw", "max_age_days": 2 }
+      ]
+    },
+    "mrr_overview": {
+      "description": "Finance KPI summary (monthly).",
+      "freshness_checks": [
+        { "view": "raw_platt.iheader_raw", "max_age_days": 2 },
+        { "view": "curated_core.v_monthly_mrr_platt", "max_age_days": 60 }
+      ]
+    },
+    "mrr_trend_12m": {
+      "description": "Finance KPI trend (monthly).",
+      "freshness_checks": [
+        { "view": "raw_platt.iheader_raw", "max_age_days": 2 },
+        { "view": "curated_core.v_monthly_mrr_platt", "max_age_days": 60 }
+      ]
+    },
+    "bucket_summary_billing": {
+      "description": "Billing-aligned bucket rollup (billed customers + billed MRR).",
+      "freshness_checks": [
+        { "view": "raw_platt.iheader_raw", "max_age_days": 2 },
+        { "view": "curated_recon.v_network_mrr_recon_latest", "max_age_days": 60 },
+        { "view": "curated_core.v_network_health", "max_age_days": 2 }
+      ]
+    },
+    "change_log_customer_mix": {
+      "description": "Snapshot delta (latest vs previous) for Customer Mix totals.",
+      "freshness_checks": [
+        { "view": "curated_core.v_network_health", "max_age_days": 2 }
+      ]
+    },
+    "mrr_movement_breakdown_latest": {
+      "description": "Monthly MRR movement breakdown (new/churn/expansion/contraction/reactivation).",
+      "freshness_checks": [
+        { "view": "curated_core.v_monthly_mrr_platt", "max_age_days": 60 }
+      ]
+    }
+  }
+}

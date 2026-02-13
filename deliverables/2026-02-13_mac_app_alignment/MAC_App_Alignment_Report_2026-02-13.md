@@ -17,6 +17,8 @@
   - Contracted: **2,333**
   - CLEC: **1,634**
 - This resolves the “912 vs 348” mismatch as a **definition/label mismatch**, not missing data.
+- A billing-aligned bucket summary is now available alongside the subscriptions-aligned summary:
+  - `bucket_summary_billing` returns **billed customers + billed MRR** by bucket, with evidence and freshness checks.
 
 ### What remains (known gap)
 - The network mix ARPU/MRR shown in this alignment path is still **modeled** (subscriptions × ARPU from the workbook reconciliation harness), not recomputed from **native Platt invoicing** using guarantor roll-up + exclusion rules.
@@ -68,6 +70,10 @@ Current dashboard semantics for the “Owned / Contracted / CLEC” groupings ma
 - Endpoint: `POST /prod/query`
 - Query ID: `bucket_summary`
 - Source view: `curated_core.v_bucket_summary_latest`
+
+**Evidence pack (2026-02-13 run):**
+- S3: `s3://gwi-raw-us-east-2-pc/curated_recon/mac_alignment_run/dt=2026-02-13/`
+- Local: `ssot_audit/mac_alignment_run/dt=2026-02-13/`
 
 **Validation steps (deterministic):**
 1. Call the API:
@@ -128,4 +134,3 @@ Implement a v1 “Last 24h delta” for:
 - Vetro as-built plan count
 
 Implementation can be a daily materialized table keyed by `run_date` with precomputed deltas, then displayed as a small tile.
-

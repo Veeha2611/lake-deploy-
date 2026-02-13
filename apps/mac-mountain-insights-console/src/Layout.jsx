@@ -1,15 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Home as HomeIcon, LayoutDashboard, MessageSquare, Settings, LogOut, Sun, Moon, Briefcase, TestTube } from 'lucide-react';
+import { Home as HomeIcon, LayoutDashboard, MessageSquare, Settings, LogOut, Sun, Moon, Briefcase } from 'lucide-react';
 import { ThemeProvider, useTheme } from '@/components/ThemeProvider';
 import { useAuth } from '@/lib/AuthContext';
 
 function LayoutContent({ children, currentPageName }) {
     const { theme, toggleTheme } = useTheme();
     const { user, logout } = useAuth();
-  
-  const patrickOnlyPages = ['patrick.cochran@icloud.com', 'patch.cochran@macmtn.com'].includes(user?.email?.toLowerCase());
 
   const allNavItems = [
     { name: 'Home', icon: HomeIcon, page: 'Home' },
@@ -17,10 +15,6 @@ function LayoutContent({ children, currentPageName }) {
     { name: 'Intelligence Console', icon: MessageSquare, page: 'Console' },
     { name: 'Projects', icon: Briefcase, page: 'Projects' },
     { name: 'MAC App Engine', icon: Settings, page: 'MACAppEngine' },
-    ...(patrickOnlyPages ? [
-      { name: 'SSOT Test Pack', icon: TestTube, page: 'SSOTTestPack' },
-      { name: 'Architecture', icon: Settings, page: 'Architecture' }
-    ] : []),
   ];
 
   const navItems = allNavItems;

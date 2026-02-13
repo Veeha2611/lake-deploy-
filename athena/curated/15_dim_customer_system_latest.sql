@@ -1,9 +1,16 @@
 -- System mapping view based on latest MRR snapshot.
 -- Uses Platt->GWI system map + explicit GWI system -> network/system_key crosswalk.
 CREATE OR REPLACE VIEW curated_core.dim_customer_system_latest AS
-WITH latest_ids AS (
+WITH latest_period AS (
+  SELECT MAX(period_month) AS period_month
+  FROM curated_core.v_monthly_mrr_platt
+  WHERE mrr_total > 0
+),
+latest_ids AS (
   SELECT DISTINCT CAST(customer_id AS varchar) AS customer_id
-  FROM curated_core.v_platt_billing_customer_month_latest
+  FROM curated_core.v_monthly_mrr_platt
+  WHERE period_month = (SELECT period_month FROM latest_period)
+    AND mrr_total > 0
 ),
 platt_map AS (
   SELECT

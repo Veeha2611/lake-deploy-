@@ -20,6 +20,8 @@ import MainChartCard from '@/components/dashboard/MainChartCard';
 import MRRFy2025Tile from '@/components/dashboard/MRRFy2025Tile';
 import GLClosePack from '@/components/dashboard/GLClosePack';
 import BucketSummaryTile from '@/components/dashboard/BucketSummaryTile';
+import ChangeLogTile from '@/components/dashboard/ChangeLogTile';
+import MRRMovementBreakdownTile from '@/components/dashboard/MRRMovementBreakdownTile';
 import NetworkMapTile from '@/components/gis/NetworkMapTile';
 import { DashboardRefreshProvider } from '@/components/dashboard/DashboardRefreshProvider';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -652,6 +654,22 @@ function InsightsPanel() {
               <TabsContent value="finance">
                 <div className="space-y-6">
                   <FinanceKPITiles />
+                  <div className="grid lg:grid-cols-2 gap-6">
+                    <div className="mac-panel-strong rounded-2xl p-4">
+                      <div className="mac-eyebrow">Change Log</div>
+                      <h3 className="font-display text-lg text-foreground mt-2">Latest vs Prior Snapshot</h3>
+                      <div className="mt-4">
+                        <ChangeLogTile />
+                      </div>
+                    </div>
+                    <div className="mac-panel-strong rounded-2xl p-4">
+                      <div className="mac-eyebrow">MRR Movement</div>
+                      <h3 className="font-display text-lg text-foreground mt-2">New / Churn / Reactivation</h3>
+                      <div className="mt-4">
+                        <MRRMovementBreakdownTile />
+                      </div>
+                    </div>
+                  </div>
                   <div className="grid lg:grid-cols-2 gap-6">
                     <div className="mac-panel-strong rounded-2xl p-4">
                       <div className="mac-eyebrow">Fiscal 2025</div>

@@ -82,6 +82,8 @@ const REPORTS_PREFIX = process.env.REPORTS_PREFIX || 'raw/mac_ai_console/reports
 const AGENT_ARTIFACTS_BUCKET = process.env.AGENT_ARTIFACTS_BUCKET || 'gwi-raw-us-east-2-pc';
 const AGENT_ARTIFACTS_PREFIX = process.env.AGENT_ARTIFACTS_PREFIX || 'raw/mac_ai_console/agent_artifacts/';
 const MODEL_VERSION_HASH = String(process.env.MODEL_VERSION_HASH || process.env.GIT_SHA || 'unknown').trim();
+// Freshness gating: when enabled, stale sources fail closed (UNAVAILABLE).
+const FRESHNESS_GATE_ENABLED = String(process.env.FRESHNESS_GATE_ENABLED || 'true').toLowerCase() === 'true';
 
 const READ_ONLY_SQL_BLOCKLIST = /\b(insert|update|delete|create|drop|alter|truncate|merge|replace|refresh|msck|repair|grant|revoke|call|unload|export|vacuum)\b/i;
 const ADMIN_ONLY_PATHS = [
@@ -234,6 +236,7 @@ const ALLOWED_SOURCES_CATALOG = loadJsonFile(resolveMetadataFile('allowed_source
 const JOIN_MAP_CATALOG = loadJsonFile(resolveMetadataFile('join_map.json'), { version: 'unknown', joins: [] });
 const METRIC_DEFINITIONS = loadJsonFile(resolveMetadataFile('metric_definitions.json'), { version: 'unknown', metrics: {} });
 const SYSTEM_CROSSWALKS = loadJsonFile(resolveMetadataFile('system_crosswalks.json'), { version: 'unknown', crosswalks: [] });
+const QUERY_MANIFEST = loadJsonFile(resolveMetadataFile('query_manifest.json'), { version: 'unknown', queries: {} });
 const QUERY_PLAN_SCHEMA = loadJsonFile(resolveMetadataFile('query_plan_schema.json'), {});
 const ACTION_INTENT_SCHEMA = loadJsonFile(resolveMetadataFile('action_intent_schema.json'), {});
 const REPORT_SPEC_SCHEMA = loadJsonFile(resolveMetadataFile('report_spec_schema.json'), {});
@@ -258,6 +261,9 @@ const ALLOWED_SOURCES_BY_NAME = new Map(
 );
 const JOIN_MAP = JOIN_MAP_CATALOG.joins || [];
 const METRIC_DEFS = METRIC_DEFINITIONS.metrics || {};
+const QUERY_MANIFEST_DEFS = (QUERY_MANIFEST && typeof QUERY_MANIFEST === 'object' && QUERY_MANIFEST.queries && typeof QUERY_MANIFEST.queries === 'object')
+  ? QUERY_MANIFEST.queries
+  : {};
 const SYSTEM_ALIAS_MAP = buildSystemAliasMap(SYSTEM_CROSSWALKS);
 const SYSTEM_ALIAS_LABELS = buildSystemAliasLabels(SYSTEM_CROSSWALKS);
 
@@ -1783,6 +1789,12 @@ function getMetricDef(metricKey) {
   return METRIC_DEFS[String(metricKey).toLowerCase()] || METRIC_DEFS[metricKey] || null;
 }
 
+function getQueryManifestEntry(questionId) {
+  if (!questionId) return null;
+  const lowered = String(questionId).toLowerCase();
+  return QUERY_MANIFEST_DEFS[lowered] || QUERY_MANIFEST_DEFS[questionId] || null;
+}
+
 function getAllowedSource(sourceView) {
   if (!sourceView) return null;
   return ALLOWED_SOURCES_BY_NAME.get(String(sourceView).toLowerCase()) || null;
@@ -2179,6 +2191,106 @@ async function runFreshnessCheckCached(sourceView) {
   const freshness = await runFreshnessCheck(sourceView);
   await putCache(cacheKey, freshness, FRESHNESS_CACHE_SECONDS);
   return { ...freshness, cached: false };
+}
+
+function normalizeMaxAgeSeconds(check) {
+  if (!check || typeof check !== 'object') return null;
+  const minutes = Number(check.max_age_minutes || 0);
+  const hours = Number(check.max_age_hours || 0);
+  const days = Number(check.max_age_days || 0);
+  const total = (Number.isFinite(minutes) ? minutes * 60 : 0) +
+    (Number.isFinite(hours) ? hours * 3600 : 0) +
+    (Number.isFinite(days) ? days * 86400 : 0);
+  return total > 0 ? total : null;
+}
+
+function parseLatestPartitionAsDate(latestPartition) {
+  if (!latestPartition) return null;
+  return parseDateValue(latestPartition);
+}
+
+async function runFreshnessGate({ questionId } = {}) {
+  if (!FRESHNESS_GATE_ENABLED) return null;
+  const entry = getQueryManifestEntry(questionId);
+  const checksSpec = Array.isArray(entry?.freshness_checks) ? entry.freshness_checks : [];
+  if (!checksSpec.length) return null;
+
+  const now = new Date();
+  const results = [];
+  let blocked = false;
+
+  for (const spec of checksSpec) {
+    const view = spec?.view ? String(spec.view).trim() : '';
+    if (!view) continue;
+    const maxAgeSeconds = normalizeMaxAgeSeconds(spec);
+    const meta = getAllowedSource(view);
+
+    let freshness = null;
+    try {
+      freshness = await runFreshnessCheckCached(view);
+    } catch (err) {
+      results.push({
+        view,
+        status: 'error',
+        latest_partition: null,
+        max_age_seconds: maxAgeSeconds,
+        age_seconds: null,
+        error: err?.message || String(err)
+      });
+      blocked = true;
+      continue;
+    }
+
+    const latestPartition = freshness?.latest_partition || null;
+    const latestDate = parseLatestPartitionAsDate(latestPartition);
+    const ageSeconds = latestDate ? Math.floor((now.getTime() - latestDate.getTime()) / 1000) : null;
+
+    let status = freshness?.status || 'error';
+    if (status === 'ok' && maxAgeSeconds !== null && ageSeconds !== null && ageSeconds > maxAgeSeconds) {
+      status = 'stale';
+    }
+    if (status === 'empty' || status === 'error' || status === 'stale') {
+      blocked = true;
+    }
+
+    results.push({
+      view,
+      time_column: meta?.time_column || null,
+      time_type: meta?.time_type || null,
+      status,
+      latest_partition: latestPartition,
+      age_seconds: ageSeconds,
+      max_age_seconds: maxAgeSeconds,
+      query_execution_id: freshness?.query_execution_id || null,
+      sql: freshness?.sql || null,
+      cached: Boolean(freshness?.cached),
+      raw_status: freshness?.status || null
+    });
+  }
+
+  return {
+    status: blocked ? 'blocked' : 'ok',
+    question_id: questionId || null,
+    checked_at: now.toISOString(),
+    checks: results
+  };
+}
+
+function buildUnavailableMarkdownFromFreshnessGate(gate) {
+  const checks = Array.isArray(gate?.checks) ? gate.checks : [];
+  const lines = ['**UNAVAILABLE** — source freshness gate blocked this result.'];
+  if (!checks.length) return lines.join('\n');
+  checks.slice(0, 12).forEach((check) => {
+    const view = check?.view ? `\`${check.view}\`` : '`(unknown)`';
+    const latest = check?.latest_partition ? String(check.latest_partition).slice(0, 19) : 'N/A';
+    const ageDays = typeof check?.age_seconds === 'number' ? Math.floor(check.age_seconds / 86400) : null;
+    const maxDays = typeof check?.max_age_seconds === 'number' ? Math.floor(check.max_age_seconds / 86400) : null;
+    const status = String(check?.status || 'unknown').toUpperCase();
+    const ageText = ageDays !== null ? `${ageDays}d` : 'N/A';
+    const maxText = maxDays !== null ? `${maxDays}d` : 'N/A';
+    lines.push(`- ${view}: ${status} (latest ${latest}, age ${ageText}, SLA ${maxText}).`);
+  });
+  return lines.join('\n');
 }
 
 async function executeQueryCached(queryId, queryDef, params, ttlSeconds = INTERNAL_QUERY_CACHE_SECONDS) {
@@ -4583,15 +4695,17 @@ function buildEvidencePackFromResult(result, viewsUsed) {
 }
 
 async function getFreshnessEvidence(viewsUsed) {
-  const checks = [];
-  if (!viewsUsed || viewsUsed.length === 0) return checks;
-  for (const view of viewsUsed) {
-    const sourceMeta = getAllowedSource(view);
-    if (!sourceMeta || !sourceMeta.empty_is_unavailable) continue;
-    const freshness = await runFreshnessCheck(view);
-    checks.push({ view, ...freshness });
-  }
-  return checks;
+  if (!viewsUsed || viewsUsed.length === 0) return [];
+  const uniqueViews = Array.from(new Set((Array.isArray(viewsUsed) ? viewsUsed : []).filter(Boolean)));
+  const tasks = uniqueViews.map(async (view) => {
+    try {
+      const freshness = await runFreshnessCheckCached(view);
+      return { view, ...freshness };
+    } catch (err) {
+      return { view, status: 'error', latest_partition: null, row_count: null, error: err.message || String(err) };
+    }
+  });
+  return (await Promise.all(tasks)).filter(Boolean);
 }
 
 function classifyIRR(irrPct) {
@@ -9214,7 +9328,23 @@ LIMIT 200000;`;
   try {
     const cached = await getCache(cacheKey);
     if (cached && cached.expires_at > Math.floor(Date.now() / 1000) && cached.result) {
-      const payloadOut = cached.result;
+      let payloadOut = cached.result;
+      const freshnessGate = await runFreshnessGate({ questionId });
+      if (freshnessGate) {
+        const evidencePack = payloadOut?.evidence_pack && typeof payloadOut.evidence_pack === 'object'
+          ? { ...payloadOut.evidence_pack, freshness_gate: freshnessGate }
+          : { freshness_gate: freshnessGate };
+        payloadOut = { ...payloadOut, evidence_pack: evidencePack };
+        if (freshnessGate.status === 'blocked') {
+          payloadOut = {
+            ...payloadOut,
+            columns: [],
+            rows: [],
+            answer_markdown: buildUnavailableMarkdownFromFreshnessGate(freshnessGate),
+            evidence_pack: { ...evidencePack, status: 'unavailable', confidence: 'low' }
+          };
+        }
+      }
       const caseId = payload.case_id || payload.caseId || generateCaseId();
       await writeCaseRecord(buildCaseRecord({
         caseId,
@@ -9535,11 +9665,27 @@ LIMIT 200000;`;
     let columnsOut = result.columns;
     let rowsOut = result.rows;
     const evidencePack = buildEvidencePackFromResult(result, viewsUsed);
+    if (metricKey && metricDef) {
+      evidencePack.metric_definition = {
+        metric_key: metricKey,
+        description: metricDef.description || null,
+        grain: metricDef.grain || null,
+        scope: metricDef.scope || null
+      };
+    }
+    const freshnessChecks = ladder ? (ladder.freshness || []) : await getFreshnessEvidence(viewsUsed);
+    if (freshnessChecks.length) {
+      evidencePack.freshness = freshnessChecks;
+    }
+
+    const freshnessGate = await runFreshnessGate({ questionId });
+    if (freshnessGate) {
+      evidencePack.freshness_gate = freshnessGate;
+    }
 
     if (ladder) {
       evidencePack.status = ladder.status;
       evidencePack.primary_value = ladder.primary_value;
-      evidencePack.freshness = ladder.freshness || [];
       evidencePack.cross_checks = ladder.cross_checks || [];
       evidencePack.sanity_check = ladder.sanity_check || null;
       evidencePack.driver_queries = ladder.driver_queries || [];
@@ -9555,20 +9701,26 @@ LIMIT 200000;`;
         answerMarkdown = buildAnswerMarkdown(questionId, result.columns, result.rows);
       }
     } else {
-      const freshnessChecks = await getFreshnessEvidence(viewsUsed);
-      const emptyUnavailable = freshnessChecks.some((check) => check.status === 'empty' || check.row_count === 0);
-      answerMarkdown = emptyUnavailable
-        ? '**Unavailable (source empty/stale)**'
-        : buildAnswerMarkdown(questionId, result.columns, result.rows);
-      if (freshnessChecks.length) {
-        evidencePack.freshness = freshnessChecks;
-      }
+      const emptyUnavailable = freshnessChecks.some((check) => {
+        if (!check || check.status !== 'empty') return false;
+        const meta = getAllowedSource(check.view);
+        return meta?.empty_is_unavailable === true;
+      });
+      answerMarkdown = emptyUnavailable ? '**UNAVAILABLE** — one or more required sources are empty.' : buildAnswerMarkdown(questionId, result.columns, result.rows);
       if (emptyUnavailable) {
         evidencePack.status = 'unavailable';
         evidencePack.confidence = 'low';
         columnsOut = [];
         rowsOut = [];
       }
+    }
+
+    if (freshnessGate && freshnessGate.status === 'blocked') {
+      evidencePack.status = 'unavailable';
+      evidencePack.confidence = 'low';
+      answerMarkdown = buildUnavailableMarkdownFromFreshnessGate(freshnessGate);
+      columnsOut = [];
+      rowsOut = [];
     }
 
     let payloadOut = {
@@ -9622,7 +9774,23 @@ LIMIT 200000;`;
   } catch (err) {
     const cached = await getCache(cacheKey);
     if (cached && cached.result) {
-      const payloadOut = cached.result;
+      let payloadOut = cached.result;
+      const freshnessGate = await runFreshnessGate({ questionId });
+      if (freshnessGate) {
+        const evidencePack = payloadOut?.evidence_pack && typeof payloadOut.evidence_pack === 'object'
+          ? { ...payloadOut.evidence_pack, freshness_gate: freshnessGate }
+          : { freshness_gate: freshnessGate };
+        payloadOut = { ...payloadOut, evidence_pack: evidencePack };
+        if (freshnessGate.status === 'blocked') {
+          payloadOut = {
+            ...payloadOut,
+            columns: [],
+            rows: [],
+            answer_markdown: buildUnavailableMarkdownFromFreshnessGate(freshnessGate),
+            evidence_pack: { ...evidencePack, status: 'unavailable', confidence: 'low' }
+          };
+        }
+      }
       const caseId = payload.case_id || payload.caseId || generateCaseId();
       await writeCaseRecord(buildCaseRecord({
         caseId,
@@ -9640,7 +9808,7 @@ LIMIT 200000;`;
         stale: true,
         question_id: questionId || 'freeform_sql',
         views_used: queryDef?.views_used || cached.result?.views_used || [],
-        ...cached.result,
+        ...payloadOut,
         last_success_ts: cached.last_success_ts,
         error: err.message,
         case_id: CASE_RUNTIME_ENABLED ? caseId : undefined,
