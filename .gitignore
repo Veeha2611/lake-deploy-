@@ -54,4 +54,5 @@ amplify-artifacts.zip
 *.csv.gz
 *.jsonl
 *.ndjson
+*.zip
 /tmp/

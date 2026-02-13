@@ -1,0 +1,64 @@
+# Intake Inbox — 2026-02-12
+
+This folder is the **single landing zone** for all thread outputs before we stage anything into the GitHub `lake_deploy` repo. Each thread must export its work **here first** so we can validate SSOT evidence, avoid loops, and run a clean secret scan.
+
+## Folder Structure (per thread)
+Create one subfolder per thread using a short, stable name:
+
+```
+intake/threads_inbox_2026-02-12/
+  01_<thread_short_name>/
+  02_<thread_short_name>/
+  ...
+```
+
+Example:
+```
+intake/threads_inbox_2026-02-12/01_intacct_gl_backfill/
+intake/threads_inbox_2026-02-12/02_vetro_gis_ssot/
+intake/threads_inbox_2026-02-12/03_mac_app_ui_smoke/
+```
+
+## Required Files (per thread)
+Every thread must produce **all** of the following:
+
+1) `summary.md`
+   - What was done, what is still blocked, and what to do next.
+
+2) `evidence/index.md`
+   - Links to local evidence paths.
+   - S3 evidence paths (must include dt and run_date).
+   - All QIDs used.
+
+3) `qids.tsv`
+   - Query IDs for every Athena query in evidence.
+
+4) `athena_values.json`
+   - Raw results snapshot (counts, min/max dates, coverage numbers).
+
+5) `status.json`
+   - `PASS` / `FAIL` with timestamp and notes.
+
+6) `files_changed.txt`
+   - List of files modified (repo‑relative paths).
+
+7) `commands_run.txt`
+   - All commands (with timestamps) used to produce evidence.
+
+8) `s3_paths.txt`
+   - All S3 paths touched or read.
+
+## Rules (No Exceptions)
+- **No secrets** in any file. Do not paste tokens, passwords, or credentials.
+- **No Base44 endpoints** in AWS‑only mode; route queries through MAC API.
+- **All data must be lake‑derived** unless explicitly authorized otherwise.
+- **Evidence must be reproducible** (QIDs + SQL + S3 paths).
+
+## GitHub Staging Protocol (same as 2026‑02‑11)
+Before pushing anything to GitHub:
+1) Only stage **necessary** changes.
+2) Run a quick secret scan (see `PROTOCOL.md`).
+3) Commit in logical chunks with clear messages.
+4) Push to `MM-Patch/lake_deploy` only when evidence is complete.
+
+Use `THREAD_PROMPT.md` to instruct each thread exactly what to export.
