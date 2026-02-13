@@ -723,6 +723,218 @@ function normalizeQuestionText(question) {
     .trim();
 }
 
+const DATASET_SOURCE_MAP = {
+  customers: [
+    'curated_core.platt_customer_current_ssot',
+    'curated_core.dim_customer_platt_v1_1',
+    'curated_core.v_platt_billing_customer_month_latest'
+  ],
+  mrr: [
+    'curated_core.v_platt_billing_mrr_monthly',
+    'curated_core.v_monthly_mrr_platt'
+  ],
+  costs: [
+    'curated_core.v_customer_fully_loaded_margin_banded'
+  ],
+  action_band: [
+    'curated_core.v_customer_fully_loaded_margin_banded'
+  ],
+  tickets: [
+    'curated_core.v_cci_tickets_clean',
+    'curated_core.v_ticket_burden_banded'
+  ],
+  platt: [
+    'raw_platt.customer',
+    'raw_platt.iheader_raw'
+  ],
+  salesforce: [],
+  intacct: [],
+  crosswalks: [
+    'curated_core.dim_customer_system_latest'
+  ],
+  risk_register: [],
+  delta_history: [],
+  ipv4_raw: [],
+  ipv4_dhcp: [],
+  ipv4_dns: [],
+  ipv4_routing: []
+};
+
+function getFlagValueByName(flagName) {
+  const key = String(flagName || '').trim().toUpperCase();
+  if (!key) return false;
+  switch (key) {
+    case 'TEMPLATES_ONLY':
+      return TEMPLATES_ONLY;
+    case 'PLANNER_ALLOWED':
+      return PLANNER_ALLOWED;
+    case 'NATIVE_VERIFY_ENABLED':
+      return NATIVE_VERIFY_ENABLED;
+    case 'REPORT_EXPORT_ENABLED':
+      return REPORT_EXPORT_ENABLED;
+    case 'CAPABILITY_ROUTER_ENABLED':
+      return CAPABILITY_ROUTER_ENABLED;
+    case 'IPV4_ENABLED':
+      return IPV4_ENABLED;
+    default:
+      return false;
+  }
+}
+
+function matchCapability(questionText) {
+  const normalized = normalizeQuestionText(questionText);
+  if (!normalized) return null;
+  const entries = Object.entries(CAPABILITIES || {});
+  if (!entries.length) return null;
+
+  let best = null;
+  for (const [capabilityKey, def] of entries) {
+    const keywords = Array.isArray(def?.keywords) ? def.keywords : [];
+    if (!keywords.length) continue;
+    let score = 0;
+    for (const keyword of keywords) {
+      const kw = normalizeQuestionText(keyword);
+      if (!kw) continue;
+      if (normalized.includes(kw)) score += 1;
+    }
+    if (score <= 0) continue;
+    if (!best || score > best.score) {
+      best = { capability_key: capabilityKey, capability: def, score };
+    }
+  }
+  return best;
+}
+
+function resolveMissingCapabilityFlags(capabilityDef) {
+  const required = Array.isArray(capabilityDef?.flags_required) ? capabilityDef.flags_required : [];
+  const missing = required
+    .map((f) => String(f || '').trim().toUpperCase())
+    .filter(Boolean)
+    .filter((flag) => !getFlagValueByName(flag));
+  return Array.from(new Set(missing));
+}
+
+function resolveMissingCapabilitySources(capabilityDef) {
+  const required = Array.isArray(capabilityDef?.required_sources) ? capabilityDef.required_sources : [];
+  const missing = [];
+  const satisfied_views = [];
+  for (const datasetKey of required) {
+    const key = String(datasetKey || '').trim();
+    if (!key) continue;
+    const candidates = DATASET_SOURCE_MAP[key] || [];
+    const available = candidates.filter((view) => Boolean(getAllowedSource(view)));
+    if (!available.length) {
+      missing.push(key);
+      continue;
+    }
+    satisfied_views.push(...available);
+  }
+  return {
+    missing: Array.from(new Set(missing)),
+    satisfied_views: Array.from(new Set(satisfied_views))
+  };
+}
+
+function ensureSentence(text) {
+  const trimmed = String(text || '').trim();
+  if (!trimmed) return '';
+  return trimmed.endsWith('.') ? trimmed : `${trimmed}.`;
+}
+
+function buildNotSupportedMarkdown({ reason, nextStep, details = [], suggestions = [] }) {
+  const lines = [];
+  lines.push(`NOT SUPPORTED YET: ${ensureSentence(reason).replace(/\.$/, '')}.`);
+  lines.push(`NEXT STEP: ${ensureSentence(nextStep).replace(/\.$/, '')}.`);
+
+  const detailLines = (Array.isArray(details) ? details : []).filter(Boolean);
+  if (detailLines.length) {
+    lines.push('');
+    lines.push(...detailLines.map((d) => `- ${d}`));
+  }
+
+  const suggestionLines = (Array.isArray(suggestions) ? suggestions : []).filter(Boolean);
+  if (suggestionLines.length) {
+    lines.push('');
+    lines.push('Suggested governed templates:');
+    lines.push(...suggestionLines.map((s) => `- ${s}`));
+  }
+
+  return lines.join('\n');
+}
+
+function buildNotSupportedPayload({
+  questionText,
+  capabilityMatch = null,
+  reason,
+  nextStep,
+  details = [],
+  suggestions = []
+}) {
+  const capKey = capabilityMatch?.capability_key || null;
+  const capDef = capabilityMatch?.capability || null;
+  const missingFlags = capDef ? resolveMissingCapabilityFlags(capDef) : [];
+  const missingSources = capDef ? resolveMissingCapabilitySources(capDef) : { missing: [], satisfied_views: [] };
+
+  return {
+    ok: true,
+    cached: false,
+    stale: false,
+    question_id: 'not_supported_yet',
+    columns: [],
+    rows: [],
+    views_used: [],
+    answer_markdown: buildNotSupportedMarkdown({ reason, nextStep, details, suggestions }),
+    capability: capDef
+      ? {
+          capability_key: capKey,
+          support_level: capDef.support_level || null,
+          supported_actions: capDef.supported_actions || [],
+          required_flags: capDef.flags_required || [],
+          missing_flags: missingFlags,
+          required_sources: capDef.required_sources || [],
+          missing_sources: missingSources.missing || []
+        }
+      : null,
+    evidence_pack: {
+      executed_sql: null,
+      query_execution_id: null,
+      sources: [],
+      row_count: 0,
+      validations: { read_only: true, allowlist: true },
+      confidence: 'low',
+      status: 'not_supported_yet',
+      question: questionText || null
+    }
+  };
+}
+
+function chooseDeterministicQueryForCapability(capabilityKey, questionText) {
+  const normalized = normalizeQuestionText(questionText);
+  const key = String(capabilityKey || '').trim().toLowerCase();
+  if (!key || !normalized) return null;
+
+  if (key === 'data_quality_recon') {
+    if (normalized.includes('customer')) return { question_id: 'unmapped_network_customers', params: {} };
+    return { question_id: 'unmapped_network_services', params: {} };
+  }
+
+  if (key === 'unit_economics') {
+    if (normalized.includes('e-band') || normalized.includes('eband') || normalized.includes('exit')) {
+      return { question_id: 'worst_e_band', params: {} };
+    }
+    if (normalized.includes('ticket') || normalized.includes('support')) {
+      return { question_id: 'margin_tickets', params: {} };
+    }
+    return { question_id: 'ae_band_distribution', params: {} };
+  }
+
+  if (key === 'repricing_call_lists') {
+    return { question_id: 'margin_tickets', params: {} };
+  }
+
+  return null;
+}
+
 function hasDestructiveIntent(questionText) {
   const normalized = normalizeQuestionText(questionText);
   if (!normalized) return false;
@@ -2884,11 +3096,31 @@ async function runCrossSystemVerification(caseRecord) {
       });
     }
   }
+
+  const nativeAdapters = [];
+  let nativeStatus = 'skipped';
+  let nativeMessage = null;
+  if (NATIVE_VERIFY_ENABLED) {
+    nativeStatus = 'blocked';
+    // Native adapters are not implemented in this lambda yet; keep the Athena-based comparisons
+    // but clearly mark what is missing to complete true cross-system verification.
+    const missing = ['Salesforce', 'Intacct', 'Gaiia', 'Platt', 'Vetro'];
+    nativeAdapters.push(...missing.map((name) => ({
+      adapter: name.toLowerCase(),
+      status: 'blocked',
+      reason: 'native_adapter_not_configured'
+    })));
+    nativeMessage = `BLOCKED: missing native adapters (${missing.join(', ')}). NEXT STEP: enable the required native adapter(s) (read-only) and provide credentials via Secrets Manager.`;
+  }
+
   return {
-    status: comparisons.length ? 'ok' : 'unavailable',
+    status: NATIVE_VERIFY_ENABLED ? nativeStatus : (comparisons.length ? 'ok' : 'unavailable'),
     metric_key: metricKey,
     comparisons,
-    note: fallbackNote
+    note: fallbackNote,
+    native_status: nativeStatus,
+    native_adapters: nativeAdapters,
+    message: nativeMessage
   };
 }
 
@@ -9056,9 +9288,11 @@ LIMIT 200000;`;
       result.request_params = resolvedParams;
       viewsUsed = effectiveQueryDef.views_used || extractReferencedTables(effectiveQueryDef.sql);
     } else if (!inlineSql && questionText) {
-      if (!BEDROCK_ENABLED || !BEDROCK_MODEL_ID || !BEDROCK_TOOL_USE_ENABLED) {
-        const suggestions = suggestRegistryMatches(questionText, 5);
-        const suggestionLines = suggestions.map((item) => `- ${item.id}`).join('\n');
+      const suggestions = suggestRegistryMatches(questionText, 5);
+      const suggestionIds = suggestions.map((item) => item.id);
+      const suggestionLines = suggestions.map((item) => `- ${item.id}`).join('\n');
+
+      if (!CAPABILITY_ROUTER_ENABLED) {
         const answerMarkdown = suggestions.length
           ? `**No deterministic route found for:** \"${questionText}\"\n\nTry one of these governed templates:\n${suggestionLines}`
           : `**No deterministic route found for:** \"${questionText}\"\n\nAsk about MRR, customers, tickets, outages, passings, or projects to get a governed answer.`;
@@ -9071,108 +9305,200 @@ LIMIT 200000;`;
           rows: [],
           views_used: [],
           answer_markdown: answerMarkdown,
-          suggestions: suggestions.map((item) => item.id)
+          suggestions: suggestionIds
         });
       }
 
-      let planResult = null;
-      try {
-        const plannerQuestion = buildContextualQuestion(questionText, payload.context);
-        planResult = await executeGovernedPlan(plannerQuestion);
-      } catch (err) {
-        const msg = String(err?.message || err || '');
-        const suggestions = suggestRegistryMatches(questionText, 5);
-        const suggestionLines = suggestions.map((item) => `- ${item.id}`).join('\n');
-        const plannerNote = /on-demand throughput|inference profile|not supported/i.test(msg)
-          ? 'Bedrock requires an inference profile for this model.'
-          : 'Planner error (Bedrock) prevented governed execution.';
-        const answerMarkdown =
-          `**Planner unavailable** — ${plannerNote}\n` +
-          'Ask a governed template question or provide a valid Bedrock inference profile.\n' +
-          (suggestions.length ? `\nTry these deterministic templates:\n${suggestionLines}` : '');
+      const capabilityMatch = matchCapability(questionText);
+      if (!capabilityMatch) {
+        return response(200, buildNotSupportedPayload({
+          questionText,
+          capabilityMatch: null,
+          reason: 'capability not registered for this question',
+          nextStep: 'Add a capability (config/ai/capabilities.yaml) or ask a governed template question',
+          details: [
+            'Capability routing is enabled, but no capability keywords matched.',
+            'Deterministic templates are still available via question_id or guided prompts.'
+          ],
+          suggestions: suggestionIds
+        }));
+      }
+
+      const capDef = capabilityMatch.capability || {};
+      const missingFlags = resolveMissingCapabilityFlags(capDef);
+      const sourceResolution = resolveMissingCapabilitySources(capDef);
+
+      if (missingFlags.length) {
+        return response(200, buildNotSupportedPayload({
+          questionText,
+          capabilityMatch,
+          reason: `capability \"${capabilityMatch.capability_key}\" requires flags: ${missingFlags.join(', ')}`,
+          nextStep: `Enable ${missingFlags.join(', ')} in the API environment and redeploy`,
+          details: [
+            `Capability: ${capabilityMatch.capability_key}`,
+            `Missing flags: ${missingFlags.join(', ')}`
+          ],
+          suggestions: suggestionIds
+        }));
+      }
+
+      if (sourceResolution.missing.length) {
+        return response(200, buildNotSupportedPayload({
+          questionText,
+          capabilityMatch,
+          reason: `missing required datasets for capability \"${capabilityMatch.capability_key}\": ${sourceResolution.missing.join(', ')}`,
+          nextStep: 'Ingest/model the missing datasets and add SSOT views to the source allowlist',
+          details: [
+            `Capability: ${capabilityMatch.capability_key}`,
+            `Missing datasets: ${sourceResolution.missing.join(', ')}`
+          ],
+          suggestions: suggestionIds
+        }));
+      }
+
+      const deterministicRoute = chooseDeterministicQueryForCapability(capabilityMatch.capability_key, questionText);
+      if (deterministicRoute && deterministicRoute.question_id && REGISTRY[deterministicRoute.question_id]) {
+        questionId = deterministicRoute.question_id;
+        params = { ...params, ...(deterministicRoute.params || {}) };
+        queryDef = REGISTRY[questionId];
+        const resolvedParams = fillMissingParams(queryDef, params);
+        result = await executeQuery(queryDef, resolvedParams);
+        result.request_params = resolvedParams;
+        viewsUsed = queryDef.views_used || extractReferencedTables(queryDef.sql);
+      } else {
+        if (TEMPLATES_ONLY || !PLANNER_ALLOWED) {
+          return response(200, buildNotSupportedPayload({
+            questionText,
+            capabilityMatch,
+            reason: `planner execution is disabled for capability \"${capabilityMatch.capability_key}\"`,
+            nextStep: 'Set TEMPLATES_ONLY=false and PLANNER_ALLOWED=true (and redeploy) to enable governed planning',
+            details: [
+              `Capability: ${capabilityMatch.capability_key}`,
+              `TEMPLATES_ONLY=${TEMPLATES_ONLY}`,
+              `PLANNER_ALLOWED=${PLANNER_ALLOWED}`
+            ],
+            suggestions: suggestionIds
+          }));
+        }
+
+        if (!BEDROCK_ENABLED || !BEDROCK_MODEL_ID || !BEDROCK_TOOL_USE_ENABLED) {
+          return response(200, buildNotSupportedPayload({
+            questionText,
+            capabilityMatch,
+            reason: `planner execution is not configured for capability \"${capabilityMatch.capability_key}\"`,
+            nextStep: 'Enable BEDROCK_ENABLED=true and BEDROCK_TOOL_USE_ENABLED=true (and provide a valid model or inference profile), then redeploy',
+            details: [
+              `Capability: ${capabilityMatch.capability_key}`,
+              `BEDROCK_ENABLED=${BEDROCK_ENABLED}`,
+              `BEDROCK_TOOL_USE_ENABLED=${BEDROCK_TOOL_USE_ENABLED}`
+            ],
+            suggestions: suggestionIds
+          }));
+        }
+
+        let planResult = null;
+        try {
+          const plannerQuestion = buildContextualQuestion(questionText, payload.context);
+          planResult = await executeGovernedPlan(plannerQuestion);
+        } catch (err) {
+          const msg = String(err?.message || err || '');
+          const plannerNote = /on-demand throughput|inference profile|not supported/i.test(msg)
+            ? 'Bedrock requires an inference profile for this model.'
+            : 'Planner error (Bedrock) prevented governed execution.';
+          const answerMarkdown =
+            `**Planner unavailable** — ${plannerNote}\n` +
+            'Ask a governed template question or provide a valid Bedrock inference profile.\n' +
+            (suggestions.length ? `\nTry these deterministic templates:\n${suggestionLines}` : '');
+          return response(200, {
+            ok: true,
+            cached: false,
+            stale: false,
+            question_id: 'planner_unavailable',
+            columns: [],
+            rows: [],
+            views_used: [],
+            answer_markdown: answerMarkdown,
+            plan_status: 'planner_unavailable',
+            suggestions: suggestionIds,
+            capability: {
+              capability_key: capabilityMatch.capability_key,
+              support_level: capDef.support_level || null
+            },
+            evidence_pack: {
+              executed_sql: null,
+              query_execution_id: null,
+              sources: [],
+              row_count: 0,
+              validations: { read_only: true, allowlist: true },
+              confidence: 'low',
+              planner_error: msg
+            }
+          });
+        }
+
+        const answerMarkdown = buildGovernedAnswerMarkdown(planResult);
+        const evidencePack = buildEvidencePackFromPlan(planResult);
+        const libraryEntry = await promoteQueryLibrary(planResult);
+        const agentSteps = buildAgentSteps(planResult, answerMarkdown);
+        const caseId = payload.case_id || payload.caseId || generateCaseId();
+        const columns = planResult.primaryResult?.columns || [];
+        const rows = planResult.primaryResult?.rows || [];
+        const views = planResult.compiled?.views_used || [];
+
+        const payloadOut = {
+          sql: planResult.primaryResult?.sql || null,
+          generated_sql: planResult.primaryResult?.sql || null,
+          query_execution_id: planResult.primaryResult?.query_execution_id || null,
+          columns,
+          rows,
+          truncated: planResult.primaryResult?.truncated || false,
+          max_rows: planResult.primaryResult?.max_rows || null,
+          views_used: views,
+          answer_markdown: answerMarkdown || null,
+          evidence_pack: evidencePack,
+          agent_steps: agentSteps,
+          query_library: libraryEntry,
+          plan_status: planResult.status,
+          metric_key: planResult.plan?.metric_key || null,
+          capability_key: capabilityMatch.capability_key
+        };
+
+        const enrichedPayloadOut = await maybeAttachVerification({
+          payloadOut,
+          questionId: planResult.compiled?.query_id || planResult.plan?.metric_key || null,
+          wantsInvestigation
+        });
+
+        const agentArtifacts = await writeAgentArtifacts({ caseId, questionText, planResult, payloadOut: enrichedPayloadOut });
+        if (agentArtifacts) {
+          enrichedPayloadOut.agent_artifacts = agentArtifacts;
+        }
+
+        await putCache(cacheKey, enrichedPayloadOut, CACHE_TTL_SECONDS);
+        await writeCaseRecord(buildCaseRecord({
+          caseId,
+          event,
+          questionText,
+          questionId: planResult.compiled?.query_id || planResult.plan?.metric_key || 'governed_plan',
+          payloadOut: enrichedPayloadOut,
+          threadId,
+          parentCaseId
+        }));
+        await setThreadLastCase(threadId, caseId);
+
         return response(200, {
           ok: true,
           cached: false,
           stale: false,
-          question_id: 'planner_unavailable',
-          columns: [],
-          rows: [],
-          views_used: [],
-          answer_markdown: answerMarkdown,
-          plan_status: 'planner_unavailable',
-          suggestions: suggestions.map((item) => item.id),
-          evidence_pack: {
-            executed_sql: null,
-            query_execution_id: null,
-            sources: [],
-            row_count: 0,
-            validations: { read_only: true, allowlist: true },
-            confidence: 'low',
-            planner_error: msg
-          }
+          question_id: planResult.compiled?.query_id || planResult.plan?.metric_key || 'governed_plan',
+          views_used: views,
+          ...enrichedPayloadOut,
+          last_success_ts: Math.floor(Date.now() / 1000),
+          plan_errors: planResult.errors || null,
+          case_id: CASE_RUNTIME_ENABLED ? caseId : undefined,
+          actions_available: buildCaseActions(enrichedPayloadOut)
         });
       }
-      const answerMarkdown = buildGovernedAnswerMarkdown(planResult);
-      const evidencePack = buildEvidencePackFromPlan(planResult);
-      const libraryEntry = await promoteQueryLibrary(planResult);
-      const agentSteps = buildAgentSteps(planResult, answerMarkdown);
-      const caseId = payload.case_id || payload.caseId || generateCaseId();
-      const columns = planResult.primaryResult?.columns || [];
-      const rows = planResult.primaryResult?.rows || [];
-      const views = planResult.compiled?.views_used || [];
-
-      const payloadOut = {
-        sql: planResult.primaryResult?.sql || null,
-        generated_sql: planResult.primaryResult?.sql || null,
-        query_execution_id: planResult.primaryResult?.query_execution_id || null,
-        columns,
-        rows,
-        truncated: planResult.primaryResult?.truncated || false,
-        max_rows: planResult.primaryResult?.max_rows || null,
-        views_used: views,
-        answer_markdown: answerMarkdown || null,
-        evidence_pack: evidencePack,
-        agent_steps: agentSteps,
-        query_library: libraryEntry,
-        plan_status: planResult.status,
-        metric_key: planResult.plan?.metric_key || null
-      };
-
-      const enrichedPayloadOut = await maybeAttachVerification({
-        payloadOut,
-        questionId: planResult.compiled?.query_id || planResult.plan?.metric_key || null,
-        wantsInvestigation
-      });
-
-      const agentArtifacts = await writeAgentArtifacts({ caseId, questionText, planResult, payloadOut: enrichedPayloadOut });
-      if (agentArtifacts) {
-        enrichedPayloadOut.agent_artifacts = agentArtifacts;
-      }
-
-      await putCache(cacheKey, enrichedPayloadOut, CACHE_TTL_SECONDS);
-      await writeCaseRecord(buildCaseRecord({
-        caseId,
-        event,
-        questionText,
-        questionId: planResult.compiled?.query_id || planResult.plan?.metric_key || 'governed_plan',
-        payloadOut: enrichedPayloadOut,
-        threadId,
-        parentCaseId
-      }));
-      await setThreadLastCase(threadId, caseId);
-
-      return response(200, {
-        ok: true,
-        cached: false,
-        stale: false,
-        question_id: planResult.compiled?.query_id || planResult.plan?.metric_key || 'governed_plan',
-        views_used: views,
-        ...enrichedPayloadOut,
-        last_success_ts: Math.floor(Date.now() / 1000),
-        plan_errors: planResult.errors || null,
-        case_id: CASE_RUNTIME_ENABLED ? caseId : undefined,
-        actions_available: buildCaseActions(enrichedPayloadOut)
-      });
     } else {
       if (AWS_ONLY) {
         return response(403, { ok: false, error: 'AWS-only mode: freeform SQL disabled' });
