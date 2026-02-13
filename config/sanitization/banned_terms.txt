@@ -1,10 +1,14 @@
 # One term per line. Case-insensitive. Fixed-string matching.
-# Goal: keep repository content free of development-assistant / tool branding.
+# Goal: keep repository content free of external tool branding and non-product authoring references.
 
 codex
 chatgpt
 openai
 copilot
+co-pilot
 gemini
 bard
 perplexity
+ai-generated
+ai assisted
+ai-assisted

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Sanitization scan: prevents dev-assistant/tool branding from landing in the repo.
+# Sanitization scan: prevents external tool branding and non-product authoring references from landing in the repo.
 # - Scans tracked files only.
 # - Supports scanning the git index (staged snapshot) to avoid local dirty-tree false positives.
 
