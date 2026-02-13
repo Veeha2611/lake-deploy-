@@ -283,6 +283,31 @@ function resolveNetworkMixDomainQuestion(questionText) {
   const wantsExcludeDVFiber = includesAnyNormalized(normalized, intents.dvfiber_exclude_terms);
 
   const segmentKey = resolveNetworkMixSegmentKey(normalized);
+  const isSegmentSafeAnchor = (() => {
+    if (!segmentKey || typeof segmentKey !== 'string') return false;
+    // "Owned" is too broad globally; require additional anchoring terms to avoid hijacking generic identity questions.
+    if (segmentKey === 'owned') {
+      return includesAnyNormalized(normalized, [
+        'fttp',
+        'fiber',
+        'network',
+        'networks',
+        'passings',
+        'subscriptions',
+        'subscribers',
+        'penetration',
+        'arpu',
+        'mix',
+        'revenue',
+        'billed',
+        'plat id',
+        'platid',
+        'billing'
+      ]);
+    }
+    // CLEC / Contracted / Resold are domain-specific enough to anchor routing.
+    return true;
+  })();
   const hasSheetSignal =
     normalized.includes('customer mix') ||
     normalized.includes('revenue mix') ||
@@ -292,6 +317,7 @@ function resolveNetworkMixDomainQuestion(questionText) {
     includesAnyNormalized(normalized, ['customer mix', 'revenue mix']);
   const hasAnchorSignal =
     hasSheetSignal ||
+    isSegmentSafeAnchor ||
     includesAnyNormalized(normalized, ['network', 'networks', 'system', 'systems', 'workbook', 'investor', 'mix']);
 
   // Don't hijack generic "owned customers" style questions unless the question is clearly anchored to this domain.

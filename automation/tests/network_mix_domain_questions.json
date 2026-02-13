@@ -18,6 +18,11 @@
       "expect": { "mode": "supported", "question_id": "workbook_customer_mix_kpis", "require_evidence_pack": true }
     },
     {
+      "id": "clec_customers_no_workbook_anchor",
+      "question": "How many CLEC customers do we have?",
+      "expect": { "mode": "supported", "question_id": "workbook_customer_mix_kpis", "require_evidence_pack": true }
+    },
+    {
       "id": "owned_revenue_mix_kpis",
       "question": "How many billed owned customers do we have (revenue mix)?",
       "expect": { "mode": "supported", "question_id": "workbook_revenue_mix_kpis", "require_evidence_pack": true }
@@ -49,4 +54,3 @@
     }
   ]
 }
-
