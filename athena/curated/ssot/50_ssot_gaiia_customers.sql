@@ -1,33 +1,43 @@
--- SSOT scaffold for Gaiia customers (raw JSON payloads)
--- NOTE: record_json is empty when auth fails; exceptions capture those rows.
-CREATE OR REPLACE VIEW curated_core.gaiia_customers_curated_raw AS
+-- SSOT-ready Gaiia customers (derived from GraphQL accounts current)
+CREATE OR REPLACE VIEW curated_core.gaiia_customers_current AS
 SELECT
-  record_id,
-  record_json,
-  error_json,
-  missing_inputs_count,
-  run_date,
-  CAST(NULL AS date) AS business_date,
-  CAST(NULL AS date) AS updated_at
-FROM curated_core.gaiia_customers;
+  id AS gaiia_account_id,
+  readableid AS gaiia_readable_id,
+  name,
+  displayname,
+  COALESCE(name, displayname) AS account_name,
+  primarycontact.id AS primarycontact_id,
+  status.id AS status_id,
+  type.id AS type_id,
+  internetprovider,
+  physicaladdress.id AS physicaladdress_id,
+  mailingaddress.id AS mailingaddress_id,
+  clientportaluser.id AS clientportaluser_id,
+  customfields.platid AS plat_id,
+  customfields.vetroid AS vetro_id,
+  customfields.dropactive AS drop_active,
+  customfields.leadsource AS lead_source,
+  customfields.salesperson AS salesperson,
+  customfields.systemid AS system_id,
+  activationdate,
+  deactivationdate,
+  createdat,
+  updatedat,
+  tenant,
+  dt,
+  _fetched_at
+FROM curated_core.gaiia_accounts_current;
 
 CREATE OR REPLACE VIEW curated_recon.gaiia_customers_exceptions AS
 SELECT
   CASE
-    WHEN error_json IS NOT NULL AND error_json <> '' THEN 'auth_or_query_error'
-    WHEN missing_inputs_count > 0 THEN 'missing_inputs'
-    WHEN record_json IS NULL OR record_json = '' THEN 'empty_record_json'
+    WHEN gaiia_account_id IS NULL OR gaiia_account_id = '' THEN 'missing_account_id'
+    WHEN account_name IS NULL OR account_name = '' THEN 'missing_name'
+    WHEN tenant IS NULL OR tenant = '' THEN 'missing_tenant'
     ELSE 'other'
   END AS reason_code,
   *
-FROM curated_core.gaiia_customers_curated_raw
-WHERE error_json IS NOT NULL AND error_json <> ''
-   OR missing_inputs_count > 0
-   OR record_json IS NULL OR record_json = '';
-
-CREATE OR REPLACE VIEW curated_core.gaiia_customers_current AS
-SELECT *
-FROM curated_core.gaiia_customers_curated_raw
-WHERE record_json IS NOT NULL AND record_json <> ''
-  AND (error_json IS NULL OR error_json = '')
-  AND (missing_inputs_count IS NULL OR missing_inputs_count = 0);
+FROM curated_core.gaiia_customers_current
+WHERE gaiia_account_id IS NULL OR gaiia_account_id = ''
+   OR account_name IS NULL OR account_name = ''
+   OR tenant IS NULL OR tenant = '';
