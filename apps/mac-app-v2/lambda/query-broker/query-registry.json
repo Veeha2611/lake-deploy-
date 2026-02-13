@@ -825,6 +825,28 @@
     "sql": "WITH modeled AS (\n  SELECT\n    network,\n    network_norm,\n    network_type,\n    customer_type,\n    passings,\n    subscriptions,\n    mrr,\n    dt\n  FROM curated_core.v_network_health\n  WHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n    AND LOWER(COALESCE(network_type, '')) = 'owned fttp'\n    AND LOWER(COALESCE(customer_type, '')) = 'owned customer'\n    AND network IS NOT NULL\n    AND TRIM(network) <> ''\n    AND network <> 'Unmapped'\n), investor AS (\n  SELECT\n    network,\n    network_type,\n    as_of_date,\n    plat_id_count,\n    revenue\n  FROM curated_core.v_investor_revenue_mix_latest\n  WHERE LOWER(COALESCE(network_type, '')) LIKE '%owned%'\n    AND network IS NOT NULL\n    AND TRIM(network) <> ''\n    AND network <> 'Total'\n)\nSELECT\n  'modeled_network_health' AS source,\n  m.network,\n  m.network_norm,\n  m.network_type,\n  m.customer_type,\n  CAST(m.dt AS timestamp) AS as_of,\n  m.passings,\n  m.subscriptions,\n  CAST(NULL AS double) AS plat_id_count,\n  CAST(NULL AS double) AS billed_mrr\nFROM modeled m\n\nUNION ALL\n\nSELECT\n  'investor_revenue_mix' AS source,\n  i.network,\n  CAST(NULL AS varchar) AS network_norm,\n  i.network_type,\n  'Owned Customer' AS customer_type,\n  CAST(i.as_of_date AS timestamp) AS as_of,\n  CAST(NULL AS double) AS passings,\n  CAST(NULL AS double) AS subscriptions,\n  i.plat_id_count,\n  i.revenue AS billed_mrr\nFROM investor i\n\nORDER BY source, network\nLIMIT 500;",
     "params": []
   },
+  "workbook_customer_mix_kpis": {
+    "views_used": [
+      "curated_core.v_network_health"
+    ],
+    "sql": "SELECT\n  ${network_type} AS network_type,\n  ${customer_type} AS customer_type,\n  ${access_type} AS access_type,\n  MAX(dt) AS modeled_dt,\n  SUM(COALESCE(passings, 0)) AS passings,\n  SUM(COALESCE(subscriptions, 0)) AS subscriptions,\n  SUM(COALESCE(mrr, 0)) AS mrr_modeled,\n  CASE WHEN SUM(COALESCE(subscriptions, 0)) > 0 THEN SUM(COALESCE(mrr, 0)) / SUM(COALESCE(subscriptions, 0)) ELSE NULL END AS arpu_modeled\nFROM curated_core.v_network_health\nWHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n  AND (\n    ${network_type} = '' OR LOWER(COALESCE(network_type, '')) = LOWER(${network_type})\n  )\n  AND (\n    ${customer_type} = '' OR LOWER(COALESCE(customer_type, '')) = LOWER(${customer_type})\n  )\n  AND (\n    ${access_type} = ''\n    OR (${access_type} = 'Copper' AND LOWER(COALESCE(network_type, '')) = 'clec')\n    OR (${access_type} = 'Fiber' AND LOWER(COALESCE(network_type, '')) <> 'clec')\n  )\nLIMIT 1;",
+    "params": [
+      "network_type",
+      "customer_type",
+      "access_type"
+    ]
+  },
+  "workbook_customer_mix_networks_list": {
+    "views_used": [
+      "curated_core.v_network_health"
+    ],
+    "sql": "SELECT\n  network,\n  network_norm,\n  network_type,\n  customer_type,\n  CASE\n    WHEN LOWER(COALESCE(network_type, '')) = 'clec' THEN 'Copper'\n    ELSE 'Fiber'\n  END AS access_type,\n  passings,\n  subscriptions,\n  mrr,\n  dt\nFROM curated_core.v_network_health\nWHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n  AND network IS NOT NULL\n  AND TRIM(network) <> ''\n  AND network <> 'Unmapped'\n  AND (\n    ${network_type} = '' OR LOWER(COALESCE(network_type, '')) = LOWER(${network_type})\n  )\n  AND (\n    ${customer_type} = '' OR LOWER(COALESCE(customer_type, '')) = LOWER(${customer_type})\n  )\n  AND (\n    ${access_type} = ''\n    OR (${access_type} = 'Copper' AND LOWER(COALESCE(network_type, '')) = 'clec')\n    OR (${access_type} = 'Fiber' AND LOWER(COALESCE(network_type, '')) <> 'clec')\n  )\nORDER BY subscriptions DESC, passings DESC, network\nLIMIT 500;",
+    "params": [
+      "network_type",
+      "customer_type",
+      "access_type"
+    ]
+  },
   "platt_billing_customers_by_system_latest": {
     "views_used": [
       "curated_core.v_monthly_mrr_platt",

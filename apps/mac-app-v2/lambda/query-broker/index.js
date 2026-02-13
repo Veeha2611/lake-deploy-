@@ -1164,6 +1164,17 @@ function resolveDeterministicQuestion(questionText) {
   const isListQuestion = includesAny(['list', 'show', 'display', 'which', 'what are', 'what is']);
   const wantsInvestigation = detectInvestigationIntent(normalized);
   const wantsOwned = includesAny(['owned', 'oned']);
+  const wantsContracted = includesAny(['contracted', 'resold']);
+  const wantsClec = includesAny(['clec', 'copper']);
+  const wantsNetworks = includesAny(['network', 'networks', 'systems', 'system']);
+  const wantsCustomers = includesAny(['customer', 'customers', 'subscriber', 'subscribers', 'subscription', 'subscriptions', 'subs']);
+  const wantsWorkbookDomain = includesAny(['investor', 'workbook', 'customer mix', 'revenue mix', 'mix network', 'network mix']);
+
+  const buildCustomerMixParams = ({ networkType = '', customerType = '', accessType = '' }) => ({
+    network_type: networkType,
+    customer_type: customerType,
+    access_type: accessType
+  });
 
   // Vetro construction / phase questions: don't let these fall into generic "network KPI" routing.
   if (
@@ -1258,6 +1269,34 @@ function resolveDeterministicQuestion(questionText) {
       return { questionId: 'copper_customers_multiscope', params: hasCopperScope ? copperParams : {} };
     }
     return { questionId: 'copper_customers_count', params: hasCopperScope ? copperParams : {} };
+  }
+
+  // Workbook-domain customer mix questions: deterministically answer from modeled lake SSOT,
+  // and provide a drill-down list route. This is the "like-for-like" path for CLEC/Owned/Contracted.
+  if (wantsWorkbookDomain && wantsCustomers && wantsNetworks) {
+    const isList = isListQuestion && includesAny(['which', 'what networks', 'list']);
+    let networkType = '';
+    let customerType = '';
+    let accessType = '';
+
+    if (wantsOwned) {
+      networkType = 'Owned FTTP';
+      customerType = 'Owned Customer';
+      accessType = 'Fiber';
+    } else if (wantsContracted) {
+      networkType = 'Contracted';
+      customerType = 'Contracted Customer';
+      accessType = 'Fiber';
+    } else if (wantsClec) {
+      networkType = 'CLEC';
+      customerType = 'Owned Customer';
+      accessType = 'Copper';
+    }
+
+    if (isList) {
+      return { questionId: 'workbook_customer_mix_networks_list', params: buildCustomerMixParams({ networkType, customerType, accessType }) };
+    }
+    return { questionId: 'workbook_customer_mix_kpis', params: buildCustomerMixParams({ networkType, customerType, accessType }) };
   }
 
   // Owned networks / owned customers (multi-scope). Users will not always say "investor workbook".
@@ -4161,6 +4200,27 @@ function buildAnswerMarkdown(questionId, columns, rows) {
       '**Owned Networks List (deterministic)**',
       `- Rows returned: ${dataRows.length}.`,
       '_See table for networks and their source (modeled_network_health vs investor_revenue_mix)._'
+    ].join('\n');
+  }
+
+  if (questionId === 'workbook_customer_mix_kpis') {
+    const modeledDt = formatMonth(record.modeled_dt);
+    return [
+      '**Workbook Customer Mix (modeled SSOT, deterministic)**',
+      `- Network Type: ${record.network_type || 'All'}. Customer Type: ${record.customer_type || 'All'}. Access: ${record.access_type || 'All'}.`,
+      `- As of ${modeledDt}: ${formatNumber(record.subscriptions)} subscriptions across ${formatNumber(record.passings)} passings.`,
+      `- Modeled MRR: ${formatCurrency(record.mrr_modeled)} (ARPU ${formatCurrency(record.arpu_modeled, 2)}).`,
+      '_Ask “list networks” for the underlying networks contributing to this total._'
+    ].join('\n');
+  }
+
+  if (questionId === 'workbook_customer_mix_networks_list') {
+    const modeledDt = formatMonth(record.dt);
+    return [
+      '**Workbook Customer Mix — Networks List (modeled SSOT, deterministic)**',
+      `- Rows returned: ${dataRows.length}.`,
+      `- As of ${modeledDt}.`,
+      '_See table for networks and their passings/subscriptions._'
     ].join('\n');
   }
 
