@@ -1212,6 +1212,9 @@ export default function PipelineRunner({ isOpen, onClose }) {
                     ))}
                   </select>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Profiles are assumption presets. Run like-for-like (single profile) for comparable portfolio outputs.
+                </p>
                 <Button
                   onClick={handleGenerateBaselines}
                   disabled={baselineBusy || loading}

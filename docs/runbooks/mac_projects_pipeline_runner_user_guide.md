@@ -55,6 +55,11 @@ Requirements:
 - **Defaults**: when a project is missing required inputs, runners can populate a baseline using pipeline medians.
 - **Determinism**: the same inputs + same profile should yield the same outputs.
 
+Profiles (what to pick):
+- **Standard Pipeline Model**: general-purpose baseline for most projects.
+- **Developer Template 2-9-26 (Exec Dashboard)**: uses the developer-template engine to match Exec Dashboard / Prospect modeling assumptions.
+- **Horton / Acme Developer Profile**: developer-specific profile. Uses the developer-template engine; defaults may be tuned for that developer if configured.
+
 ## Submissions / Committee Queue (If Enabled)
 Some environments enable a project submission workflow (e.g., Capital Committee). If present:
 - **Submit Project**: sends a project package for review.

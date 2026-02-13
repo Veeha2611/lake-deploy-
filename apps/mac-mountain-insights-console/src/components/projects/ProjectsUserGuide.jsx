@@ -234,6 +234,14 @@ export default function ProjectsUserGuide() {
                 <li><strong>Determinism:</strong> the same inputs + same profile should yield the same outputs (NPV/IRR/MOIC + monthly curves).</li>
               </ul>
               <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3">
+                <p className="text-xs font-semibold mb-2">Profiles (what to pick)</p>
+                <ul className="list-disc pl-5 text-xs text-muted-foreground space-y-1">
+                  <li><strong>Standard Pipeline Model:</strong> general-purpose baseline for most projects.</li>
+                  <li><strong>Developer Template 2-9-26 (Exec Dashboard):</strong> uses the developer-template engine to match Exec Dashboard / Prospect modeling assumptions.</li>
+                  <li><strong>Horton / Acme Developer Profile:</strong> developer-specific profile. Uses the developer-template engine; defaults may be tuned for that developer if configured.</li>
+                </ul>
+              </div>
+              <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3">
                 <p className="text-xs text-muted-foreground">
                   If you need to explain “why a number changed,” compare the two runs’ <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">inputs.json</code> files first.
                 </p>

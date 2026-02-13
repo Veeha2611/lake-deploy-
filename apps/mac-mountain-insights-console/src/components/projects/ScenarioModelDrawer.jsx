@@ -1685,7 +1685,8 @@ export default function ScenarioModelDrawer({
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Use the Developer Template profile for Prospect Models to match the Exec Dashboard assumptions.
+                      Profiles are assumption presets. Use <strong>Developer Template 2-9-26</strong> for Prospect/Exec Dashboard alignment. Use
+                      <strong> Horton</strong> or <strong>Acme</strong> for developer-specific runs. Use <strong>Standard</strong> for the general baseline.
                     </p>
                   </div>
                   <div>
