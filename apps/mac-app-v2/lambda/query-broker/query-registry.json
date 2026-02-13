@@ -799,6 +799,14 @@
       "network"
     ]
   },
+  "owned_customers_investor_workbook": {
+    "views_used": [
+      "curated_core.v_network_health",
+      "curated_core.v_investor_revenue_mix_latest"
+    ],
+    "sql": "WITH modeled AS (\n  SELECT\n    SUM(COALESCE(passings, 0)) AS owned_passings,\n    SUM(COALESCE(subscriptions, 0)) AS owned_subscriptions,\n    SUM(COALESCE(mrr, 0)) AS owned_mrr_modeled,\n    MAX(dt) AS modeled_dt\n  FROM curated_core.v_network_health\n  WHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n    AND LOWER(COALESCE(network_type, '')) = 'owned fttp'\n    AND LOWER(COALESCE(customer_type, '')) = 'owned customer'\n), investor AS (\n  SELECT\n    SUM(COALESCE(plat_id_count, 0)) AS owned_plat_id_count,\n    SUM(COALESCE(revenue, 0)) AS owned_mrr_billed,\n    MAX(as_of_date) AS investor_as_of_date\n  FROM curated_core.v_investor_revenue_mix_latest\n  WHERE LOWER(COALESCE(network_type, '')) LIKE '%owned%'\n)\nSELECT\n  investor.owned_plat_id_count,\n  modeled.owned_subscriptions,\n  modeled.owned_passings,\n  COALESCE(investor.owned_mrr_billed, modeled.owned_mrr_modeled) AS owned_mrr,\n  CAST(investor.investor_as_of_date AS timestamp) AS investor_as_of_date,\n  CAST(modeled.modeled_dt AS timestamp) AS modeled_dt\nFROM investor\nCROSS JOIN modeled\nLIMIT 1;",
+    "params": []
+  },
   "platt_billing_customers_by_system_latest": {
     "views_used": [
       "curated_core.v_monthly_mrr_platt",

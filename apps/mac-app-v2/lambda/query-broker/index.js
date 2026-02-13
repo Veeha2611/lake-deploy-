@@ -1259,6 +1259,17 @@ function resolveDeterministicQuestion(questionText) {
     return { questionId: 'copper_customers_count', params: hasCopperScope ? copperParams : {} };
   }
 
+  // Investor Questions workbook: "owned networks" is ambiguous across tabs.
+  // Return both (a) modeled Owned FTTP subscriptions (network health) and (b) investor revenue mix PLAT ID COUNT for Owned;*.
+  // This prevents accidental fall-through to generic identity totals.
+  if (
+    includesAny(['investor', 'investor question', 'investor questions', 'workbook', 'revenue mix']) &&
+    includesAny(['owned']) &&
+    (includesAny(['network', 'networks']) || includesAny(['customer', 'customers', 'plat id', 'platid', 'billed', 'subscription', 'subscriptions']))
+  ) {
+    return { questionId: 'owned_customers_investor_workbook', params: {} };
+  }
+
   if (normalized.includes('customer') && normalized.includes(' in ')) {
     const match = String(questionText || '').match(/customers?.*?\bin\s+([A-Za-z][A-Za-z\s'-]+)/i);
     if (match && match[1]) {
