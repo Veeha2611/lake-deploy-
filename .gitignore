@@ -37,11 +37,15 @@ node_modules/
 out/
 dist/
 build/
+cdk.out/
 
 # OS / editors
 .DS_Store
 .vscode/
 .idea/
+
+# Deployment artifacts
+amplify-artifacts.zip
 
 # Data artifacts
 *.parquet

@@ -1,0 +1,236 @@
+{
+  "version": "2026-02-11",
+  "crosswalks": [
+    {
+      "name": "network_to_platt_system",
+      "description": "Investor Questions network names mapped to Platt gwi_system values.",
+      "entries": [
+        {
+          "network": "3RB Enterprise",
+          "gwi_system": "3RB Enterprise",
+          "aliases": [
+            "3RB Enterprise"
+          ]
+        },
+        {
+          "network": "Belmont-Morrill",
+          "gwi_system": "Belmont-Morrill",
+          "aliases": [
+            "Belmont-Morrill",
+            "Belmont/Morril"
+          ]
+        },
+        {
+          "network": "DVFiber",
+          "gwi_system": "DVFiber",
+          "aliases": [
+            "DVFiber"
+          ]
+        },
+        {
+          "network": "DVFiber - Admin",
+          "gwi_system": "DVFiber - Admin",
+          "aliases": [
+            "DVFiber - Admin"
+          ]
+        },
+        {
+          "network": "ECFiber",
+          "gwi_system": "ECFiber",
+          "aliases": [
+            "ECFiber",
+            "LymeFiber"
+          ]
+        },
+        {
+          "network": "Ellsworth - FttP",
+          "gwi_system": "Ellsworth - FttP",
+          "aliases": [
+            "Ellsworth - FttP",
+            "Ellsworth - FttP (system id)"
+          ]
+        },
+        {
+          "network": "FTTX Columbia",
+          "gwi_system": "FTTX Columbia",
+          "aliases": [
+            "Brunswick\n(System ID = FTTX Columbia)",
+            "FTTX Columbia"
+          ]
+        },
+        {
+          "network": "FTTX Knightville",
+          "gwi_system": "FTTX Knightville",
+          "aliases": [
+            "FTTX Knightville",
+            "FTTX Knightville (system id)\nSouth Portland addresses"
+          ]
+        },
+        {
+          "network": "Fidium",
+          "gwi_system": "Fidium",
+          "aliases": [
+            "Fidium"
+          ]
+        },
+        {
+          "network": "GWI - Copper",
+          "gwi_system": "GWI-Copper",
+          "aliases": [
+            "GWI - Copper",
+            "GWI-Copper"
+          ]
+        },
+        {
+          "network": "GWI - FttP",
+          "gwi_system": "GWI - FttP",
+          "aliases": [
+            "GWI - FttP",
+            "GWI - FttP (system id)"
+          ]
+        },
+        {
+          "network": "GWI - MDU/MTU",
+          "gwi_system": "GWI - MDU/MTU",
+          "aliases": [
+            "GWI - MDU/MTU"
+          ]
+        },
+        {
+          "network": "GWI - Standard",
+          "gwi_system": "GWI - Standard",
+          "aliases": [
+            "GWI - Standard"
+          ]
+        },
+        {
+          "network": "Islesboro - FttP",
+          "gwi_system": "Islesboro - FttP",
+          "aliases": [
+            "Isleboro",
+            "Islesboro - FttP",
+            "Islesboro Municipal Broadband"
+          ]
+        },
+        {
+          "network": "Lyme - Admin",
+          "gwi_system": "Lyme - Admin",
+          "aliases": [
+            "Lyme - Admin"
+          ]
+        },
+        {
+          "network": "MFC - 3 Ring Binder (3RB)",
+          "gwi_system": "MFC - 3 Ring Binder (3RB)",
+          "aliases": [
+            "MFC - 3 Ring Binder (3RB)"
+          ]
+        },
+        {
+          "network": "MMLC",
+          "gwi_system": "MMLC",
+          "aliases": [
+            "MMLC"
+          ]
+        },
+        {
+          "network": "NWFX - Admin",
+          "gwi_system": "NWFX - Admin",
+          "aliases": [
+            "NWFX",
+            "NWFX - Admin"
+          ]
+        },
+        {
+          "network": "Northport I",
+          "gwi_system": "Northport I",
+          "aliases": [
+            "Northport 1",
+            "Northport 2",
+            "Northport I"
+          ]
+        },
+        {
+          "network": "Northport II",
+          "gwi_system": "Northport II",
+          "aliases": [
+            "Northport II"
+          ]
+        },
+        {
+          "network": "Rockport - FttP",
+          "gwi_system": "Rockport - FttP",
+          "aliases": [
+            "Rockport",
+            "Rockport - FttP"
+          ]
+        },
+        {
+          "network": "Saco Mill #4",
+          "gwi_system": "Saco MIll #4",
+          "aliases": [
+            "Saco MIll #4",
+            "Saco Mill #4",
+            "Saco Mill #4 (MDU)"
+          ]
+        },
+        {
+          "network": "SanfordNET - FttP",
+          "gwi_system": "SanfordNet - FttP",
+          "aliases": [
+            "SanfordNET - FttP",
+            "SanfordNet - FttP",
+            "SanfordNet - FttP (system id)"
+          ]
+        },
+        {
+          "network": "South Portland - FttP",
+          "gwi_system": "South Portland - FttP",
+          "aliases": [
+            "South Portland",
+            "South Portland - FttP"
+          ]
+        },
+        {
+          "network": "Sumner Grant",
+          "gwi_system": "Sumner Grant",
+          "aliases": [
+            "Sumner",
+            "Sumner Grant"
+          ]
+        },
+        {
+          "network": "The Eleven",
+          "gwi_system": "The Eleven",
+          "aliases": [
+            "The Eleven",
+            "The Eleven (MDU)"
+          ]
+        },
+        {
+          "network": "The Lincoln",
+          "gwi_system": "The Lincoln",
+          "aliases": [
+            "The Lincoln",
+            "The Lincoln Lofts (MDU)"
+          ]
+        },
+        {
+          "network": "Thornton Heights",
+          "gwi_system": "Thornton Heights",
+          "aliases": [
+            "Thornton Heights",
+            "Thornton Heights (MDU)"
+          ]
+        },
+        {
+          "network": "ValleyNet",
+          "gwi_system": "ValleyNet",
+          "aliases": [
+            "ValleyNet"
+          ]
+        }
+      ]
+    }
+  ]
+}

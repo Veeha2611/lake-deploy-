@@ -1,0 +1,26 @@
+{
+  "company_map": {
+    "0.0": "GWI",
+    "1.0": "GWI",
+    "2.0": "Midcoast",
+    "3.0": "South Portland MUNI Fiber",
+    "4.0": "Rockport MUNI Fiber",
+    "5.0": "Saco Mill 4",
+    "6.0": "SanfordNet",
+    "7.0": "Columbia Cirlce FTTx",
+    "8.0": "Knightville FTTx",
+    "11.0": "Lincoln",
+    "12.0": "Thornton Heights",
+    "13.0": "Northport I",
+    "14.0": "Northport II"
+  },
+  "customer_type_map": {
+    "1.0": "Commercial",
+    "2.0": "Residential",
+    "3.0": "Marketing",
+    "5.0": "Non-Profit",
+    "8.0": "PSouth - Commercial",
+    "10.0": "Wholesale",
+    "11.0": "Wholesaler"
+  }
+}
