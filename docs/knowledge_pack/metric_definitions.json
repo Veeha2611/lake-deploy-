@@ -1,0 +1,264 @@
+{
+  "version": "2026-02-11",
+  "metrics": {
+    "total_mrr": {
+      "description": "Total MRR (latest month) with YTD/TTM context.",
+      "query_id": "mrr_overview",
+      "value_column": "latest_total_mrr",
+      "source_views": [
+        "curated_core.v_platt_billing_mrr_monthly"
+      ],
+      "cross_check_query_ids": [
+        "executive_strip_mrr"
+      ],
+      "sanity_query_id": "mrr_trend_12m",
+      "driver_query_ids": [
+        "mrr_trend_12m"
+      ],
+      "default_time_window": {
+        "type": "last_n",
+        "unit": "month",
+        "n": 12
+      }
+    },
+    "mrr_trend_12m": {
+      "description": "MRR trend for the last 12 months.",
+      "query_id": "mrr_trend_12m",
+      "value_column": "total_mrr",
+      "source_views": [
+        "curated_core.v_platt_billing_mrr_monthly"
+      ],
+      "default_time_window": {
+        "type": "last_n",
+        "unit": "month",
+        "n": 12
+      }
+    },
+    "arpu": {
+      "description": "Average revenue per user (latest month).",
+      "query_id": "arpu_overview",
+      "value_column": "latest_arpu",
+      "source_views": [
+        "curated_core.v_platt_billing_mrr_monthly"
+      ],
+      "cross_check_query_ids": [
+        "mrr_overview"
+      ],
+      "default_time_window": {
+        "type": "last_n",
+        "unit": "month",
+        "n": 12
+      }
+    },
+    "active_customers": {
+      "description": "Customer identity overview (billing, services, subscriptions, SSOT).",
+      "query_id": "customer_identity_overview",
+      "value_column": "billing_customers",
+      "source_views": [
+        "curated_core.v_platt_billing_customer_month_latest",
+        "curated_core.dim_customer_platt_v1_1",
+        "curated_core.platt_customer_current_ssot",
+        "curated_recon.v_network_mix_billing_aligned_latest"
+      ],
+      "cross_check_query_ids": [
+        "active_accounts"
+      ],
+      "default_time_window": {
+        "type": "latest"
+      }
+    },
+    "customer_identity": {
+      "description": "Customer identity overview (billing, services, subscriptions, SSOT).",
+      "query_id": "customer_identity_overview",
+      "value_column": "billing_customers",
+      "source_views": [
+        "curated_core.v_platt_billing_customer_month_latest",
+        "curated_core.dim_customer_platt_v1_1",
+        "curated_core.platt_customer_current_ssot",
+        "curated_recon.v_network_mix_billing_aligned_latest"
+      ],
+      "default_time_window": {
+        "type": "latest"
+      }
+    },
+    "total_customers": {
+      "description": "Total customers from SSOT snapshot.",
+      "query_id": "customer_overview",
+      "value_column": "total_customers_ssot",
+      "source_views": [
+        "curated_core.platt_customer_current_ssot"
+      ],
+      "default_time_window": {
+        "type": "snapshot"
+      }
+    },
+    "customers_by_city": {
+      "description": "Customers grouped by city (active, SSOT).",
+      "compile": {
+        "source_view": "curated_core.platt_customer_current_ssot",
+        "metric_alias": "customer_count",
+        "measure_expr": "COUNT(DISTINCT username)",
+        "default_dimensions": [
+          "gwi_lq_city"
+        ],
+        "default_filters": [
+          {
+            "field": "sensitive_p",
+            "op": "!=",
+            "value": "y"
+          },
+          {
+            "field": "active",
+            "op": "in",
+            "value": [
+              "y",
+              "yes",
+              "true",
+              "1"
+            ]
+          }
+        ]
+      }
+    },
+    "customers_in_city": {
+      "description": "Customers in a specified city (active, SSOT).",
+      "compile": {
+        "source_view": "curated_core.platt_customer_current_ssot",
+        "metric_alias": "customer_count",
+        "measure_expr": "COUNT(DISTINCT username)",
+        "default_dimensions": [],
+        "default_filters": [
+          {
+            "field": "sensitive_p",
+            "op": "!=",
+            "value": "y"
+          },
+          {
+            "field": "active",
+            "op": "in",
+            "value": [
+              "y",
+              "yes",
+              "true",
+              "1"
+            ]
+          }
+        ]
+      }
+    },
+    "copper_customers": {
+      "description": "Active copper customers (SSOT).",
+      "query_id": "copper_customers_count",
+      "value_column": "copper_customer_count",
+      "source_views": [
+        "curated_core.platt_customer_current_ssot"
+      ],
+      "default_time_window": {
+        "type": "snapshot"
+      }
+    },
+    "passings_subscribers": {
+      "description": "Total passings, subscriptions, penetration, and ARPU.",
+      "query_id": "passings_subscribers",
+      "source_views": [
+        "curated_recon.v_network_mix_billing_aligned_latest"
+      ],
+      "default_time_window": {
+        "type": "latest"
+      }
+    },
+  "network_mix_by_network_type": {
+    "description": "Network mix grouped by network_type.",
+    "compile": {
+      "source_view": "curated_core.v_network_health",
+      "metric_alias": "subscriptions",
+      "measure_expr": "SUM(subscriptions)",
+      "default_dimensions": [
+        "network_type"
+      ],
+      "default_filters": []
+    }
+  },
+  "network_mix_by_customer_type": {
+    "description": "Network mix grouped by customer_type.",
+    "compile": {
+      "source_view": "curated_core.v_network_health",
+      "metric_alias": "subscriptions",
+      "measure_expr": "SUM(subscriptions)",
+      "default_dimensions": [
+        "customer_type"
+      ],
+      "default_filters": []
+    }
+  },
+    "tickets_summary": {
+      "description": "Ticket counts and open estimates.",
+      "query_id": "tickets_summary",
+      "value_column": "tickets_total",
+      "source_views": [
+        "curated_core.v_cci_tickets_clean"
+      ],
+      "default_time_window": {
+        "type": "last_n",
+        "unit": "day",
+        "n": 90
+      }
+    },
+    "outages_summary": {
+      "description": "Outage counts from ticket feed.",
+      "query_id": "outages_summary",
+      "value_column": "outages_total",
+      "source_views": [
+        "curated_core.v_cci_tickets_clean"
+      ],
+      "default_time_window": {
+        "type": "last_n",
+        "unit": "day",
+        "n": 90
+      }
+    },
+    "projects_summary": {
+      "description": "Projects pipeline summary counts.",
+      "query_id": "projects_summary",
+      "source_views": [
+        "curated_core.projects_enriched_live"
+      ],
+      "default_time_window": {
+        "type": "snapshot"
+      }
+    },
+    "projects_pipeline": {
+      "description": "Projects pipeline detail list.",
+      "query_id": "projects_pipeline",
+      "source_views": [
+        "curated_core.projects_enriched_live"
+      ],
+      "default_time_window": {
+        "type": "snapshot"
+      }
+    },
+    "plat_id_count_by_network_latest": {
+      "description": "Investor Questions PLAT ID COUNT for a network (latest workbook snapshot).",
+      "query_id": "plat_id_count_by_network_latest",
+      "value_column": "plat_id_count",
+      "source_views": [
+        "curated_core.v_investor_revenue_mix_latest"
+      ],
+      "default_time_window": {
+        "type": "latest"
+      }
+    },
+    "billing_customers_by_system_latest": {
+      "description": "Authoritative billing customer count (distinct PLAT IDs with nonzero invoices) by system for the latest billing month.",
+      "query_id": "platt_billing_customers_by_system_latest",
+      "value_column": "plat_id_count",
+      "source_views": [
+        "raw_platt.iheader_raw",
+        "raw_platt.customer"
+      ],
+      "default_time_window": {
+        "type": "latest"
+      }
+    }
+  }
+}
