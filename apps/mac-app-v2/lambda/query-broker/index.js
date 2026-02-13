@@ -782,7 +782,7 @@ function getFlagValueByName(flagName) {
 }
 
 function matchCapability(questionText) {
-  const normalized = normalizeQuestionText(questionText);
+  const normalized = normalizeQuestionText(questionText).replace(/-/g, ' ');
   if (!normalized) return null;
   const entries = Object.entries(CAPABILITIES || {});
   if (!entries.length) return null;
@@ -793,7 +793,7 @@ function matchCapability(questionText) {
     if (!keywords.length) continue;
     let score = 0;
     for (const keyword of keywords) {
-      const kw = normalizeQuestionText(keyword);
+      const kw = normalizeQuestionText(keyword).replace(/-/g, ' ');
       if (!kw) continue;
       if (normalized.includes(kw)) score += 1;
     }
@@ -919,7 +919,7 @@ function chooseDeterministicQueryForCapability(capabilityKey, questionText) {
   }
 
   if (key === 'unit_economics') {
-    if (normalized.includes('e-band') || normalized.includes('eband') || normalized.includes('exit')) {
+    if (normalized.includes('e-band') || normalized.includes('e band') || normalized.includes('eband') || normalized.includes('exit')) {
       return { question_id: 'worst_e_band', params: {} };
     }
     if (normalized.includes('ticket') || normalized.includes('support')) {
