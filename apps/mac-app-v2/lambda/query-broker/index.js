@@ -2227,12 +2227,9 @@ async function runFreshnessGate({ questionId } = {}) {
   if (!checksSpec.length) return null;
 
   const now = new Date();
-  const results = [];
-  let blocked = false;
-
-  for (const spec of checksSpec) {
+  const tasks = checksSpec.map(async (spec) => {
     const view = spec?.view ? String(spec.view).trim() : '';
-    if (!view) continue;
+    if (!view) return null;
     const maxAgeSeconds = normalizeMaxAgeSeconds(spec);
     const meta = getAllowedSource(view);
 
@@ -2240,16 +2237,17 @@ async function runFreshnessGate({ questionId } = {}) {
     try {
       freshness = await runFreshnessCheckCached(view);
     } catch (err) {
-      results.push({
-        view,
-        status: 'error',
-        latest_partition: null,
-        max_age_seconds: maxAgeSeconds,
-        age_seconds: null,
-        error: err?.message || String(err)
-      });
-      blocked = true;
-      continue;
+      return {
+        blocked: true,
+        result: {
+          view,
+          status: 'error',
+          latest_partition: null,
+          max_age_seconds: maxAgeSeconds,
+          age_seconds: null,
+          error: err?.message || String(err)
+        }
+      };
     }
 
     const latestPartition = freshness?.latest_partition || null;
@@ -2273,23 +2271,33 @@ async function runFreshnessGate({ questionId } = {}) {
     if (status === 'ok' && maxAgeSeconds !== null && ageSeconds !== null && ageSeconds > maxAgeSeconds) {
       status = 'stale';
     }
-    if (status === 'empty' || status === 'error' || status === 'stale') {
-      blocked = true;
-    }
+    const blocked = status === 'empty' || status === 'error' || status === 'stale';
 
-    results.push({
-      view,
-      time_column: meta?.time_column || null,
-      time_type: meta?.time_type || null,
-      status,
-      latest_partition: latestPartition,
-      age_seconds: ageSeconds,
-      max_age_seconds: maxAgeSeconds,
-      query_execution_id: freshness?.query_execution_id || null,
-      sql: freshness?.sql || null,
-      cached: Boolean(freshness?.cached),
-      raw_status: freshness?.status || null
-    });
+    return {
+      blocked,
+      result: {
+        view,
+        time_column: meta?.time_column || null,
+        time_type: meta?.time_type || null,
+        status,
+        latest_partition: latestPartition,
+        age_seconds: ageSeconds,
+        max_age_seconds: maxAgeSeconds,
+        query_execution_id: freshness?.query_execution_id || null,
+        sql: freshness?.sql || null,
+        cached: Boolean(freshness?.cached),
+        raw_status: freshness?.status || null
+      }
+    };
+  });
+
+  const resolved = (await Promise.all(tasks)).filter(Boolean);
+  const results = [];
+  let blocked = false;
+  for (const entry of resolved) {
+    if (!entry?.result) continue;
+    results.push(entry.result);
+    if (entry.blocked) blocked = true;
   }
 
   return {
