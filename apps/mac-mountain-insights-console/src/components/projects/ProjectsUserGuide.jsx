@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { HelpCircle, FileText, Edit, Plus, Search, TrendingUp, Database, Download } from 'lucide-react';
+import { HelpCircle, FileText, Edit, Plus, Search, TrendingUp, Database, Download, Briefcase, SlidersHorizontal } from 'lucide-react';
 
 export default function ProjectsUserGuide() {
   return (
@@ -56,6 +56,12 @@ export default function ProjectsUserGuide() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
+              <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3">
+                <p className="text-xs text-muted-foreground">
+                  <strong>AWS-only mode note:</strong> reads are SSOT-safe; some write actions may be disabled depending on environment.
+                  Your modeling outputs and evidence artifacts remain available.
+                </p>
+              </div>
               <p className="font-semibold">Your projects are saved in two places:</p>
               <div className="space-y-3">
                 <div className="border-l-4 border-blue-500 pl-4 py-2">
@@ -160,6 +166,103 @@ export default function ProjectsUserGuide() {
                 <li><code className="text-xs bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">summary_metrics.csv</code> - NPV, IRR, MOIC, peak subscribers, etc.</li>
                 <li><code className="text-xs bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">economics_monthly.csv</code> - 120-month cashflow projection</li>
               </ul>
+            </CardContent>
+          </Card>
+
+          {/* Pipeline Runner */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Briefcase className="w-4 h-4" />
+                Pipeline Runner (Run The Whole Pipeline)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <p className="text-muted-foreground">
+                Pipeline Runner is the “batch mode” portfolio tool. It loads the current project pipeline, attaches a baseline
+                scenario per project, and can run outputs across many projects in one pass.
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li><strong>Defaults:</strong> uses median defaults from the pipeline when available; otherwise uses safe fallbacks.</li>
+                <li><strong>Baseline scenarios:</strong> ensures each project has a baseline run even if no scenarios exist yet.</li>
+                <li><strong>Saved runs:</strong> can save/export portfolio results (summary + monthly time series + artifacts).</li>
+                <li><strong>Model profiles:</strong> supports profile selection/filtering so the same tool can run different assumption templates.</li>
+              </ul>
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                <p className="text-xs text-amber-800 dark:text-amber-200">
+                  If a project is missing required inputs, use <strong>Apply Defaults</strong> (in Pipeline Runner) to generate a valid baseline automatically.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Portfolio Runner */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <SlidersHorizontal className="w-4 h-4" />
+                Portfolio Runner (Hand-Pick Projects + Scenarios)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <p className="text-muted-foreground">
+                Portfolio Runner is the “precision mode” tool: select specific projects, choose a scenario for each, and run them as a combined portfolio.
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Best for board/investor packages where you want explicit scenario choices.</li>
+                <li>Outputs include portfolio NPV/IRR/MOIC and monthly curves.</li>
+                <li>Requires at least one saved scenario run per selected project.</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          {/* Model Profiles & Defaults */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                Model Profiles & Defaults
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <p className="text-muted-foreground">
+                The modeling tools support baseline defaults and profiles so results are consistent and reproducible.
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li><strong>Model profile:</strong> a named assumption template used by Pipeline Runner/Portfolio Runner.</li>
+                <li><strong>Defaults:</strong> when a project is missing required inputs, the runner can populate a baseline using the pipeline medians.</li>
+                <li><strong>Determinism:</strong> the same inputs + same profile should yield the same outputs (NPV/IRR/MOIC + monthly curves).</li>
+              </ul>
+              <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3">
+                <p className="text-xs text-muted-foreground">
+                  If you need to explain “why a number changed,” compare the two runs’ <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">inputs.json</code> files first.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Submissions / Capital Committee */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Edit className="w-4 h-4" />
+                Submissions & Committee Queue (If Enabled)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <p className="text-muted-foreground">
+                Some environments enable a submission workflow (e.g., Capital Committee).
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li><strong>Submit Project:</strong> sends a project package for review.</li>
+                <li><strong>Committee Queue:</strong> a work queue of submitted projects awaiting review.</li>
+                <li><strong>Auditability:</strong> submissions should reference the project ID and link to the latest model artifacts.</li>
+              </ul>
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                <p className="text-xs text-amber-800 dark:text-amber-200">
+                  If you do not see these buttons, the workflow is not enabled for the current environment/user role.
+                </p>
+              </div>
             </CardContent>
           </Card>
 

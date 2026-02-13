@@ -438,9 +438,7 @@ export default function Projects() {
             )}
           </div>
           <div className="flex items-center gap-3">
-            {!awsOnlyUi && (
-              <ProjectsUserGuide />
-            )}
+            <ProjectsUserGuide />
             {!awsOnlyUi && (
               <ProjectUpdatesHistory onMount={(refreshFn) => {
                 window.refreshHistoryFn = refreshFn;
