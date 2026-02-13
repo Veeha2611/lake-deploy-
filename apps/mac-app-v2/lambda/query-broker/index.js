@@ -2254,7 +2254,20 @@ async function runFreshnessGate({ questionId } = {}) {
 
     const latestPartition = freshness?.latest_partition || null;
     const latestDate = parseLatestPartitionAsDate(latestPartition);
-    const ageSeconds = latestDate ? Math.floor((now.getTime() - latestDate.getTime()) / 1000) : null;
+    let ageSeconds = latestDate ? Math.floor((now.getTime() - latestDate.getTime()) / 1000) : null;
+    const timeType = String(meta?.time_type || '').toLowerCase();
+    const usesDaySlaOnly = Boolean(
+      spec &&
+      typeof spec === 'object' &&
+      Number(spec.max_age_days || 0) > 0 &&
+      Number(spec.max_age_hours || 0) <= 0 &&
+      Number(spec.max_age_minutes || 0) <= 0
+    );
+    if (latestDate && timeType === 'varchar_date' && usesDaySlaOnly) {
+      // `dt=YYYY-MM-DD` partitions are day-granularity; avoid false staleness due to time-of-day.
+      const ageDays = diffDays(latestDate, now);
+      ageSeconds = ageDays !== null ? ageDays * 86400 : ageSeconds;
+    }
 
     let status = freshness?.status || 'error';
     if (status === 'ok' && maxAgeSeconds !== null && ageSeconds !== null && ageSeconds > maxAgeSeconds) {
