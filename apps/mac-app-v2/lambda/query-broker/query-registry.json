@@ -829,7 +829,7 @@
     "views_used": [
       "curated_core.v_network_health"
     ],
-    "sql": "SELECT\n  ${network_type} AS network_type,\n  ${customer_type} AS customer_type,\n  ${access_type} AS access_type,\n  MAX(dt) AS modeled_dt,\n  SUM(COALESCE(passings, 0)) AS passings,\n  SUM(COALESCE(subscriptions, 0)) AS subscriptions,\n  SUM(COALESCE(mrr, 0)) AS mrr_modeled,\n  CASE WHEN SUM(COALESCE(subscriptions, 0)) > 0 THEN SUM(COALESCE(mrr, 0)) / SUM(COALESCE(subscriptions, 0)) ELSE NULL END AS arpu_modeled\nFROM curated_core.v_network_health\nWHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n  AND (\n    ${network_type} = '' OR LOWER(COALESCE(network_type, '')) = LOWER(${network_type})\n  )\n  AND (\n    ${customer_type} = '' OR LOWER(COALESCE(customer_type, '')) = LOWER(${customer_type})\n  )\n  AND (\n    ${access_type} = ''\n    OR (${access_type} = 'Copper' AND LOWER(COALESCE(network_type, '')) = 'clec')\n    OR (${access_type} = 'Fiber' AND LOWER(COALESCE(network_type, '')) <> 'clec')\n  )\nLIMIT 1;",
+    "sql": "SELECT\n  ${network_type} AS network_type,\n  ${customer_type} AS customer_type,\n  ${access_type} AS access_type,\n  MAX(dt) AS modeled_dt,\n  CAST(date_trunc('month', MAX(dt)) AS timestamp) AS period_month,\n  SUM(COALESCE(passings, 0)) AS passings,\n  SUM(COALESCE(subscriptions, 0)) AS subscriptions,\n  CASE\n    WHEN SUM(COALESCE(passings, 0)) > 0 THEN (SUM(COALESCE(subscriptions, 0)) / SUM(COALESCE(passings, 0))) * 100\n    ELSE NULL\n  END AS penetration_pct,\n  SUM(COALESCE(mrr, 0)) AS mrr_modeled,\n  CASE\n    WHEN SUM(COALESCE(subscriptions, 0)) > 0 THEN SUM(COALESCE(mrr, 0)) / SUM(COALESCE(subscriptions, 0))\n    ELSE NULL\n  END AS arpu_modeled\nFROM curated_core.v_network_health\nWHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n  AND (\n    ${network_type} = '' OR LOWER(COALESCE(network_type, '')) = LOWER(${network_type})\n  )\n  AND (\n    ${customer_type} = '' OR LOWER(COALESCE(customer_type, '')) = LOWER(${customer_type})\n  )\n  AND (\n    ${access_type} = ''\n    OR (${access_type} = 'Copper' AND LOWER(COALESCE(network_type, '')) = 'clec')\n    OR (${access_type} = 'Fiber' AND LOWER(COALESCE(network_type, '')) <> 'clec')\n  )\nLIMIT 1;",
     "params": [
       "network_type",
       "customer_type",
@@ -845,6 +845,27 @@
       "network_type",
       "customer_type",
       "access_type"
+    ]
+  },
+  "workbook_revenue_mix_kpis": {
+    "views_used": [
+      "curated_core.v_investor_revenue_mix_latest"
+    ],
+    "sql": "SELECT\n  ${segment_label} AS segment_label,\n  MAX(as_of_date) AS as_of_date,\n  SUM(COALESCE(plat_id_count, 0)) AS billed_customers,\n  SUM(COALESCE(revenue, 0)) AS billed_mrr\nFROM curated_core.v_investor_revenue_mix_latest\nWHERE (\n    ${network_type_like} = ''\n    OR LOWER(COALESCE(network_type, '')) LIKE LOWER(${network_type_like})\n  )\n  AND (\n    ${network_like} = ''\n    OR LOWER(COALESCE(network, '')) LIKE LOWER(${network_like})\n  )\nLIMIT 1;",
+    "params": [
+      "segment_label",
+      "network_type_like",
+      "network_like"
+    ]
+  },
+  "workbook_revenue_mix_networks_list": {
+    "views_used": [
+      "curated_core.v_investor_revenue_mix_latest"
+    ],
+    "sql": "SELECT\n  network_type,\n  network,\n  MAX(as_of_date) AS as_of_date,\n  SUM(COALESCE(plat_id_count, 0)) AS billed_customers,\n  SUM(COALESCE(revenue, 0)) AS billed_mrr\nFROM curated_core.v_investor_revenue_mix_latest\nWHERE (\n    ${network_type_like} = ''\n    OR LOWER(COALESCE(network_type, '')) LIKE LOWER(${network_type_like})\n  )\n  AND (\n    ${network_like} = ''\n    OR LOWER(COALESCE(network, '')) LIKE LOWER(${network_like})\n  )\nGROUP BY 1, 2\nORDER BY billed_customers DESC\nLIMIT 200;",
+    "params": [
+      "network_type_like",
+      "network_like"
     ]
   },
   "platt_billing_customers_by_system_latest": {

@@ -1169,6 +1169,7 @@ function resolveDeterministicQuestion(questionText) {
   const wantsNetworks = includesAny(['network', 'networks', 'systems', 'system']);
   const wantsCustomers = includesAny(['customer', 'customers', 'subscriber', 'subscribers', 'subscription', 'subscriptions', 'subs']);
   const wantsWorkbookDomain = includesAny(['investor', 'workbook', 'customer mix', 'revenue mix', 'mix network', 'network mix']);
+  const wantsRevenueMix = includesAny(['revenue mix', 'plat id', 'platid', 'billed', 'billing', 'invoice']);
 
   const buildCustomerMixParams = ({ networkType = '', customerType = '', accessType = '' }) => ({
     network_type: networkType,
@@ -1276,24 +1277,43 @@ function resolveDeterministicQuestion(questionText) {
   //
   // Users often omit the word "networks" (e.g., "how many CLEC customers do we have?").
   // If they ask for a list or "which networks", route to the list template; otherwise KPI totals.
-  if (wantsWorkbookDomain && (wantsCustomers || isCountQuestion) && (wantsOwned || wantsContracted || wantsClec)) {
+  const wantsWorkbookMixSegment = (wantsContracted || wantsClec) || (wantsOwned && wantsWorkbookDomain);
+  if (wantsWorkbookMixSegment && (wantsCustomers || wantsNetworks || isCountQuestion || isListQuestion)) {
     const isList = (isListQuestion && includesAny(['which', 'list', 'show'])) || includesAny(['what networks', 'which networks', 'list networks']);
     let networkType = '';
     let customerType = '';
     let accessType = '';
+    let segmentLabel = '';
+    let networkTypeLike = '';
 
     if (wantsOwned) {
       networkType = 'Owned FTTP';
       customerType = 'Owned Customer';
       accessType = 'Fiber';
+      segmentLabel = 'Owned';
+      networkTypeLike = '%owned%';
     } else if (wantsContracted) {
       networkType = 'Contracted';
       customerType = 'Contracted Customer';
       accessType = 'Fiber';
+      segmentLabel = 'Contracted';
+      networkTypeLike = '%contract%';
     } else if (wantsClec) {
       networkType = 'CLEC';
       customerType = 'Owned Customer';
       accessType = 'Copper';
+      segmentLabel = 'CLEC';
+      networkTypeLike = '%clec%';
+    }
+
+    if (wantsRevenueMix) {
+      if (isList) {
+        return { questionId: 'workbook_revenue_mix_networks_list', params: { network_type_like: networkTypeLike, network_like: '' } };
+      }
+      return {
+        questionId: 'workbook_revenue_mix_kpis',
+        params: { segment_label: segmentLabel, network_type_like: networkTypeLike, network_like: '' }
+      };
     }
 
     if (isList) {
@@ -1309,8 +1329,7 @@ function resolveDeterministicQuestion(questionText) {
   // - modeled subscriptions/passings (Owned FTTP + Owned Customer)
   if (
     wantsOwned &&
-    (includesAny(['customer', 'customers']) || isCountQuestion) &&
-    includesAny(['network', 'networks', 'fttp', 'fiber', 'sub', 'subs', 'subscription', 'subscriptions', 'plat id', 'platid', 'billed'])
+    (includesAny(['customer', 'customers']) || isCountQuestion)
   ) {
     return { questionId: 'owned_customers_multiscope', params: {} };
   }
@@ -4188,13 +4207,18 @@ function buildAnswerMarkdown(questionId, columns, rows) {
     const billingPeriod = formatMonth(record.billing_period_month);
     const investorPeriod = formatMonth(record.investor_as_of_date);
     const modeledDt = formatMonth(record.modeled_dt);
+    const ownedSubs = Number(record.owned_subscriptions);
+    const ownedPass = Number(record.owned_passings);
+    const ownedPen = (Number.isFinite(ownedSubs) && Number.isFinite(ownedPass) && ownedPass > 0)
+      ? `${((ownedSubs / ownedPass) * 100).toFixed(2)}%`
+      : 'N/A';
     return [
       '**Owned Networks — Customers (multi-scope, deterministic)**',
-      `- Bucketed billing customers (owned_fttp) as of ${billingPeriod}: ${formatNumber(record.owned_billing_customers_bucket)}.`,
-      `- Investor workbook billed customers (PLAT ID COUNT, Owned;*) as of ${investorPeriod}: ${formatNumber(record.owned_plat_id_count)}.`,
-      `- Modeled subscriptions (Owned FTTP + Owned Customer) as of ${modeledDt}: ${formatNumber(record.owned_subscriptions)} across ${formatNumber(record.owned_passings)} passings.`,
+      `- Customer-mix subscriptions (Owned FTTP + Owned Customer) as of ${modeledDt}: ${formatNumber(record.owned_subscriptions)} across ${formatNumber(record.owned_passings)} passings (penetration ${ownedPen}).`,
+      `- Billing customers (bucket \`owned_fttp\`) as of ${billingPeriod}: ${formatNumber(record.owned_billing_customers_bucket)}.`,
+      `- Billed customers (Revenue Mix, PLAT ID COUNT where network_type LIKE '%owned%') as of ${investorPeriod}: ${formatNumber(record.owned_plat_id_count)}.`,
       `- Owned MRR (billed preferred, modeled fallback): ${formatCurrency(record.owned_mrr)}.`,
-      '_Note: these are different definitions/paths (billing customers vs PLAT ID COUNT vs modeled subscriptions). Ask “list owned networks” to see the underlying networks._'
+      '_These are distinct definitions: subscriptions (services) vs billed customer IDs (PLAT IDs). Ask “list owned networks” to see the underlying networks._'
     ].join('\n');
   }
 
@@ -4208,10 +4232,11 @@ function buildAnswerMarkdown(questionId, columns, rows) {
 
   if (questionId === 'workbook_customer_mix_kpis') {
     const modeledDt = formatMonth(record.modeled_dt);
+    const period = formatMonth(record.period_month || record.modeled_dt);
     return [
       '**Workbook Customer Mix (modeled SSOT, deterministic)**',
       `- Network Type: ${record.network_type || 'All'}. Customer Type: ${record.customer_type || 'All'}. Access: ${record.access_type || 'All'}.`,
-      `- As of ${modeledDt}: ${formatNumber(record.subscriptions)} subscriptions across ${formatNumber(record.passings)} passings.`,
+      `- Period: ${period}. As of ${modeledDt}: ${formatNumber(record.subscriptions)} subscriptions across ${formatNumber(record.passings)} passings (penetration ${record.penetration_pct ? `${Number(record.penetration_pct).toFixed(2)}%` : 'N/A'}).`,
       `- Modeled MRR: ${formatCurrency(record.mrr_modeled)} (ARPU ${formatCurrency(record.arpu_modeled, 2)}).`,
       '_Ask “list networks” for the underlying networks contributing to this total._'
     ].join('\n');
@@ -4224,6 +4249,26 @@ function buildAnswerMarkdown(questionId, columns, rows) {
       `- Rows returned: ${dataRows.length}.`,
       `- As of ${modeledDt}.`,
       '_See table for networks and their passings/subscriptions._'
+    ].join('\n');
+  }
+
+  if (questionId === 'workbook_revenue_mix_kpis') {
+    const asOf = formatMonth(record.as_of_date);
+    return [
+      '**Workbook Revenue Mix (billed, deterministic)**',
+      `- Segment: ${record.segment_label || 'All'}.`,
+      `- As of ${asOf}: ${formatNumber(record.billed_customers)} billed customers (PLAT IDs) and ${formatCurrency(record.billed_mrr)} billed MRR.`,
+      '_Ask “list networks” to see contributing networks._'
+    ].join('\n');
+  }
+
+  if (questionId === 'workbook_revenue_mix_networks_list') {
+    const asOf = formatMonth(record.as_of_date);
+    return [
+      '**Workbook Revenue Mix — Networks List (billed, deterministic)**',
+      `- Rows returned: ${dataRows.length}.`,
+      `- As of ${asOf}.`,
+      '_See table for networks and their billed customers (PLAT ID COUNT) and billed MRR._'
     ].join('\n');
   }
 

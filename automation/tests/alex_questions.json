@@ -41,6 +41,51 @@
         "mode": "not_supported",
         "must_contain": ["NOT SUPPORTED YET:", "NEXT STEP:"]
       }
+    },
+    {
+      "id": "w01_owned_customers",
+      "question": "How many owned customers do we have?",
+      "expect": {
+        "mode": "supported",
+        "require_evidence_pack": true,
+        "question_id": "owned_customers_multiscope"
+      }
+    },
+    {
+      "id": "w02_owned_networks_list",
+      "question": "List owned networks.",
+      "expect": {
+        "mode": "supported",
+        "require_evidence_pack": true,
+        "question_id": "owned_networks_list"
+      }
+    },
+    {
+      "id": "w03_clec_customers",
+      "question": "How many CLEC customers do we have?",
+      "expect": {
+        "mode": "supported",
+        "require_evidence_pack": true,
+        "question_id": "workbook_customer_mix_kpis"
+      }
+    },
+    {
+      "id": "w04_clec_billed_revenue_mix",
+      "question": "How many billed CLEC customers do we have? (revenue mix)",
+      "expect": {
+        "mode": "supported",
+        "require_evidence_pack": true,
+        "question_id": "workbook_revenue_mix_kpis"
+      }
+    },
+    {
+      "id": "w05_contracted_customers",
+      "question": "How many contracted customers do we have?",
+      "expect": {
+        "mode": "supported",
+        "require_evidence_pack": true,
+        "question_id": "workbook_customer_mix_kpis"
+      }
     }
   ]
 }

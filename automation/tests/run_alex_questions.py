@@ -62,8 +62,12 @@ def main():
 
         answer = resp.get("answer_markdown") or ""
         mode = expect.get("mode")
+        expected_qid = expect.get("question_id")
 
         if mode == "supported":
+            if expected_qid and resp.get("question_id") != expected_qid:
+                failures.append((test_id, f"wrong_question_id: expected {expected_qid} got {resp.get('question_id')}"))
+                continue
             if expect.get("require_evidence_pack") and not resp.get("evidence_pack"):
                 failures.append((test_id, "missing_evidence_pack"))
                 continue
