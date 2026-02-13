@@ -4,6 +4,15 @@
 Each system run must emit a manifest:
 - `s3://gwi-raw-us-east-2-pc/orchestration/<system>_daily/run_date=YYYY-MM-DD/manifest.json`
 
+## SSOT Gate Proofs (Required)
+SSOT claims are blocked unless these proof files exist:
+- `s3://gwi-raw-us-east-2-pc/ssot_proofs/<system>/run_date=YYYY-MM-DD/source_parity.json`
+- `s3://gwi-raw-us-east-2-pc/ssot_proofs/<system>/run_date=YYYY-MM-DD/partition_integrity.json`
+- `s3://gwi-raw-us-east-2-pc/ssot_proofs/<system>/run_date=YYYY-MM-DD/schema_parse_integrity.json`
+- `s3://gwi-raw-us-east-2-pc/ssot_proofs/<system>/run_date=YYYY-MM-DD/reconciliation.json`
+
+Each proof file must include Athena QIDs or native-source query identifiers.
+
 ## SSOT Summary Proof
 - Query:
   ```
@@ -34,4 +43,3 @@ Each system run must emit a manifest:
 ## Planned / Future
 - Automated proof packs for all investor questions.
 - Formal proof catalog in curated_ssot.
-

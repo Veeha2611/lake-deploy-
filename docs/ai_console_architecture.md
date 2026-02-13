@@ -25,6 +25,9 @@ This document describes the MAC AI Console runtime and how it produces governed,
 - When a question does not match the registry, the runtime can invoke Bedrock to produce a QueryPlan JSON.
 - The planner never emits SQL. QueryPlan is compiled deterministically into SQL and then validated.
 - Structured output mode uses Bedrock structured outputs with the QueryPlan JSON schema.
+- Planner instructions are maintained at:
+  - `config/ai/planner_system_prompt.txt` (canonical)
+  - `apps/mac-app-v2/lambda/query-broker/metadata/planner_system_prompt.txt` (runtime bundle)
 
 ## Case Runtime (Stateful Threads)
 - Each `/query` response may be persisted as a Case record in DynamoDB:
@@ -64,4 +67,4 @@ All runtime upgrades are gated behind configuration flags (default off unless ex
 Exports and reports can only be written to configured S3 prefixes:
 - Case exports: `raw/mac_ai_console/case_exports/<case_id>/...`
 - Reports: `<REPORTS_PREFIX>/<case_id>/...`
-- Runtime artifacts: `<AGENT_ARTIFACTS_PREFIX>/<case_id>/...`
+- Runtime artifacts: `raw/mac_ai_console/agent_artifacts/<case_id>/...` (prefix configurable)

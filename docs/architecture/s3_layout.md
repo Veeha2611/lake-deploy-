@@ -4,7 +4,7 @@
 - `raw/vetro/plan_id=<plan_id>/dt=<YYYY-MM-DD>/` — Vetro plan exports (JSON/GeoJSON)
 - `raw/vetro_features/` — Vetro feature snapshots + metadata
 - `raw/platt/<table>/` — Platt raw tables (customer, iheader, idetail, billing, custrate, history)
-- `raw/intacct_xml/<entity>/YYYY-MM-DD/` — Intacct XML (gl_entries, vendors, customers, ap_bills, ap_payments)
+- `raw/intacct_xml/<entity>/YYYY-MM-DD/` — Intacct XML (gl_entries, vendors, customers, ap_bills, ap_payments, ar_payments)
 - `raw/intacct_json/gl_entries/run_date=YYYY-MM-DD/` — Intacct JSON GL entries
 - `raw/gaiia/<entity>/dt=YYYY-MM-DD/part-0001.json` — Gaiia raw snapshots (customers, invoices)
 - `raw/manual/` — Manually staged source documents and converted extracts
@@ -31,4 +31,3 @@
 
 ## Athena Output
 - `athena-results/` and `athena-result/` — Athena query outputs (reporting + proofs)
-

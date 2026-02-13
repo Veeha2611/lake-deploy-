@@ -24,6 +24,8 @@ Validate:
 - `orchestration/vetro_daily/run_date=<today>/manifest.json`
 - Check state:
   - `s3://gwi-raw-us-east-2-pc/vetro_export_state/plan_index.json`
+Completeness:
+- `docs/reference/vetro_completeness_2026-02-03.md`
 Curated tables:
 - `curated_core.vetro_plan_exports_curated_raw`
 - `curated_core.vetro_plan_exports_current`

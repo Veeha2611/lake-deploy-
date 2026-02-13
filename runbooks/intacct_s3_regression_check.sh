@@ -51,7 +51,7 @@ download_and_report() {
 {
   echo "S3 regression check - $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
   echo
-  objects=(vendors customers ap_bills ap_payments gl_accounts gl_entries)
+  objects=(vendors customers ap_bills ap_payments ar_payments gl_accounts gl_entries)
   for obj in "${objects[@]}"; do
     download_and_report "$obj" "2026-01-19" "${obj}.json"
     download_and_report "$obj" "2026-01-20" "${obj}.json"

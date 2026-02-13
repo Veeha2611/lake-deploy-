@@ -31,3 +31,4 @@ Ingest and curate Platt billing/customer data for revenue analysis and SSOT.
 
 ## Planned / Future
 - Expand reconciliation between Platt and GL lines.
+- Ensure Platt exports are quoted or use a delimiter that avoids comma collisions; re-run raw → curated refresh after export fix.

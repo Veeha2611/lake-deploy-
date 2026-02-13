@@ -13,7 +13,7 @@
 - **Vetro**: Lambda export → raw/vetro → Athena raw → curated_core → recon
 - **Intacct**: ingest script → raw/intacct_xml + raw/intacct_json → curated_core
 - **Platt**: raw/platt → curated/platt → curated_core
-- **Gaiia**: raw/gaiia → curated_core + recon
+- **Gaiia**: raw/gaiia/graphql → curated_core + recon (GraphQL landing); legacy raw/gaiia if REST mode is used
 - **Manual docs**: raw/manual + raw/investor_docs → raw_sheets/raw_manual (crawler)
 
 ## Failure Modes

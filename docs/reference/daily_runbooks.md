@@ -10,14 +10,16 @@ Global SSOT rollup:
 Validate:
 - `orchestration/intacct_daily/run_date=<today>/manifest.json`
 - Athena:
-  - `SELECT COUNT(*) FROM curated_core.intacct_gl_entries_current WHERE run_date='<today>'`
-  - `SELECT MAX(business_date) FROM curated_core.intacct_gl_entries_current WHERE run_date='<today>'`
+  - `SELECT COUNT(*) FROM curated_core.intacct_gl_entries_current_ssot WHERE run_date='<today>'`
+  - `SELECT MAX(business_date) FROM curated_core.intacct_gl_entries_current_ssot WHERE run_date='<today>'`
 
 ## Salesforce
 Validate:
 - `orchestration/salesforce_daily/run_date=<today>/manifest.json`
 - Athena:
   - `SELECT COUNT(*) FROM curated_core.salesforce_account_current WHERE run_date='<today>'`
+  - `SELECT MAX(run_date) FROM curated_core.salesforce_account_current`
+  - `SELECT MAX(run_date) FROM curated_core.salesforce_opportunity_current`
 
 ## Vetro
 Validate:
@@ -32,6 +34,12 @@ Curated tables:
 ## Gaiia
 Validate:
 - `orchestration/gaiia_daily/run_date=<today>/manifest.json`
+Access:
+- GraphQL endpoint (`GAIIA_API_URL`) with header `X-Gaiia-Api-Key: <token>` (no Bearer prefix).
+Env:
+- `GAIIA_API_URL`
+- `GAIIA_API_TOKEN`
+- `GAIIA_QUERY_REGISTRY_KEY` (S3 key for GraphQL query registry)
 Curated tables:
 - `curated_core.gaiia_customers_curated_raw`
 - `curated_core.gaiia_customers_current`
@@ -43,6 +51,11 @@ Curated tables:
 ## Global SSOT
 Validate:
 - `SELECT * FROM curated_recon.ssot_daily_summary WHERE run_date='<today>' ORDER BY system, entity`
+
+## Crosswalks (Salesforce ↔ Intacct)
+Validate:
+- `SELECT * FROM curated_recon.sf_intacct_crosswalk_summary WHERE dt = current_date`
+ - `SELECT * FROM curated_recon.sf_intacct_crosswalk_gaps WHERE dt = current_date`
 
 Guard policy:
 - Guard status is computed from `*_current` tables only.

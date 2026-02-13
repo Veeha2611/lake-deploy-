@@ -17,6 +17,21 @@
 - Guard status reads from `*_current` tables.
 - Exceptions are recorded to `curated_recon.*` and only fail if thresholds are breached.
 
+## Global SSOT Gate Policy (Hard Block)
+SSOT may not be declared unless **all** global gates pass:
+1) **Source parity**: row counts and max dates match the native source.
+2) **Partition integrity**: no zero-byte runs, no duplicate snapshots, no missing expected objects.
+3) **Schema/parse integrity**: headers, line wrapping, and JSON parsing validated.
+4) **Reconciliation**: investor workbooks and internal rollups match lake outputs.
+
+Global gates are enforced by:
+- `runbooks/ssot_source_gates.sh`
+- `runbooks/ssot_intacct_gates.sh`
+- `runbooks/ssot_platt_gates.sh`
+- `runbooks/ssot_global_gates.sh` (wrapper used by `scripts/ssot_daily.sh`)
+
+SSOT claims **must** include proof artifacts with Athena QIDs.
+
 ## Canonical Deliverables (SSOT)
 - Config: `config/deliverables_config.json`
 - Schema: `sql/ssot/02_deliverables_schema.sql`
@@ -35,4 +50,3 @@
 ## Planned / Future
 - Threshold enforcement and automated paging on guard failures.
 - Expanded SSOT coverage for additional sources.
-
