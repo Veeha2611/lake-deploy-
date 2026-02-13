@@ -1,0 +1,10 @@
+# One term per line. Case-insensitive. Fixed-string matching.
+# Goal: keep repository content free of development-assistant / tool branding.
+
+codex
+chatgpt
+openai
+copilot
+gemini
+bard
+perplexity

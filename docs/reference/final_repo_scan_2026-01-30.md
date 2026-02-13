@@ -4,9 +4,9 @@
 - Repository: lake_deploy
 - Remotes: MM-Patch/lake_deploy, Mac-Mountain/lake_deploy
 
-## Language / Prohibited Terms Scan
-- Scan terms: ai, assistant, agent, codex, openai
-- Result: no matches found (repo-wide)
+## Sanitization Scan
+- Policy: repository content must not reference development assistants or external tooling brands.
+- Result: no matches found (repo-wide at the time of this report)
 
 ## Secrets Scan (Lightweight)
 - No credential patterns found by repo-wide scan

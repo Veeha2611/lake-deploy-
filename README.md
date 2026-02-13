@@ -1,5 +1,13 @@
 # lake_deploy
 
+## IaC Kickoff (Docs)
+- `docs/IAC_KICKOFF_BRIEF.md`
+- `docs/GOVERNANCE.md`
+- `docs/KNOWN_GAPS_AND_RISK.md`
+
+## Lake Overview (Raw → Curated → SSOT → App)
+Source-native data lands in S3 (raw), is normalized into query-ready curated tables, reconciled with exception tracking, and then gated into SSOT status tables with evidence (Athena QIDs + S3 proof artifacts). The MAC App consumes vetted curated queries and surfaces reproducible tiles with attached evidence.
+
 ## Contents
 - `athena/raw/`: Athena DDL + partition projection for `vetro_raw_db.raw_line`.
 - `athena/curated/`: Curated view templates and JSON discovery query.
