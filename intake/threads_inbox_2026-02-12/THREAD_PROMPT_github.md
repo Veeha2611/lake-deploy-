@@ -44,3 +44,33 @@ Include:
 
 ### Finish
 Confirm the folder is complete and ready for SSOT review.
+
+---
+
+## Additional Deliverables (Infrastructure Requirements)
+
+If your thread includes GitHub documentation updates for infrastructure requirements, include these deliverables in your output (and commit them only after sanitization passes):
+
+- Create `docs/ACCESS_AND_ENVIRONMENT.md`:
+  - AWS account access, role model, MFA
+  - services required, regions
+  - migration constraints (Mac Mountain -> LightCraft)
+  - least-privilege roles (avoid blanket admin)
+
+- Create `docs/CI_CD_AND_TERRAFORM_BACKEND.md`:
+  - GitHub repo permissions and branch protection expectations
+  - CI/CD model
+  - Terraform remote state backend (S3 + encryption + versioning + locking)
+  - environment separation strategy
+  - required secret names (names only)
+
+- Create `docs/OBSERVABILITY_AND_ALERTING.md`:
+  - CloudWatch logs/alarms/dashboards
+  - CloudTrail audit logging
+  - alerting for pipeline failures, DQ breaches, and reconciliation variance
+
+- Update `docs/IAC_KICKOFF_BRIEF.md`:
+  - Add a one-page "Access Checklist" section that links to the three docs above.
+
+Before committing:
+- Run `./scripts/sanitize_scan.sh` and confirm PASS.

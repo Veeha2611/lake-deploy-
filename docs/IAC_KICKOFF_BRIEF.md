@@ -31,7 +31,28 @@ Defer redesign:
 - Encrypt at rest, enforce least privilege, and log changes (CloudTrail).
 - Minimize downtime; changes should be deployable in small, reversible increments.
 
-## Access / Environment Checklist
+## Access Checklist (One Page)
+Use these documents as the authoritative checklist for access and environment setup:
+- `docs/ACCESS_AND_ENVIRONMENT.md`
+- `docs/CI_CD_AND_TERRAFORM_BACKEND.md`
+- `docs/OBSERVABILITY_AND_ALERTING.md`
+- `docs/access_prereqs.md` (secret names and prerequisites)
+
+Quick reference (current environment):
+AWS:
+- Account: `702127848627`
+- Region: `us-east-2`
+- Athena workgroup: `primary`
+
+S3 (key buckets):
+- `gwi-raw-us-east-2-pc` (raw landings, orchestration artifacts, Athena outputs)
+- `gwi-curated-us-east-2-pc` (curated outputs where applicable)
+- `gwi-staging-pc` (staging/temporary where applicable)
+
+Connectivity:
+- Platt native DB access may require VPN; validate connectivity before declaring mirror parity.
+
+## Access / Environment Checklist (Expanded)
 AWS:
 - Account: `702127848627`
 - Region: `us-east-2`
@@ -70,4 +91,3 @@ Connectivity:
 3) Drift detection: CI checks + periodic drift reports.
 4) Orchestration codification: standardize schedules, retry policy, checkpoints, and evidence outputs.
 5) Cutover: run parallel validations, then transition ownership to IaC-managed deployments.
-
