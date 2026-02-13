@@ -3,20 +3,62 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Loader2, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
 import ResultDisplay from '@/components/console/ResultDisplay';
+import { MAC_API_BASE } from '@/lib/mac-app-flags';
+import { getAuthToken } from '@/lib/cognitoAuth';
 
-export default function TopicQueryModal({ isOpen, onClose, query, title }) {
+export default function TopicQueryModal({ isOpen, onClose, questionId, title, subtitle }) {
   const { data: result, isLoading } = useQuery({
-    queryKey: ['topic-query', query],
+    queryKey: ['topic-query', questionId],
     queryFn: async () => {
-      if (!query) return null;
-      const response = await base44.functions.invoke('answerQuestion', {
-        question: query
+      if (!questionId) return null;
+      if (!MAC_API_BASE) {
+        return { ok: false, error: 'MAC API base not configured' };
+      }
+      const baseUrl = MAC_API_BASE.replace(/\/$/, '');
+      const token = await getAuthToken();
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      const res = await fetch(`${baseUrl}/query`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ question_id: questionId, params: {} })
       });
-      return response.data;
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json.ok === false) {
+        return { ok: false, error: json.error || `MAC API error (${res.status})` };
+      }
+
+      const columns = json.columns || [];
+      const rows = json.rows || [];
+      const data_results = columns.length
+        ? rows.map((row) => {
+            const values = Array.isArray(row) ? row : Object.values(row || {});
+            const obj = {};
+            columns.forEach((col, idx) => {
+              obj[col] = values[idx];
+            });
+            return obj;
+          })
+        : [];
+
+      return {
+        ok: true,
+        answer_markdown: json.answer_markdown || '',
+        data_rows: rows,
+        columns,
+        data_results,
+        evidence: {
+          athena_query_execution_id: json.query_execution_id || null,
+          generated_sql: json.sql || null,
+          views_used: json.views_used || [],
+          query_id: json.question_id || questionId
+        }
+      };
     },
-    enabled: isOpen && !!query,
+    enabled: isOpen && !!questionId,
   });
 
   return (
@@ -29,7 +71,7 @@ export default function TopicQueryModal({ isOpen, onClose, query, title }) {
               <X className="w-4 h-4" />
             </Button>
           </div>
-          <p className="text-sm text-slate-600 mt-1">{query}</p>
+          {subtitle && <p className="text-sm text-slate-600 mt-1">{subtitle}</p>}
         </DialogHeader>
 
         {isLoading ? (

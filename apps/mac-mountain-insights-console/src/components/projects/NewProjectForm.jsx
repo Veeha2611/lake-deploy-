@@ -31,8 +31,8 @@ export default function NewProjectForm({ isOpen, onClose, onSuccess, onOpenModel
     project_name: '',
     project_type: '',
     state: '',
-    partner_share_raw: '',
-    investor_label: '',
+    partner: '',
+    split_pct: '',
     stage: '',
     priority: '',
     owner: '',
@@ -68,8 +68,8 @@ export default function NewProjectForm({ isOpen, onClose, onSuccess, onOpenModel
           project_name: '',
           project_type: '',
           state: '',
-          partner_share_raw: '',
-          investor_label: '',
+          partner: '',
+          split_pct: '',
           stage: '',
           priority: '',
           owner: '',
@@ -193,7 +193,27 @@ export default function NewProjectForm({ isOpen, onClose, onSuccess, onOpenModel
 
               <div>
                 <div className="flex items-center gap-1 mb-2">
-                  <Label htmlFor="partner_share">Partner Share</Label>
+                  <Label htmlFor="partner">Partner</Label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>Partner or co-investor name (if applicable)</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <Input
+                  id="partner"
+                  value={formData.partner}
+                  onChange={(e) => setFormData({...formData, partner: e.target.value})}
+                  placeholder="e.g., Mountain Fiber Partners"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center gap-1 mb-2">
+                  <Label htmlFor="split_pct">Split %</Label>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <HelpCircle className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
@@ -204,30 +224,10 @@ export default function NewProjectForm({ isOpen, onClose, onSuccess, onOpenModel
                   </Tooltip>
                 </div>
                 <Input
-                  id="partner_share"
-                  value={formData.partner_share_raw}
-                  onChange={(e) => setFormData({...formData, partner_share_raw: e.target.value})}
+                  id="split_pct"
+                  value={formData.split_pct}
+                  onChange={(e) => setFormData({...formData, split_pct: e.target.value})}
                   placeholder="e.g., 30%"
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center gap-1 mb-2">
-                  <Label htmlFor="investor_label">Investor Label</Label>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>Internal reference code or investor identifier (e.g., "INV-2026-001")</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <Input
-                  id="investor_label"
-                  value={formData.investor_label}
-                  onChange={(e) => setFormData({...formData, investor_label: e.target.value})}
-                  placeholder="e.g., INV-2026-001"
                 />
               </div>
 

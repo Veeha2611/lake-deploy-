@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { base44 } from '@/api/base44Client';
+import { runSSOTQuery } from '@/api/ssotQuery';
 import { MapPin, Download, AlertTriangle, Loader2, Map as MapIcon, Table as TableIcon, Bug, Layers as LayersIcon, Home, Square, Triangle, Network, Radio, Wifi, Satellite, Cable } from 'lucide-react';
 import { toast } from 'sonner';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon as LeafletPolygon, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon as LeafletPolygon, useMap, CircleMarker } from 'react-leaflet';
 import { cellToBoundary } from 'h3-js';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -49,9 +49,9 @@ const LAYER_DEFINITIONS = {
     type: 'point',
     icon_key: 'sl',
     color: '#2563EB',
-    default_enabled: true,
+    default_enabled: false,
     icon_component: Home,
-    sql: (limit = 2000) => `SELECT * FROM vetro_curated_db.v_vetro_network_map_layers_v1 WHERE layer_key = 'service_locations' LIMIT ${limit}`
+    queryId: 'gis_service_locations'
   },
   naps: {
     name: 'NAPs',
@@ -60,7 +60,7 @@ const LAYER_DEFINITIONS = {
     color: '#F97316',
     default_enabled: false,
     icon_component: Square,
-    sql: (limit = 2000) => `SELECT * FROM vetro_curated_db.v_vetro_network_map_layers_v1 WHERE layer_key = 'naps' LIMIT ${limit}`
+    queryId: 'gis_naps'
   },
   fat: {
     name: 'FAT',
@@ -69,7 +69,7 @@ const LAYER_DEFINITIONS = {
     color: '#10B981',
     default_enabled: false,
     icon_component: Triangle,
-    sql: (limit = 2000) => `SELECT * FROM vetro_curated_db.v_vetro_network_map_layers_v1 WHERE layer_key = 'fat' LIMIT ${limit}`
+    queryId: 'gis_fat'
   },
   
   // VETRO LINES - by placement
@@ -79,7 +79,7 @@ const LAYER_DEFINITIONS = {
     color: '#0EA5E9',
     default_enabled: false,
     icon_component: Network,
-    sql: (limit = 2000) => `SELECT * FROM vetro_curated_db.v_vetro_map_lines_layers_v1 WHERE layer_key = 'fiber_aerial' LIMIT ${limit}`
+    queryId: 'gis_fiber_aerial'
   },
   fiber_underground: {
     name: 'Fiber (Underground)',
@@ -87,7 +87,7 @@ const LAYER_DEFINITIONS = {
     color: '#8B5CF6',
     default_enabled: false,
     icon_component: Network,
-    sql: (limit = 2000) => `SELECT * FROM vetro_curated_db.v_vetro_map_lines_layers_v1 WHERE layer_key = 'fiber_underground' LIMIT ${limit}`
+    queryId: 'gis_fiber_underground'
   },
   fiber_mixed: {
     name: 'Fiber (Mixed)',
@@ -95,7 +95,7 @@ const LAYER_DEFINITIONS = {
     color: '#F59E0B',
     default_enabled: false,
     icon_component: Network,
-    sql: (limit = 2000) => `SELECT * FROM vetro_curated_db.v_vetro_map_lines_layers_v1 WHERE layer_key = 'fiber_mixed' LIMIT ${limit}`
+    queryId: 'gis_fiber_mixed'
   },
   fiber_unknown: {
     name: 'Fiber (Unknown)',
@@ -103,7 +103,7 @@ const LAYER_DEFINITIONS = {
     color: '#6B7280',
     default_enabled: false,
     icon_component: Network,
-    sql: (limit = 2000) => `SELECT * FROM vetro_curated_db.v_vetro_map_lines_layers_v1 WHERE layer_key = 'fiber_unknown' LIMIT ${limit}`
+    queryId: 'gis_fiber_unknown'
   },
   
   // VETRO LINES - by owner
@@ -113,7 +113,7 @@ const LAYER_DEFINITIONS = {
     color: '#DC2626',
     default_enabled: false,
     icon_component: Network,
-    sql: (limit = 2000) => `SELECT * FROM vetro_curated_db.v_vetro_map_lines_owner_v1 WHERE layer_key = 'fiber_owner_gwi' LIMIT ${limit}`
+    queryId: 'gis_fiber_owner_gwi'
   },
   fiber_owner_lymefiber: {
     name: 'Fiber (LymeFiber)',
@@ -121,7 +121,7 @@ const LAYER_DEFINITIONS = {
     color: '#059669',
     default_enabled: false,
     icon_component: Network,
-    sql: (limit = 2000) => `SELECT * FROM vetro_curated_db.v_vetro_map_lines_owner_v1 WHERE layer_key = 'fiber_owner_lymefiber' LIMIT ${limit}`
+    queryId: 'gis_fiber_owner_lymefiber'
   },
   
   // VETRO POLYGONS
@@ -131,7 +131,7 @@ const LAYER_DEFINITIONS = {
     color: '#A855F7',
     default_enabled: false,
     icon_component: Square,
-    sql: (limit = 2000) => `SELECT * FROM vetro_curated_db.v_vetro_map_polygons_v1 LIMIT ${limit}`
+    queryId: 'gis_polygons'
   },
   
   // FCC FIBER H3
@@ -139,9 +139,9 @@ const LAYER_DEFINITIONS = {
     name: 'FCC Fiber (FTTP)',
     type: 'h3',
     color: '#22C55E',
-    default_enabled: true,
+    default_enabled: false,
     icon_component: Wifi,
-    sql: (limit = 2000) => `SELECT * FROM curated_core.v_fcc_fiber_h3_counts_me_nh_2026_01 LIMIT ${limit}`
+    queryId: 'gis_fcc_fiber'
   },
   
   // FCC NON-FIBER by tech
@@ -151,7 +151,7 @@ const LAYER_DEFINITIONS = {
     color: '#F97316',
     default_enabled: false,
     icon_component: Cable,
-    sql: (limit = 2000) => `SELECT * FROM curated_core.v_fcc_nonfiber_h3_counts_me_nh_2026_01 WHERE tech_source = 'Cable' LIMIT ${limit}`
+    queryId: 'gis_fcc_cable'
   },
   fcc_copper: {
     name: 'FCC Copper',
@@ -159,7 +159,7 @@ const LAYER_DEFINITIONS = {
     color: '#A16207',
     default_enabled: false,
     icon_component: Network,
-    sql: (limit = 2000) => `SELECT * FROM curated_core.v_fcc_nonfiber_h3_counts_me_nh_2026_01 WHERE tech_source = 'Copper' LIMIT ${limit}`
+    queryId: 'gis_fcc_copper'
   },
   fcc_fixed_wireless: {
     name: 'FCC Fixed Wireless',
@@ -167,7 +167,7 @@ const LAYER_DEFINITIONS = {
     color: '#3B82F6',
     default_enabled: false,
     icon_component: Radio,
-    sql: (limit = 2000) => `SELECT * FROM curated_core.v_fcc_nonfiber_h3_counts_me_nh_2026_01 WHERE tech_source = 'LicensedFixedWireless' LIMIT ${limit}`
+    queryId: 'gis_fcc_fixed_wireless'
   },
   fcc_satellite: {
     name: 'FCC Satellite',
@@ -175,11 +175,13 @@ const LAYER_DEFINITIONS = {
     color: '#8B5CF6',
     default_enabled: false,
     icon_component: Satellite,
-    sql: (limit = 2000) => `SELECT * FROM curated_core.v_fcc_nonfiber_h3_counts_me_nh_2026_01 WHERE tech_source = 'GSOSatellite' LIMIT ${limit}`
+    queryId: 'gis_fcc_satellite'
   }
 };
 
 export default function NetworkMapModal({ isOpen, onClose }) {
+  const [serviceLocationNetworks, setServiceLocationNetworks] = useState([]);
+  const [serviceLocationNetwork, setServiceLocationNetwork] = useState('');
   const [layerStates, setLayerStates] = useState(() => {
     const initial = {};
     Object.keys(LAYER_DEFINITIONS).forEach(key => {
@@ -200,6 +202,31 @@ export default function NetworkMapModal({ isOpen, onClose }) {
   useEffect(() => {
     if (!isOpen) return;
 
+    // Fetch available service location networks for filtering.
+    (async () => {
+      try {
+        const resp = await runSSOTQuery({
+          queryId: 'gis_network_list',
+          label: 'GIS Network List'
+        });
+        const cols = resp?.data?.columns || [];
+        const rows = resp?.data?.data_rows || [];
+        const idxNetwork = cols.findIndex((c) => String(c).toLowerCase() === 'network');
+        const idxCount = cols.findIndex((c) => String(c).toLowerCase() === 'service_location_count');
+        const parsed = rows
+          .map((r) => (Array.isArray(r) ? r : Object.values(r)))
+          .map((r) => ({
+            network: idxNetwork >= 0 ? r[idxNetwork] : r[0],
+            service_location_count: Number(idxCount >= 0 ? r[idxCount] : r[1] || 0)
+          }))
+          .filter((r) => r.network && String(r.network).trim() !== '');
+        setServiceLocationNetworks(parsed);
+      } catch (err) {
+        // Non-blocking; the layer still works without filtering.
+        console.warn('gis_network_list failed:', err?.message || err);
+      }
+    })();
+
     Object.keys(LAYER_DEFINITIONS).forEach(layerKey => {
       if (layerStates[layerKey].enabled) {
         loadLayer(layerKey);
@@ -207,19 +234,31 @@ export default function NetworkMapModal({ isOpen, onClose }) {
     });
   }, [isOpen]);
 
-  const loadLayer = async (layerKey) => {
+  const loadLayer = async (layerKey, opts = {}) => {
     setLayerStates(prev => ({
       ...prev,
       [layerKey]: { ...prev[layerKey], loading: true, error: null }
     }));
 
     const layerDef = LAYER_DEFINITIONS[layerKey];
-    const sql = layerDef.sql(2000);
+    const nextNetworkFilter =
+      layerKey === 'service_locations'
+        ? (Object.prototype.hasOwnProperty.call(opts || {}, 'network') ? opts.network : serviceLocationNetwork)
+        : '';
+    const queryId =
+      layerKey === 'service_locations' && nextNetworkFilter
+        ? 'gis_service_locations_by_network'
+        : layerDef.queryId;
+    const params =
+      layerKey === 'service_locations' && nextNetworkFilter
+        ? { network: nextNetworkFilter }
+        : undefined;
 
     try {
-      const response = await base44.functions.invoke('aiLayerQuery', {
-        template_id: 'freeform_sql_v1',
-        params: { sql }
+      const response = await runSSOTQuery({
+        queryId,
+        label: layerDef.name,
+        params
       });
 
       const apiData = response.data;
@@ -227,7 +266,7 @@ export default function NetworkMapModal({ isOpen, onClose }) {
       const columns = apiData?.columns || [];
       const athenaExecId = apiData?.athena_query_execution_id || apiData?.execution_id || apiData?.evidence?.athena_query_execution_id || null;
       const rowsReturned = apiData?.rows_returned || rawRows.length;
-      const generatedSql = apiData?.generated_sql || apiData?.evidence?.generated_sql || sql;
+      const generatedSql = apiData?.generated_sql || apiData?.evidence?.generated_sql || null;
 
       const mapColumnsToObject = (cols, row) => {
         const obj = {};
@@ -299,7 +338,7 @@ export default function NetworkMapModal({ isOpen, onClose }) {
             },
             rawRows,
             columns,
-            sql
+            sql: generatedSql
           },
           counters: {
             rowsReturned: rawRows.length,
@@ -309,7 +348,7 @@ export default function NetworkMapModal({ isOpen, onClose }) {
       }));
 
       if (features.length > 0) {
-        toast.success(`${layerDef.name}: Loaded ${features.length} features`);
+        toast.success(`${layerDef.name}${nextNetworkFilter ? ` (${nextNetworkFilter})` : ''}: Loaded ${features.length} features`);
       } else if (rawRows.length === 0) {
         setLayerStates(prev => ({
           ...prev,
@@ -340,6 +379,10 @@ export default function NetworkMapModal({ isOpen, onClose }) {
       ...prev,
       [layerKey]: { ...prev[layerKey], enabled: newEnabled }
     }));
+
+    if (layerKey === 'service_locations' && newEnabled && !serviceLocationNetwork) {
+      toast('Tip: filter Service Locations by network for faster loads (All networks can be slow).');
+    }
 
     if (newEnabled && !currentState.data) {
       loadLayer(layerKey);
@@ -380,7 +423,7 @@ export default function NetworkMapModal({ isOpen, onClose }) {
               <MapPin className="w-6 h-6 text-[var(--mac-forest)]" />
               Network Map - Vetro + FCC Coverage
             </div>
-            <div className="text-sm font-mono text-muted-foreground bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded">
+            <div className="text-sm font-mono text-muted-foreground bg-[var(--mac-ice)] border border-[var(--mac-panel-border)] px-3 py-1.5 rounded">
               Total Features: {totalFeaturesRendered}
               {totalFeaturesRendered > 0 ? (
                 <span className="ml-2 text-green-600 font-bold">✅ ACTIVE</span>
@@ -412,7 +455,7 @@ export default function NetworkMapModal({ isOpen, onClose }) {
               <Card>
                 <CardContent className="p-0">
                   <div className="relative h-[600px] rounded-lg overflow-hidden">
-                    <div className="absolute top-4 right-4 z-[1000] bg-white dark:bg-slate-800 rounded-lg shadow-lg">
+                    <div className="absolute top-4 right-4 z-[1000] bg-white rounded-lg shadow-lg border border-[var(--mac-panel-border)]">
                       <Button
                         variant={mapLayer === 'streets' ? 'default' : 'outline'}
                         size="sm"
@@ -434,7 +477,7 @@ export default function NetworkMapModal({ isOpen, onClose }) {
                     </div>
 
                     {totalFeaturesRendered === 0 ? (
-                      <div className="flex items-center justify-center h-full bg-slate-100 dark:bg-slate-800">
+                      <div className="flex items-center justify-center h-full bg-[var(--mac-ice)]">
                         <div className="text-center">
                           <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
                           <p className="text-muted-foreground">No layers enabled. Go to Layers Control to enable layers.</p>
@@ -445,6 +488,7 @@ export default function NetworkMapModal({ isOpen, onClose }) {
                         center={mapCenter}
                         zoom={10}
                         style={{ height: '100%', width: '100%' }}
+                        preferCanvas={true}
                       >
                         <MapInvalidator />
                         {mapLayer === 'streets' ? (
@@ -467,22 +511,45 @@ export default function NetworkMapModal({ isOpen, onClose }) {
 
                           // Render points
                           if (layerDef.type === 'point') {
-                            return state.data.features.map((feature) => (
-                              <Marker
-                                key={`${layerKey}-${feature.entity_id}`}
-                                position={[feature.latitude, feature.longitude]}
-                                icon={createCustomIcon(layerDef.color, layerDef.icon_key)}
-                              >
-                                <Popup>
-                                  <div className="text-xs space-y-1">
-                                    <p className="font-semibold text-sm mb-2">{layerDef.name}</p>
-                                    <p><strong>ID:</strong> {feature.entity_id}</p>
-                                    {feature.city && <p><strong>City:</strong> {feature.city}</p>}
-                                    {feature.state && <p><strong>State:</strong> {feature.state}</p>}
-                                    {feature.broadband_status && <p><strong>Broadband:</strong> {feature.broadband_status}</p>}
-                                  </div>
-                                </Popup>
-                              </Marker>
+                            return state.data.features.map((feature, idx) => (
+                              layerKey === 'service_locations' ? (
+                                <CircleMarker
+                                  key={`${layerKey}-${feature.entity_id}-${idx}`}
+                                  center={[feature.latitude, feature.longitude]}
+                                  radius={3}
+                                  pathOptions={{ color: layerDef.color, fillColor: layerDef.color, fillOpacity: 0.65, weight: 0 }}
+                                >
+                                  <Popup>
+                                    <div className="text-xs space-y-1">
+                                      <p className="font-semibold text-sm mb-2">{layerDef.name}</p>
+                                      <p><strong>ID:</strong> {feature.entity_id}</p>
+                                      {feature.plan_id && <p><strong>Plan ID:</strong> {feature.plan_id}</p>}
+                                      {feature.network && <p><strong>Network:</strong> {feature.network}</p>}
+                                      {feature.city && <p><strong>City:</strong> {feature.city}</p>}
+                                      {feature.state && <p><strong>State:</strong> {feature.state}</p>}
+                                      {feature.broadband_status && <p><strong>Broadband:</strong> {feature.broadband_status}</p>}
+                                    </div>
+                                  </Popup>
+                                </CircleMarker>
+                              ) : (
+                                <Marker
+                                  key={`${layerKey}-${feature.entity_id}`}
+                                  position={[feature.latitude, feature.longitude]}
+                                  icon={createCustomIcon(layerDef.color, layerDef.icon_key)}
+                                >
+                                  <Popup>
+                                    <div className="text-xs space-y-1">
+                                      <p className="font-semibold text-sm mb-2">{layerDef.name}</p>
+                                      <p><strong>ID:</strong> {feature.entity_id}</p>
+                                      {feature.plan_id && <p><strong>Plan ID:</strong> {feature.plan_id}</p>}
+                                      {feature.network && <p><strong>Network:</strong> {feature.network}</p>}
+                                      {feature.city && <p><strong>City:</strong> {feature.city}</p>}
+                                      {feature.state && <p><strong>State:</strong> {feature.state}</p>}
+                                      {feature.broadband_status && <p><strong>Broadband:</strong> {feature.broadband_status}</p>}
+                                    </div>
+                                  </Popup>
+                                </Marker>
+                              )
                             ));
                           }
 
@@ -612,6 +679,36 @@ export default function NetworkMapModal({ isOpen, onClose }) {
                                 <p className="text-xs text-muted-foreground">
                                   {state.loading ? 'Loading...' : state.error ? `❌ ${state.error}` : state.data ? `✅ ${state.counters.featuresRendered}` : 'Not loaded'}
                                 </p>
+                                {layerKey === 'service_locations' && (
+                                  <div className="mt-2">
+                                    <label className="block text-[10px] text-muted-foreground mb-1">
+                                      Filter by network (optional; improves performance)
+                                    </label>
+                                    <select
+                                      className="w-full text-xs border rounded px-2 py-1 bg-[var(--mac-panel-strong)] text-foreground border-[var(--mac-panel-border)]"
+                                      value={serviceLocationNetwork}
+                                      onChange={(e) => {
+                                        const next = e.target.value;
+                                        setServiceLocationNetwork(next);
+                                        if (state.enabled) {
+                                          // Clear cached layer data then reload with the new filter.
+                                          setLayerStates((prev) => ({
+                                            ...prev,
+                                            service_locations: { ...prev.service_locations, data: null, error: null }
+                                          }));
+                                          loadLayer('service_locations', { network: next });
+                                        }
+                                      }}
+                                    >
+                                      <option value="">All networks</option>
+                                      {serviceLocationNetworks.map((n) => (
+                                        <option key={n.network} value={n.network}>
+                                          {n.network} ({n.service_location_count})
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -764,7 +861,7 @@ export default function NetworkMapModal({ isOpen, onClose }) {
 
                         {state.data && (
                           <div className="space-y-3">
-                            <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded">
+                            <div className="bg-[var(--mac-ice)] border border-[var(--mac-panel-border)] p-3 rounded">
                               <h4 className="font-semibold text-sm mb-2">Counters</h4>
                               <div className="text-xs font-mono space-y-1">
                                 <div>rowsReturned: <strong>{state.counters.rowsReturned}</strong></div>
@@ -772,8 +869,8 @@ export default function NetworkMapModal({ isOpen, onClose }) {
                               </div>
                             </div>
 
-                            <div className="bg-blue-50 dark:bg-blue-950 border border-blue-300 p-3 rounded">
-                              <h4 className="font-semibold text-sm mb-2 text-blue-900 dark:text-blue-100">Evidence Fields</h4>
+                            <div className="bg-blue-50 border border-blue-200 p-3 rounded">
+                              <h4 className="font-semibold text-sm mb-2 text-blue-900">Evidence Fields</h4>
                               <div className="text-xs font-mono space-y-1">
                                 <div>
                                   <span className="text-muted-foreground">athena_query_execution_id:</span><br/>
@@ -795,7 +892,7 @@ export default function NetworkMapModal({ isOpen, onClose }) {
 
                             <div>
                               <h4 className="font-semibold text-sm mb-2">SQL Executed</h4>
-                              <pre className="bg-slate-900 text-slate-100 p-2 rounded text-[10px] overflow-x-auto">
+                              <pre className="bg-[var(--mac-ice)] text-[var(--mac-ash)] border border-[var(--mac-panel-border)] p-2 rounded text-[10px] overflow-x-auto">
                                 {state.data.sql}
                               </pre>
                             </div>

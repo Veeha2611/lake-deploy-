@@ -34,16 +34,19 @@ export default function EvidenceDrawer({ evidence, title = "Query Evidence" }) {
   };
 
   const qid = evidence.athena_query_execution_id || 
+               evidence.query_execution_id ||
                evidence.execution_id ||
                evidence.athena_query_execution_ids?.[0] ||
                'N/A';
   
   const sql = evidence.generated_sql || 
+              evidence.executed_sql ||
               evidence.sql || 
               (Array.isArray(evidence.generated_sql) ? evidence.generated_sql[0]?.sql : null) ||
               'N/A';
   
   const viewsUsed = evidence.views_used || 
+                   evidence.sources ||
                    evidence.tables_used ||
                    [];
   
@@ -61,7 +64,11 @@ export default function EvidenceDrawer({ evidence, title = "Query Evidence" }) {
                      null;
   
   const guardFailures = evidence.guard_failures || [];
-  const hasErrors = guardFailures.length > 0 || evidence.error;
+  const evidenceStatus = evidence.status || null;
+  const hasErrors = guardFailures.length > 0 || evidence.error || (evidenceStatus && evidenceStatus !== 'ok');
+  const confidence = evidence.confidence || null;
+  const freshness = Array.isArray(evidence.freshness) ? evidence.freshness : [];
+  const crossChecks = Array.isArray(evidence.cross_checks) ? evidence.cross_checks : [];
 
   return (
     <Dialog>
@@ -93,6 +100,16 @@ export default function EvidenceDrawer({ evidence, title = "Query Evidence" }) {
                 Query Successful
               </Badge>
             )}
+            {evidenceStatus && (
+              <Badge variant="outline" className="text-xs">
+                {String(evidenceStatus).toUpperCase()}
+              </Badge>
+            )}
+            {confidence && (
+              <Badge variant="outline" className="text-xs">
+                Confidence: {String(confidence).toUpperCase()}
+              </Badge>
+            )}
             {rowCount !== null && (
               <Badge variant="outline">
                 {rowCount.toLocaleString()} rows returned
@@ -109,8 +126,8 @@ export default function EvidenceDrawer({ evidence, title = "Query Evidence" }) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between gap-2 bg-slate-50 dark:bg-slate-900 rounded-lg p-3">
-                <code className="text-xs text-slate-700 dark:text-slate-300 break-all">
+              <div className="flex items-center justify-between gap-2 bg-[var(--mac-ice)] border border-[var(--mac-panel-border)] rounded-lg p-3">
+                <code className="text-xs text-[var(--foreground)] break-all">
                   {qid}
                 </code>
                 {qid !== 'N/A' && (
@@ -155,7 +172,7 @@ export default function EvidenceDrawer({ evidence, title = "Query Evidence" }) {
                   {viewsUsed.map((view, idx) => (
                     <div key={idx} className="flex items-center gap-2 text-xs">
                       <CheckCircle className="w-3 h-3 text-green-600" />
-                      <code className="text-slate-700 dark:text-slate-300">{view}</code>
+                      <code className="text-[var(--foreground)]">{view}</code>
                     </div>
                   ))}
                 </div>
@@ -173,8 +190,8 @@ export default function EvidenceDrawer({ evidence, title = "Query Evidence" }) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3">
-                  <code className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <div className="bg-[var(--mac-ice)] border border-[var(--mac-panel-border)] rounded-lg p-3">
+                  <code className="text-sm font-semibold text-[var(--foreground)]">
                     dt = {partitionDate}
                   </code>
                 </div>
@@ -182,9 +199,81 @@ export default function EvidenceDrawer({ evidence, title = "Query Evidence" }) {
             </Card>
           )}
 
+          {/* Freshness Checks */}
+          {freshness.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Freshness Checks
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {freshness.map((f, idx) => (
+                    <div key={idx} className="flex items-start justify-between gap-3 bg-[var(--mac-ice)] border border-[var(--mac-panel-border)] rounded-lg p-3">
+                      <div className="min-w-0">
+                        <div className="text-xs font-semibold text-slate-700 break-all">{f.view || 'unknown'}</div>
+                        <div className="text-[11px] text-slate-500">
+                          latest: {f.latest_partition ? String(f.latest_partition).slice(0, 19) : 'N/A'}
+                          {f.row_count !== null && f.row_count !== undefined ? ` • rows: ${String(f.row_count)}` : ''}
+                        </div>
+                        {f.query_execution_id && (
+                          <div className="text-[10px] text-slate-400">QID: {f.query_execution_id}</div>
+                        )}
+                        {f.error && (
+                          <div className="text-[11px] text-red-700">ERROR: {String(f.error)}</div>
+                        )}
+                      </div>
+                      <Badge variant="outline" className="text-[10px]">
+                        {String(f.status || 'unknown').toUpperCase()}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Cross-Checks */}
+          {crossChecks.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4" />
+                  Cross-Checks
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {crossChecks.map((c, idx) => (
+                    <div key={c.template_key || idx} className="flex items-start justify-between gap-3 bg-[var(--mac-ice)] border border-[var(--mac-panel-border)] rounded-lg p-3">
+                      <div className="min-w-0">
+                        <div className="text-xs font-semibold text-slate-700">{c.label || c.template_key || 'cross-check'}</div>
+                        <div className="text-[11px] text-slate-500">
+                          value: {c.error ? 'ERROR' : String(c.value ?? 'N/A')}
+                          {c.delta_pct !== null && c.delta_pct !== undefined ? ` • delta: ${(Number(c.delta_pct) * 100).toFixed(2)}%` : ''}
+                        </div>
+                        {c.query_execution_id && (
+                          <div className="text-[10px] text-slate-400">QID: {c.query_execution_id}</div>
+                        )}
+                        {c.error && (
+                          <div className="text-[11px] text-red-700">ERROR: {String(c.error)}</div>
+                        )}
+                      </div>
+                      <Badge variant="outline" className="text-[10px]">
+                        {String(c.status || 'unknown').toUpperCase()}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Guard Failures */}
           {guardFailures.length > 0 && (
-            <Card className="border-red-200 dark:border-red-800">
+            <Card className="border-red-200">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2 text-red-600">
                   <AlertTriangle className="w-4 h-4" />
@@ -194,8 +283,8 @@ export default function EvidenceDrawer({ evidence, title = "Query Evidence" }) {
               <CardContent>
                 <div className="space-y-2">
                   {guardFailures.map((failure, idx) => (
-                    <div key={idx} className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3">
-                      <p className="text-xs text-red-800 dark:text-red-200">{failure}</p>
+                    <div key={idx} className="bg-red-50 rounded-lg p-3">
+                      <p className="text-xs text-red-800">{failure}</p>
                     </div>
                   ))}
                 </div>
@@ -212,7 +301,7 @@ export default function EvidenceDrawer({ evidence, title = "Query Evidence" }) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-slate-900 text-slate-100 rounded-lg p-4 overflow-x-auto relative group">
+              <div className="bg-[var(--mac-ice)] text-[var(--mac-ash)] border border-[var(--mac-panel-border)] rounded-lg p-4 overflow-x-auto relative group">
                 <pre className="text-xs whitespace-pre-wrap break-words">
                   {typeof sql === 'string' ? sql : JSON.stringify(sql, null, 2)}
                 </pre>
@@ -223,11 +312,11 @@ export default function EvidenceDrawer({ evidence, title = "Query Evidence" }) {
                   onClick={() => copyToClipboard(typeof sql === 'string' ? sql : JSON.stringify(sql, null, 2), 'SQL')}
                 >
                   {copied === 'SQL' ? (
-                    <CheckCircle className="w-4 h-4 text-green-400" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </Button>
+                      <CheckCircle className="w-4 h-4 text-[var(--mac-forest)]" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </Button>
               </div>
             </CardContent>
           </Card>
@@ -242,8 +331,8 @@ export default function EvidenceDrawer({ evidence, title = "Query Evidence" }) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3">
-                  <code className="text-xs text-slate-700 dark:text-slate-300 break-all">
+                <div className="bg-[var(--mac-ice)] border border-[var(--mac-panel-border)] rounded-lg p-3">
+                  <code className="text-xs text-[var(--foreground)] break-all">
                     {manifestUrl}
                   </code>
                 </div>

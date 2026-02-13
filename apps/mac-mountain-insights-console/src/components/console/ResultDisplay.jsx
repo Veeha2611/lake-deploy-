@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Table, BarChart3, PieChart, LineChart, Download, Database, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
 import { BarChart, Bar, PieChart as RePieChart, Pie, LineChart as ReLineChart, Line, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, AreaChart } from 'recharts';
 import ReactMarkdown from 'react-markdown';
@@ -9,12 +10,20 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import TableWithSort from './TableWithSort';
 import EvidenceDrawer from '@/components/dashboard/EvidenceDrawer';
+import { macEngineInvoke } from '@/api/macEngineClient';
 
 const COLORS = ['#5C7B5F', '#7B8B8E', '#B8D8E5', '#2D3E2D', '#8FA88F', '#A6B8B0'];
 
-export default function ResultDisplay({ result }) {
+export default function ResultDisplay({ result, onFollowup }) {
   const [viewType, setViewType] = useState('table');
   const [showEvidence, setShowEvidence] = useState(true); // Default to showing evidence
+  const [actionLoading, setActionLoading] = useState(false);
+  const [followupText, setFollowupText] = useState('');
+  const [verificationResult, setVerificationResult] = useState(result?.verification || null);
+
+  React.useEffect(() => {
+    setVerificationResult(result?.verification || null);
+  }, [result?.verification]);
 
   // Debug logging
   React.useEffect(() => {
@@ -99,12 +108,94 @@ export default function ResultDisplay({ result }) {
     toast.success('Data exported to CSV');
   };
 
+  const handleCaseAction = async (action) => {
+    const caseId = result?.action_case_id || result?.case_id;
+    if (!caseId) {
+      toast.error('No case_id available for this result');
+      return;
+    }
+    setActionLoading(true);
+    try {
+      const response = await macEngineInvoke('caseAction', {
+        case_id: caseId,
+        action
+      });
+      if (action === 'EXPORT_CSV') {
+        if (response.data.download_url) {
+          window.location.assign(response.data.download_url);
+          toast.success('Server export started');
+        } else {
+          toast.message('Export queued. Try again if needed.');
+        }
+      } else if (action === 'EXPORT_XLSX') {
+        if (response.data.download_url) {
+          window.location.assign(response.data.download_url);
+          toast.success('XLSX export started');
+        } else {
+          toast.message('XLSX export queued. Try again if needed.');
+        }
+      } else if (action === 'BUILD_REPORT') {
+        if (response.data.download_url) {
+          window.location.assign(response.data.download_url);
+          toast.success('Report generated');
+        } else {
+          toast.message(response.data.message || 'Report queued');
+        }
+      } else if (action === 'VERIFY_ACROSS_SYSTEMS') {
+        const verification = response.data?.verification || response.data || null;
+        if (verification) {
+          setVerificationResult(verification);
+          toast.success('Verification complete');
+        } else {
+          toast.message(response.data.message || 'Verification queued');
+        }
+      } else {
+        toast.success('Action completed');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Action failed');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const chartData = result.data_results?.slice(0, 50).map((row, idx) => {
     return { ...row, index: idx };
   }) || [];
 
   const hasData = result.data_results && result.data_results.length > 0;
   const columns = hasData ? Object.keys(result.data_results[0]) : [];
+  const actionsAvailable = Array.isArray(result.actions_available) ? result.actions_available : [];
+  const showActionBar = hasData || (result.case_id && actionsAvailable.length);
+  const questionId = result.question_id || result.evidence?.query_id || '';
+  const agentSteps = Array.isArray(result.agent_steps) ? result.agent_steps : [];
+  const evidenceForDrawer = result.evidence_pack || result.evidence || null;
+
+  const buildFollowupSuggestions = () => {
+    const suggestions = [];
+    const normalized = String(questionId || '').toLowerCase();
+    const answerText = String(result.answer_markdown || '').toLowerCase();
+    const isCustomer = normalized.includes('customer') || answerText.includes('customer');
+    const isRevenue = normalized.includes('mrr') || normalized.includes('revenue') || answerText.includes('mrr');
+    const isTickets = normalized.includes('ticket') || normalized.includes('outage') || answerText.includes('outage');
+
+    if (isCustomer) {
+      suggestions.push('Verify across systems for this metric');
+      suggestions.push('Show network mix by customer type');
+    }
+    if (isRevenue) {
+      suggestions.push('Show MRR trend for the last 12 months');
+      suggestions.push('Compare MRR vs prior year');
+    }
+    if (isTickets) {
+      suggestions.push('Show outages reported in the last 30 days');
+      suggestions.push('Show ticket burden by priority');
+    }
+
+    return suggestions.slice(0, 4);
+  };
+
+  const followupSuggestions = buildFollowupSuggestions();
 
   // Safety check for malformed data
   try {
@@ -142,21 +233,70 @@ export default function ResultDisplay({ result }) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold text-slate-800">Results</CardTitle>
-            {hasData && (
+            {showActionBar && (
               <div className="flex items-center gap-2">
                 <EvidenceDrawer 
-                  evidence={result.evidence}
+                  evidence={evidenceForDrawer}
                   title="Query Console - Query Evidence"
                 />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleExport}
-                  className="hover:bg-emerald-50"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
-                </Button>
+                {result.case_id && actionsAvailable.includes('EXPORT_CSV') && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCaseAction('EXPORT_CSV')}
+                    disabled={actionLoading}
+                    className="hover:bg-emerald-50"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export (Server)
+                  </Button>
+                )}
+                {result.case_id && actionsAvailable.includes('EXPORT_XLSX') && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCaseAction('EXPORT_XLSX')}
+                    disabled={actionLoading}
+                    className="hover:bg-emerald-50"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export XLSX
+                  </Button>
+                )}
+                {result.case_id && actionsAvailable.includes('BUILD_REPORT') && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCaseAction('BUILD_REPORT')}
+                    disabled={actionLoading}
+                    className="hover:bg-slate-50"
+                  >
+                    <Database className="w-4 h-4 mr-2" />
+                    Build Report
+                  </Button>
+                )}
+                {result.case_id && actionsAvailable.includes('VERIFY_ACROSS_SYSTEMS') && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCaseAction('VERIFY_ACROSS_SYSTEMS')}
+                    disabled={actionLoading}
+                    className="hover:bg-slate-50"
+                  >
+                    Verify
+                  </Button>
+                )}
+                {hasData && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExport}
+                    className="hover:bg-emerald-50"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export
+                  </Button>
+                )}
                 <Button
                   variant={viewType === 'table' ? 'default' : 'outline'}
                   size="sm"
@@ -195,6 +335,35 @@ export default function ResultDisplay({ result }) {
         </CardHeader>
 
         <CardContent>
+          {agentSteps.length > 0 && (
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              {agentSteps.map((step, idx) => {
+                const status = String(step?.status || '').toLowerCase();
+                const label = String(step?.step || 'STEP');
+                let klass = 'bg-slate-100 text-slate-700 border border-slate-200';
+                if (status === 'ok') klass = 'bg-emerald-50 text-emerald-800 border border-emerald-200';
+                else if (status === 'failed') klass = 'bg-red-50 text-red-800 border border-red-200';
+                else if (status === 'mismatch') klass = 'bg-amber-50 text-amber-800 border border-amber-200';
+                else if (status === 'unavailable') klass = 'bg-amber-50 text-amber-800 border border-amber-200';
+                else if (status === 'skipped') klass = 'bg-slate-50 text-slate-500 border border-slate-200';
+                return (
+                  <span
+                    key={`${label}-${idx}`}
+                    className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-1 rounded-full ${klass}`}
+                    title={status}
+                  >
+                    {label}
+                  </span>
+                );
+              })}
+              {result.evidence_pack?.confidence && (
+                <span className="text-[10px] font-medium text-slate-500 ml-2">
+                  Confidence: {String(result.evidence_pack.confidence).toUpperCase()}
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Markdown Answer */}
           {result.answer_markdown && (
             <div className="mb-6 p-6 rounded-xl bg-gradient-to-br from-white via-slate-50 to-white border border-slate-200 shadow-sm">
@@ -295,6 +464,90 @@ export default function ResultDisplay({ result }) {
                   {result.answer_markdown}
                 </ReactMarkdown>
               </div>
+            </div>
+          )}
+
+          {verificationResult && (
+            <div className="mb-6 p-4 rounded-xl border border-slate-200 bg-white shadow-sm space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="text-xs uppercase tracking-wider text-slate-500">Cross-System Verification</div>
+                {verificationResult.status && (
+                  <Badge variant="outline" className="text-xs">
+                    {String(verificationResult.status).toUpperCase()}
+                  </Badge>
+                )}
+              </div>
+              {verificationResult.message && (
+                <p className="text-sm text-slate-700">{verificationResult.message}</p>
+              )}
+              {Array.isArray(verificationResult.comparisons) && verificationResult.comparisons.length > 0 && (
+                <div className="space-y-2">
+                  {verificationResult.comparisons.map((comp) => (
+                    <div key={comp.template_key} className="text-sm text-slate-700 flex items-start gap-2">
+                      <span className="mt-0.5">•</span>
+                      <div className="flex-1">
+                        <div className="font-medium text-slate-800">{comp.label || comp.template_key}</div>
+                        {comp.error ? (
+                          <div className="text-red-700 text-xs">ERROR: {comp.error}</div>
+                        ) : (
+                          <div className="text-xs text-slate-600">Value: {String(comp.value ?? 'N/A')}</div>
+                        )}
+                        {comp.query_execution_id && (
+                          <div className="text-[10px] text-slate-500">QID: {comp.query_execution_id}</div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {onFollowup && (
+            <div className="mb-6 p-4 rounded-xl border border-slate-200 bg-white shadow-sm space-y-3">
+              <div className="text-xs uppercase tracking-wider text-slate-500">Continue the conversation</div>
+              <div className="flex flex-wrap gap-2">
+                <Input
+                  value={followupText}
+                  onChange={(e) => setFollowupText(e.target.value)}
+                  placeholder="Ask a follow-up question (uses this answer as context)"
+                  className="flex-1 min-w-[220px] bg-background text-foreground placeholder:text-muted-foreground border-slate-200 focus-visible:ring-[var(--mac-forest)]"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && followupText.trim()) {
+                      e.preventDefault();
+                      onFollowup(followupText.trim());
+                      setFollowupText('');
+                    }
+                  }}
+                />
+                <Button
+                  onClick={() => {
+                    if (!followupText.trim()) return;
+                    onFollowup(followupText.trim());
+                    setFollowupText('');
+                  }}
+                  className="bg-[var(--mac-forest)]"
+                >
+                  Ask follow-up
+                </Button>
+              </div>
+              {followupSuggestions.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {followupSuggestions.map((text) => (
+                    <button
+                      key={text}
+                      type="button"
+                      onClick={() => {
+                        onFollowup(text);
+                        setFollowupText('');
+                      }}
+                      className="text-xs px-3 py-1.5 bg-slate-100 hover:bg-[var(--mac-forest)]/10 border border-slate-200 rounded-full text-slate-700 transition-all"
+                    >
+                      {text}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

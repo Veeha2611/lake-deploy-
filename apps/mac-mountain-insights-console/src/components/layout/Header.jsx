@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, User } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -7,9 +7,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function Header({ title, subtitle, user }) {
+  const { logout } = useAuth();
   return (
     <header className="flex items-center justify-between mb-8">
       <div>
@@ -38,7 +39,7 @@ export default function Header({ title, subtitle, user }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => base44.auth.logout()}>
+            <DropdownMenuItem onClick={logout}>
               Sign Out
             </DropdownMenuItem>
           </DropdownMenuContent>

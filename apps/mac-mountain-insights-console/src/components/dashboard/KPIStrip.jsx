@@ -11,34 +11,15 @@ export default function KPIStrip() {
   const { data: metrics, isLoading } = useQuery({
     queryKey: ['kpi-strip'],
     queryFn: async () => {
-      const [mrrRes, customersRes, bandsRes] = await Promise.all([
-        base44.functions.invoke('aiLayerQuery', {
-          template_id: 'freeform_sql_v1',
-          params: { 
-            sql: `SELECT SUM(total_mrr) as total_mrr FROM curated_core.v_customer_fully_loaded_margin_banded WHERE total_mrr > 0 LIMIT 1`
-          }
-        }),
-        base44.functions.invoke('aiLayerQuery', {
-          template_id: 'freeform_sql_v1',
-          params: { 
-            sql: `SELECT COUNT(*) as total, SUM(CASE WHEN has_active_service = true AND is_test_internal = false THEN 1 ELSE 0 END) as active FROM curated_core.dim_customer_platt LIMIT 1`
-          }
-        }),
-        base44.functions.invoke('aiLayerQuery', {
-          template_id: 'freeform_sql_v1',
-          params: { 
-            sql: `SELECT action_band, COUNT(*) as count FROM curated_core.v_customer_fully_loaded_margin_banded WHERE action_band IN ('D', 'E') GROUP BY action_band LIMIT 10`
-          }
-        })
+      const [mrrRes, customersRes, atRiskRes] = await Promise.all([
+        base44.functions.invoke('aiLayerQuery', { question_id: 'total_mrr' }),
+        base44.functions.invoke('aiLayerQuery', { question_id: 'active_accounts' }),
+        base44.functions.invoke('aiLayerQuery', { question_id: 'at_risk_count' })
       ]);
 
       const mrr = mrrRes.data?.data_rows?.[0]?.[0] || 0;
-      const active = customersRes.data?.data_rows?.[0]?.[1] || 0;
-      const atRiskRows = bandsRes.data?.data_rows || [];
-      const atRisk = atRiskRows.reduce((sum, row) => {
-        const rowValues = Array.isArray(row) ? row : Object.values(row);
-        return sum + (Number(rowValues[1]) || 0);
-      }, 0);
+      const active = customersRes.data?.data_rows?.[0]?.[0] || 0;
+      const atRisk = atRiskRes.data?.data_rows?.[0]?.[0] || 0;
 
       return { mrr, active, atRisk };
     },
@@ -57,11 +38,7 @@ export default function KPIStrip() {
       trendUp: true,
       color: 'emerald',
       gradientClass: 'from-emerald-500 to-emerald-600',
-detailSql: `SELECT total_mrr, action_band 
-        FROM curated_core.v_customer_fully_loaded_margin_banded 
-        WHERE total_mrr > 0 
-        ORDER BY total_mrr DESC 
-        LIMIT 100`
+      detailQuestionId: 'total_mrr'
     },
     {
       label: 'Active Accounts',
@@ -71,10 +48,7 @@ detailSql: `SELECT total_mrr, action_band
       trendUp: true,
       color: 'blue',
       gradientClass: 'from-blue-500 to-blue-600',
-detailSql: `SELECT is_test_internal, has_active_service 
-        FROM curated_core.dim_customer_platt 
-        WHERE has_active_service = true AND is_test_internal = false 
-        LIMIT 100`
+      detailQuestionId: 'active_accounts'
     },
     {
       label: 'At Risk (D/E)',
@@ -84,35 +58,27 @@ detailSql: `SELECT is_test_internal, has_active_service
       trendUp: true,
       color: 'amber',
       gradientClass: 'from-amber-500 to-amber-600',
-detailSql: `SELECT action_band, total_mrr
-        FROM curated_core.v_customer_fully_loaded_margin_banded 
-        WHERE action_band IN ('D', 'E') 
-        ORDER BY action_band, total_mrr ASC 
-        LIMIT 100`
+      detailQuestionId: 'at_risk_customers'
     },
     {
       label: 'Health Score',
-      value: '87',
+      value: '—',
       icon: Activity,
-      trend: '+2',
+      trend: null,
       trendUp: true,
       color: 'emerald',
       gradientClass: 'from-emerald-500 to-emerald-600',
-      detailSql: null
+      detailQuestionId: 'health_score_detail'
     },
     {
       label: 'Churn Rate',
-      value: '2.4%',
+      value: '—',
       icon: TrendingUp,
-      trend: '-0.3%',
+      trend: null,
       trendUp: true,
       color: 'slate',
       gradientClass: 'from-slate-500 to-slate-600',
-      detailSql: `SELECT period_month, mrr_churn, ending_mrr, 
-        ROUND((mrr_churn / NULLIF(ending_mrr, 0)) * 100, 2) as churn_rate_pct 
-        FROM curated_core.v_monthly_mrr_and_churn_summary 
-        ORDER BY period_month DESC 
-        LIMIT 12`
+      detailQuestionId: 'mrr_summary_12m'
     }
   ];
 
@@ -135,7 +101,7 @@ detailSql: `SELECT action_band, total_mrr
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: idx * 0.05 }}
               className="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-lg transition-all cursor-pointer group"
-              onClick={() => kpi.detailSql && setSelectedKPI(kpi)}
+              onClick={() => kpi.detailQuestionId && setSelectedKPI(kpi)}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className={`p-2 rounded-lg bg-gradient-to-br ${colorClasses[kpi.color]} shadow-md`}>

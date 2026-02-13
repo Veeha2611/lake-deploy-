@@ -1,894 +1,1002 @@
 import React from 'react';
-import { Users, TrendingUp, BarChart3, AlertCircle, Zap, DollarSign, Activity } from 'lucide-react';
+import {
+  Activity,
+  AlertCircle,
+  BarChart3,
+  ChevronDown,
+  Download,
+  LineChart as LineChartIcon,
+  Map
+} from 'lucide-react';
+import { motion } from 'framer-motion';
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { useQuery } from '@tanstack/react-query';
 import DashboardTile from '@/components/dashboard/DashboardTile';
 import DataFreshnessWidget from '@/components/dashboard/DataFreshnessWidget';
-import QuickActionBanner from '@/components/dashboard/QuickActionBanner';
-import MainChartCard from '@/components/dashboard/MainChartCard';
-import KPIStrip from '@/components/dashboard/KPIStrip';
-import GLClosePack from '@/components/dashboard/GLClosePack';
-import MRRFy2025Tile from '@/components/dashboard/MRRFy2025Tile';
-import BucketSummaryTile from '@/components/dashboard/BucketSummaryTile';
 import RefreshControls from '@/components/dashboard/RefreshControls';
-import { DashboardRefreshProvider } from '@/components/dashboard/DashboardRefreshProvider';
-import NetworkMapTile from '@/components/gis/NetworkMapTile';
+import QuickActionBanner from '@/components/dashboard/QuickActionBanner';
 import FinanceKPITiles from '@/components/dashboard/FinanceKPITiles';
-import { motion } from 'framer-motion';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import MainChartCard from '@/components/dashboard/MainChartCard';
+import MRRFy2025Tile from '@/components/dashboard/MRRFy2025Tile';
+import GLClosePack from '@/components/dashboard/GLClosePack';
+import BucketSummaryTile from '@/components/dashboard/BucketSummaryTile';
+import NetworkMapTile from '@/components/gis/NetworkMapTile';
+import { DashboardRefreshProvider } from '@/components/dashboard/DashboardRefreshProvider';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MAC_AWS_ONLY } from '@/lib/mac-app-flags';
+import { runSSOTQuery } from '@/api/ssotQuery';
 
-const COLORS = ['#5C7B5F', '#7B8B8E', '#B8D8E5', '#2D3E2D', '#8FA88F', '#A6B8B0'];
+const COLORS = ['#5C7B5F', '#3D5A3D', '#B8D8E5', '#7B8B8E', '#8FA88F', '#A6B8B0'];
 
-function DashboardContent({ user }) {
-  const { data: statsData, isLoading: statsLoading } = useQuery({
-    queryKey: ['dashboard-stats'],
+function CustomerAnalyticsPanel() {
+  const [networkType, setNetworkType] = React.useState('');
+  const [customerType, setCustomerType] = React.useState('');
+  const [search, setSearch] = React.useState('');
+  const [sortConfig, setSortConfig] = React.useState({ key: 'network', direction: 'asc' });
+  const [collapsed, setCollapsed] = React.useState(true);
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['customer-analytics-network-health'],
     queryFn: async () => {
-      try {
-        const [mrrRes, customersRes, bandsRes] = await Promise.all([
-          base44.functions.invoke('aiLayerQuery', {
-            template_id: 'freeform_sql_v1',
-            params: { 
-              sql: `WITH customer_month AS (
-                SELECT customer_id, SUM(mrr_total) AS mrr_total_customer_month
-                FROM curated_core.v_monthly_mrr_platt
-                WHERE period_month = (SELECT MAX(period_month) FROM curated_core.v_monthly_mrr_platt)
-                GROUP BY 1
-              )
-              SELECT SUM(mrr_total_customer_month) as total_mrr FROM customer_month LIMIT 1`
-            }
-          }),
-          base44.functions.invoke('aiLayerQuery', {
-            template_id: 'freeform_sql_v1',
-            params: { 
-              sql: `SELECT COUNT(DISTINCT customer_id) as active 
-                    FROM curated_core.v_monthly_mrr_platt 
-                    WHERE period_month = (SELECT MAX(period_month) FROM curated_core.v_monthly_mrr_platt)
-                      AND mrr_total > 0 
-                    LIMIT 1`
-            }
-          }),
-          base44.functions.invoke('aiLayerQuery', {
-            template_id: 'freeform_sql_v1',
-            params: { 
-              sql: `SELECT action_band, COUNT(*) as count FROM curated_core.v_customer_fully_loaded_margin_banded WHERE action_band IN ('D', 'E') GROUP BY action_band LIMIT 10`
-            }
-          })
-        ]);
-
-        const mrr = mrrRes?.data?.data_rows?.[0]?.[0] || 0;
-        const active = customersRes?.data?.data_rows?.[0]?.[0] || 0;
-        const atRiskRows = bandsRes?.data?.data_rows || [];
-        const atRisk = atRiskRows.reduce((sum, row) => {
-          const rowValues = Array.isArray(row) ? row : Object.values(row);
-          return sum + (Number(rowValues[1]) || 0);
-        }, 0);
-
-        return { mrr, active, atRisk };
-      } catch (error) {
-        console.error('Dashboard stats error:', error);
-        return { mrr: 0, active: 0, atRisk: 0 };
-      }
+      const response = await runSSOTQuery({
+        sql: `SELECT * FROM curated_recon.v_network_mix_billing_aligned_latest WHERE network <> 'Unmapped' LIMIT 2000`,
+        queryId: 'network_health',
+        label: 'Network Mix (Billing-Aligned)',
+        params: { schema_version: '2026-02-11' }
+      });
+      return response.data;
     },
-    refetchInterval: 60000,
-    staleTime: 0,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-    retry: false,
+    retry: 2,
+    staleTime: 60000,
+    refetchInterval: 60000
   });
 
+  const resolved = React.useMemo(() => {
+    if (!data?.data_rows || !data?.columns) {
+      return { rows: [], columns: {}, missing: [] };
+    }
+    const normalize = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const columnIndex = (candidates) => {
+      for (const candidate of candidates) {
+        const idx = data.columns.findIndex((col) => normalize(col) === normalize(candidate));
+        if (idx !== -1) return idx;
+      }
+      return -1;
+    };
+
+    const columnMap = {
+      network: columnIndex(['network', 'network_name', 'system_name', 'system', 'plan_name']),
+      networkType: columnIndex(['network_type', 'networktype', 'bucket', 'system_bucket', 'type']),
+      customerType: columnIndex(['customer_type', 'customertype', 'segment', 'customer_segment']),
+      passings: columnIndex(['passings', 'passing', 'bsl', 'serviceable', 'serviceable_locations']),
+      subscriptions: columnIndex(['subscriptions', 'subscribers', 'active_subs', 'customers', 'active_customers']),
+      arpu: columnIndex(['arpu', 'avg_arpu', 'average_revenue', 'avg_revenue']),
+      arpuLabel: columnIndex(['arpu_label', 'arpu_text', 'arpu_raw', 'arpu_note']),
+      mrr: columnIndex(['mrr', 'monthly_revenue', 'total_mrr'])
+    };
+
+    const missing = Object.entries(columnMap)
+      .filter(([key, idx]) => idx === -1 && key !== 'arpuLabel')
+      .map(([key]) => key);
+
+    const isArtifactRow = (row) => {
+      const network = String(row.network || '').trim().toLowerCase();
+      const networkType = String(row.networkType || '').trim().toLowerCase();
+      const customerType = String(row.customerType || '').trim().toLowerCase();
+      const arpuLabel = String(row.arpuLabel || '').trim().toLowerCase();
+      const metricsZero = (Number(row.passings) || 0) === 0
+        && (Number(row.subscriptions) || 0) === 0
+        && (!Number.isFinite(row.mrr) || Number(row.mrr) === 0);
+      const isHeaderNetwork = network === 'network';
+      const isHeaderNetworkType = networkType === 'network_type'
+        || networkType === 'networktype'
+        || networkType === 'network type';
+      const isHeaderCustomerType = customerType === 'customer_type'
+        || customerType === 'customertype'
+        || customerType === 'customer type';
+      const headerLike = isHeaderNetwork && isHeaderNetworkType && (isHeaderCustomerType || customerType === '');
+      const arpuHeaderLike = arpuLabel === 'arpu'
+        || arpuLabel === 'arpu_label'
+        || arpuLabel === 'arpu label'
+        || arpuLabel === 'n/a'
+        || arpuLabel === 'na';
+      const artifactLike = isHeaderNetwork && isHeaderNetworkType && metricsZero;
+      return headerLike || artifactLike || (metricsZero && arpuHeaderLike && isHeaderNetwork);
+    };
+
+    const rows = data.data_rows.map((row) => {
+      const values = Array.isArray(row) ? row : Object.values(row);
+      const passings = Number(values[columnMap.passings]) || 0;
+      const subscriptions = Number(values[columnMap.subscriptions]) || 0;
+      const arpuRaw = columnMap.arpu !== -1 ? values[columnMap.arpu] : null;
+      const arpuValue = Number(arpuRaw);
+      const arpuLabel = columnMap.arpuLabel !== -1 ? values[columnMap.arpuLabel] : null;
+      const mrrRaw = Number(values[columnMap.mrr]);
+      const mrr = Number.isFinite(mrrRaw)
+        ? mrrRaw
+        : (Number.isFinite(arpuValue) ? subscriptions * arpuValue : null);
+      const mapped = {
+        network: values[columnMap.network] ?? 'Unknown',
+        networkType: values[columnMap.networkType] ?? 'Unknown',
+        customerType: values[columnMap.customerType] ?? 'Unknown',
+        passings,
+        subscriptions,
+        arpu: Number.isFinite(arpuValue) ? arpuValue : null,
+        arpuLabel: !Number.isFinite(arpuValue) ? (arpuLabel || arpuRaw) : null,
+        mrr
+      };
+      return isArtifactRow(mapped) ? null : mapped;
+    }).filter(Boolean).filter((row) => String(row.network).trim().toLowerCase() !== 'unmapped');
+
+    return { rows, columns: columnMap, missing };
+  }, [data]);
+
+  const networkTypeOptions = React.useMemo(() => {
+    const values = resolved.rows
+      .map((row) => row.networkType)
+      .filter((value) => value && String(value).trim().length > 0);
+    return Array.from(new Set(values)).sort((a, b) => String(a).localeCompare(String(b)));
+  }, [resolved.rows]);
+
+  const customerTypeOptions = React.useMemo(() => {
+    const values = resolved.rows
+      .map((row) => row.customerType)
+      .filter((value) => value && String(value).trim().length > 0);
+    return Array.from(new Set(values)).sort((a, b) => String(a).localeCompare(String(b)));
+  }, [resolved.rows]);
+
+  const filteredRows = React.useMemo(() => {
+    let rows = resolved.rows;
+    if (networkType) {
+      rows = rows.filter((row) => row.networkType === networkType);
+    }
+    if (customerType) {
+      rows = rows.filter((row) => row.customerType === customerType);
+    }
+    if (search) {
+      const needle = search.toLowerCase();
+      rows = rows.filter((row) => String(row.network).toLowerCase().includes(needle));
+    }
+    const sorted = [...rows].sort((a, b) => {
+      const direction = sortConfig.direction === 'asc' ? 1 : -1;
+      const valA = a[sortConfig.key];
+      const valB = b[sortConfig.key];
+      if (typeof valA === 'string') {
+        return direction * valA.localeCompare(valB);
+      }
+      return direction * ((Number(valA) || 0) - (Number(valB) || 0));
+    });
+    return sorted;
+  }, [resolved.rows, networkType, customerType, search, sortConfig]);
+
+  const displayRows = React.useMemo(() => {
+    return collapsed ? [] : filteredRows;
+  }, [filteredRows, collapsed]);
+
+  const metrics = React.useMemo(() => {
+    const totalPassings = filteredRows.reduce((sum, row) => sum + row.passings, 0);
+    const totalSubs = filteredRows.reduce((sum, row) => sum + row.subscriptions, 0);
+    const totalMrr = filteredRows.reduce((sum, row) => sum + (Number.isFinite(row.mrr) ? row.mrr : 0), 0);
+    const subsWithArpu = filteredRows.reduce((sum, row) => sum + (Number.isFinite(row.mrr) ? row.subscriptions : 0), 0);
+    const avgArpu = subsWithArpu > 0 ? totalMrr / subsWithArpu : 0;
+    const penetration = totalPassings > 0 ? (totalSubs / totalPassings) * 100 : 0;
+    const mixedArpuCount = filteredRows.filter((row) => row.arpuLabel).length;
+    return { totalPassings, totalSubs, totalMrr, avgArpu, penetration, mixedArpuCount };
+  }, [filteredRows]);
+
+  const handleSort = (key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const resolveTagClass = (value) => {
+    const key = String(value || '').toLowerCase();
+    if (key.includes('owned')) return 'mac-tag-owned';
+    if (key.includes('contract')) return 'mac-tag-contracted';
+    if (key.includes('clec')) return 'mac-tag-clec';
+    return 'mac-tag-unknown';
+  };
+
+  const handleExport = () => {
+    const headers = ['Network', 'Network Type', 'Customer Type', 'Passings', 'Subscriptions', 'Penetration %', 'ARPU', 'MRR'];
+    const rows = filteredRows.map((row) => {
+      const penetration = row.passings > 0 ? (row.subscriptions / row.passings * 100).toFixed(1) : '0.0';
+      const arpuValue = Number.isFinite(row.arpu) ? row.arpu.toFixed(0) : '';
+      const arpuLabel = row.arpuLabel ? String(row.arpuLabel).replace(/\n/g, ' ') : '';
+      const arpuExport = arpuValue ? `$${arpuValue}` : (arpuLabel || '');
+      return [
+        row.network,
+        row.networkType,
+        row.customerType,
+        row.passings,
+        row.subscriptions,
+        penetration,
+        arpuExport,
+        row.mrr?.toFixed(2) ?? ''
+      ];
+    });
+    const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `customer_analytics_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="max-w-[1800px] mx-auto px-6 py-8 space-y-6">
-      <motion.header 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <div className="flex-1">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-[var(--mac-forest)] to-[var(--mac-dark)] bg-clip-text text-transparent mb-2">
-              MAC{user?.full_name ? ` — ${user.full_name.split(' ')[0]}` : ''}
-            </h1>
-            <p className="text-muted-foreground text-sm font-medium">Mountain Analytics Command · Intelligence from your unified data lake</p>
+    <section className="mac-panel rounded-3xl p-6">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="mac-section-header">
+          <div className="mac-icon-badge">
+            <BarChart3 className="w-5 h-5" />
           </div>
-          <div className="flex items-center gap-3">
-            <DataFreshnessWidget />
-            <RefreshControls />
+          <div>
+            <div className="mac-section-meta">Customer Mix Analytics</div>
+            <h2 className="font-display text-2xl text-foreground mt-2">Network Mix Dashboard</h2>
           </div>
         </div>
-      </motion.header>
+        <div className="text-xs text-muted-foreground">Lake source: curated_recon.v_network_mix_billing_aligned_latest</div>
+      </div>
 
-      {/* Quick Action Banner */}
-      <QuickActionBanner />
-
-      {/* Finance KPI Tiles from AWS */}
-      <FinanceKPITiles />
-
-      {/* Network Map */}
-      <NetworkMapTile />
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 rounded-xl" />
-          <DashboardTile
-              title="Total MRR"
-              icon={DollarSign}
-              tileId="total_mrr_detail"
-              supportedPeriods={['current']}
-              sql={`WITH customer_month AS (
-                SELECT
-                  period_month,
-                  customer_id,
-                  SUM(mrr_total) AS mrr_total_customer_month
-                FROM curated_core.v_monthly_mrr_platt
-                WHERE period_month = (SELECT MAX(period_month) FROM curated_core.v_monthly_mrr_platt)
-                GROUP BY 1, 2
-              )
-              SELECT 
-                SUM(mrr_total_customer_month) as total_mrr,
-                COUNT(DISTINCT customer_id) as customer_count
-              FROM customer_month
-              LIMIT 1`}
-              renderValue={(data) => {
-                const row = Array.isArray(data.data_rows[0]) ? data.data_rows[0] : Object.values(data.data_rows[0]);
-                const mrr = row[0] || 0;
-                return (
-                  <div>
-                    <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-                      ${(mrr / 1000).toFixed(2)}K
-                    </div>
-                    <div className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-1">Reconciled MRR</div>
-                  </div>
-                );
-              }}
-            />
+      {resolved.missing.length > 0 && (
+        <div className="mt-4 p-3 rounded-lg bg-[var(--mac-badge-bg)] border border-[var(--mac-badge-border)] text-xs text-[var(--mac-badge-text)]">
+          Missing expected columns in v_network_mix_billing_aligned_latest: {resolved.missing.join(', ')}. Update the view or provide a mapping.
         </div>
+      )}
 
-        <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-600/10 rounded-xl" />
-          <DashboardTile
-            title="Active Accounts"
-            icon={Users}
-            tileId="active_accounts_detail"
-            supportedPeriods={['current']}
-            sql={`WITH latest_mrr AS (
-              SELECT DISTINCT customer_id
-              FROM curated_core.v_monthly_mrr_platt
-              WHERE period_month = (SELECT MAX(period_month) FROM curated_core.v_monthly_mrr_platt)
-                AND mrr_total > 0
-            )
-            SELECT
-              COUNT(DISTINCT c.customer_id) AS customers_total,
-              COUNT(DISTINCT CASE WHEN c.has_active_service = true AND c.is_test_internal = false THEN c.customer_id END) AS customers_active,
-              COUNT(DISTINCT m.customer_id) AS customers_with_mrr
-            FROM curated_core.dim_customer_platt c
-            LEFT JOIN latest_mrr m ON m.customer_id = c.customer_id
-            LIMIT 1`}
-            renderValue={(data) => {
-              const row = Array.isArray(data.data_rows[0]) ? data.data_rows[0] : Object.values(data.data_rows[0]);
-              const activeCount = row[2] || row[1] || row[0];
-              return (
-                <div>
-                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                    {activeCount?.toLocaleString() || 'N/A'}
-                  </div>
-                  <div className="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">With active MRR</div>
-                </div>
-              );
-            }}
-          />
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 mt-6">
+        <div className="mac-kpi-card">
+          <div className="mac-kpi-label">Total Subscriptions</div>
+          <div className="mac-kpi-value">{metrics.totalSubs.toLocaleString()}</div>
+          <div className="text-xs text-muted-foreground mt-1">Active services</div>
         </div>
-
-        <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-amber-600/10 rounded-xl" />
-          <DashboardTile
-            title="At Risk (D/E)"
-            icon={AlertCircle}
-            tileId="at_risk_detail"
-            supportedPeriods={['current']}
-            sql={`SELECT
-              b.customer_id,
-              c.customer_name,
-              b.action_band,
-              b.fully_loaded_margin_pct
-            FROM curated_core.v_customer_fully_loaded_margin_banded b
-            LEFT JOIN curated_core.dim_customer_platt_v1_1 c
-              ON c.customer_id = b.customer_id
-            WHERE b.action_band IN ('D_PRICE_PLUS_SIMPLIFY', 'E_EXIT_OR_RESCOPE')
-            ORDER BY b.fully_loaded_margin_pct ASC
-            LIMIT 500`}
-            renderValue={(data) => {
-              const atRisk = data.data_rows?.length || 0;
-              return (
-                <div>
-                  <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">
-                    {atRisk.toLocaleString()}
-                  </div>
-                  <div className="text-xs text-amber-600/70 dark:text-amber-400/70 mt-1">Customers at risk</div>
-                </div>
-              );
-            }}
-          />
+        <div className="mac-kpi-card">
+          <div className="mac-kpi-label">Total Passings</div>
+          <div className="mac-kpi-value">{metrics.totalPassings.toLocaleString()}</div>
+          <div className="text-xs text-muted-foreground mt-1">Homes / businesses</div>
         </div>
-
-        <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-purple-600/10 rounded-xl" />
-          <DashboardTile
-            title="Health Score"
-            icon={Activity}
-            tileId="health_score_detail"
-            supportedPeriods={['current']}
-            sql={`SELECT 
-              action_band,
-              COUNT(*) as count,
-              SUM(total_mrr) as mrr
-            FROM curated_core.v_customer_fully_loaded_margin_banded
-            GROUP BY action_band
-            ORDER BY action_band
-            LIMIT 10`}
-            renderValue={(data) => {
-              return (
-                <div>
-                  <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                    87
-                  </div>
-                  <div className="text-xs text-purple-600/70 dark:text-purple-400/70 mt-1">+2 points</div>
-                </div>
-              );
-            }}
-          />
+        <div className="mac-kpi-card">
+          <div className="mac-kpi-label">Penetration</div>
+          <div className="mac-kpi-value">{metrics.penetration.toFixed(1)}%</div>
+          <div className="text-xs text-muted-foreground mt-1">Subs / passings</div>
+        </div>
+        <div className="mac-kpi-card">
+          <div className="mac-kpi-label">Avg ARPU</div>
+          <div className="mac-kpi-value">${metrics.avgArpu.toFixed(0)}</div>
+          <div className="text-xs text-muted-foreground mt-1">
+            Per customer / month{metrics.mixedArpuCount > 0 ? ' (excludes mixed ARPU)' : ''}
+          </div>
+        </div>
+        <div className="mac-kpi-card">
+          <div className="mac-kpi-label">Total MRR</div>
+          <div className="mac-kpi-value">${(metrics.totalMrr / 1000).toFixed(1)}K</div>
+          <div className="text-xs text-muted-foreground mt-1">Recurring revenue</div>
         </div>
       </div>
 
-      {/* Main Chart */}
-      <MainChartCard />
-
-      {/* Bucket Summary */}
-      <BucketSummaryTile />
-
-      {/* December 2025 Segment Overview */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.35, duration: 0.4 }}
-      >
-        <DashboardTile
-          title="December 2025 Segment Overview"
-          icon={BarChart3}
-          tileId="dec_2025_segment"
-          supportedPeriods={['current']}
-          sql={`SELECT *
-          FROM curated_core.v_monthly_account_churn_by_segment
-          WHERE period_month = '2025-12'
-          ORDER BY segment
-          LIMIT 10`}
-          renderContent={(data) => {
-            if (!data?.data_rows || data.data_rows.length === 0) {
-              return <div className="text-center text-muted-foreground py-8 text-sm">No data available</div>;
-            }
-
-            const chartData = data.data_rows.map(row => {
-              const values = Array.isArray(row) ? row : Object.values(row);
-              return {
-                segment: values[0],
-                mrr: values[1] || 0,
-                added: values[2] || 0,
-                lost: Math.abs(values[3] || 0),
-                net: values[4] || 0,
-                active: values[5] || 0
-              };
-            });
-
-            return (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="segment" tick={{ fontSize: 10 }} stroke="#64748b" />
-                  <YAxis tick={{ fontSize: 10 }} stroke="#64748b" />
-                  <Tooltip contentStyle={{ fontSize: 12, backgroundColor: 'var(--card)', border: '1px solid var(--border)' }} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Bar dataKey="mrr" fill="#5C7B5F" radius={[4, 4, 0, 0]} name="Ending MRR" />
-                  <Bar dataKey="added" fill="#10b981" radius={[4, 4, 0, 0]} name="Added" />
-                  <Bar dataKey="lost" fill="#ef4444" radius={[4, 4, 0, 0]} name="Lost" />
-                  <Bar dataKey="active" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Active" />
-                </BarChart>
-              </ResponsiveContainer>
-            );
-          }}
-        />
-      </motion.div>
-
-      {/* MRR FY2025 */}
-      <MRRFy2025Tile />
-
-      {/* GL Close Pack */}
-      <GLClosePack />
-
-      {/* Finance & Executive Overview */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.25, duration: 0.4 }}
-        className="mb-6"
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-            <Activity className="w-5 h-5 text-[var(--mac-forest)]" />
-            Finance & Executive Overview
-          </h2>
+      <div className="mac-panel-strong rounded-2xl p-4 mt-6 flex flex-wrap gap-3 items-end">
+        <div className="flex flex-col gap-2">
+          <label className="text-xs text-muted-foreground">Network Type</label>
+          <select
+            value={networkType}
+            onChange={(event) => setNetworkType(event.target.value)}
+            className="mac-input text-sm rounded-lg px-3 py-2"
+          >
+            <option value="">All Types</option>
+            {networkTypeOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
         </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Tile 1: Active Customers */}
-          <DashboardTile
-            title="Active Customers"
-            icon={Users}
-            tileId="active_customers"
-            supportedPeriods={['current']}
-            sql={`SELECT COUNT(DISTINCT customer_id) AS customers_with_mrr
-          FROM curated_core.v_monthly_mrr_platt
-          WHERE period_month = (SELECT MAX(period_month) FROM curated_core.v_monthly_mrr_platt)
-            AND mrr_total > 0
-          LIMIT 1`}
-            renderValue={(data) => {
-              const row = Array.isArray(data.data_rows[0]) ? data.data_rows[0] : Object.values(data.data_rows[0]);
-              const activeCount = row[0];
-              return (
-                <div className="text-3xl font-bold text-card-foreground">
-                  {activeCount?.toLocaleString() || 'N/A'}
+        <div className="flex flex-col gap-2">
+          <label className="text-xs text-muted-foreground">Customer Type</label>
+          <select
+            value={customerType}
+            onChange={(event) => setCustomerType(event.target.value)}
+            className="mac-input text-sm rounded-lg px-3 py-2"
+          >
+            <option value="">All Customers</option>
+            {customerTypeOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col gap-2 flex-1 min-w-[220px]">
+          <label className="text-xs text-muted-foreground">Search Network</label>
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Type to search..."
+            className="mac-input text-sm rounded-lg px-3 py-2"
+          />
+        </div>
+        <button
+          onClick={handleExport}
+          className="ml-auto mac-button-primary px-4 py-2 rounded-lg text-xs uppercase tracking-widest"
+        >
+          Export CSV
+        </button>
+      </div>
+
+      <div className="mac-panel-strong rounded-2xl mt-6 overflow-hidden">
+        {isLoading && (
+          <div className="p-8 text-center text-sm text-muted-foreground">Loading network mix…</div>
+        )}
+        {error && (
+          <div className="p-8 text-center text-sm text-destructive">Failed to load network mix: {error.message}</div>
+        )}
+        {!isLoading && !error && (
+          <div className="overflow-x-auto">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-xs text-muted-foreground border-b border-white/10">
+              <div>
+                {collapsed
+                  ? 'Table collapsed. Expand to view network rows.'
+                  : `Showing ${displayRows.length.toLocaleString()} of ${filteredRows.length.toLocaleString()} networks`}
+              </div>
+              <button
+                type="button"
+                className="mac-button-tertiary px-3 py-1.5 rounded-lg text-[11px] uppercase tracking-widest"
+                onClick={() => setCollapsed((prev) => !prev)}
+                title={collapsed ? 'Show network rows' : 'Hide network rows'}
+              >
+                {collapsed ? 'Show Table' : 'Hide Table'}
+              </button>
+            </div>
+            <table className="mac-table min-w-full text-xs">
+              <thead className="text-muted-foreground">
+                <tr>
+                  <th onClick={() => handleSort('network')} className="px-4 py-3 text-left uppercase tracking-widest cursor-pointer">Network</th>
+                  <th onClick={() => handleSort('networkType')} className="px-4 py-3 text-left uppercase tracking-widest cursor-pointer">Type</th>
+                  <th onClick={() => handleSort('customerType')} className="px-4 py-3 text-left uppercase tracking-widest cursor-pointer">Customer Type</th>
+                  <th onClick={() => handleSort('passings')} className="px-4 py-3 text-left uppercase tracking-widest cursor-pointer">Passings</th>
+                  <th onClick={() => handleSort('subscriptions')} className="px-4 py-3 text-left uppercase tracking-widest cursor-pointer">Subscriptions</th>
+                  <th className="px-4 py-3 text-left uppercase tracking-widest">Penetration</th>
+                  <th onClick={() => handleSort('arpu')} className="px-4 py-3 text-left uppercase tracking-widest cursor-pointer">ARPU</th>
+                  <th onClick={() => handleSort('mrr')} className="px-4 py-3 text-left uppercase tracking-widest cursor-pointer">MRR</th>
+                </tr>
+              </thead>
+              <tbody>
+                {displayRows.map((row, idx) => {
+                  const penetration = row.passings > 0 ? (row.subscriptions / row.passings) * 100 : 0;
+                  return (
+                    <tr key={`${row.network}-${idx}`} className="mac-table-row">
+                      <td className="px-4 py-2 font-semibold">{row.network}</td>
+                      <td className="px-4 py-2">
+                        <span className={`mac-tag ${resolveTagClass(row.networkType)}`}>
+                          {row.networkType}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2">
+                        <span className={`mac-tag ${resolveTagClass(row.customerType)}`}>
+                          {row.customerType}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2">{row.passings.toLocaleString()}</td>
+                      <td className="px-4 py-2">{row.subscriptions.toLocaleString()}</td>
+                      <td className="px-4 py-2">{penetration.toFixed(1)}%</td>
+                      <td className="px-4 py-2">
+                        {Number.isFinite(row.arpu)
+                          ? `$${row.arpu.toFixed(0)}`
+                          : (row.arpuLabel ? String(row.arpuLabel) : 'N/A')}
+                      </td>
+                      <td className="px-4 py-2">
+                        {Number.isFinite(row.mrr) ? `$${row.mrr.toFixed(0)}` : 'N/A'}
+                      </td>
+                    </tr>
+                  );
+                })}
+                {collapsed && (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
+                      Network rows are hidden. Click “Show Table” to expand.
+                    </td>
+                  </tr>
+                )}
+                {!collapsed && filteredRows.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No matching networks found</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function UnmappedNetworkPanel() {
+  const [exporting, setExporting] = React.useState(false);
+  const [collapsed, setCollapsed] = React.useState(true);
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['unmapped-network-services'],
+    queryFn: async () => {
+      const response = await runSSOTQuery({
+        sql: `SELECT * FROM curated_recon.v_unmapped_network_services_latest ORDER BY active_services DESC`,
+        queryId: 'unmapped_network_services',
+        label: 'Unmapped Network Services (Reconciliation)',
+        params: { schema_version: '2026-02-11' }
+      });
+      return response.data;
+    },
+    retry: 1,
+    staleTime: 60000,
+    refetchInterval: 60000
+  });
+
+  const resolved = React.useMemo(() => {
+    if (!data?.data_rows || !data?.columns) {
+      return { rows: [], columns: {} };
+    }
+    const normalize = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const columnIndex = (candidates) => {
+      for (const candidate of candidates) {
+        const idx = data.columns.findIndex((col) => normalize(col) === normalize(candidate));
+        if (idx !== -1) return idx;
+      }
+      return -1;
+    };
+
+    const columnMap = {
+      gwiSystem: columnIndex(['gwi_system', 'system', 'gwiSystem']),
+      activeServices: columnIndex(['active_services', 'active', 'subscriptions']),
+      billedCustomers: columnIndex(['billed_customers', 'billed', 'billing_customers']),
+      billedMrr: columnIndex(['billed_mrr', 'mrr', 'total_mrr']),
+      periodMonth: columnIndex(['period_month', 'period'])
+    };
+
+    const rows = data.data_rows.map((row) => {
+      const values = Array.isArray(row) ? row : Object.values(row);
+      return {
+        gwiSystem: values[columnMap.gwiSystem] ?? '(blank)',
+        activeServices: Number(values[columnMap.activeServices]) || 0,
+        billedCustomers: Number(values[columnMap.billedCustomers]) || 0,
+        billedMrr: Number(values[columnMap.billedMrr]) || 0,
+        periodMonth: values[columnMap.periodMonth] ?? null
+      };
+    });
+
+    return { rows, columns: columnMap };
+  }, [data]);
+
+  const totalServices = resolved.rows.reduce((sum, row) => sum + row.activeServices, 0);
+  const totalBilled = resolved.rows.reduce((sum, row) => sum + row.billedCustomers, 0);
+  const totalMrr = resolved.rows.reduce((sum, row) => sum + row.billedMrr, 0);
+
+  const escapeCsv = (value) => {
+    const text = String(value ?? '');
+    if (/[\",\n]/.test(text)) {
+      return `"${text.replace(/\"/g, '""')}"`;
+    }
+    return text;
+  };
+
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      const response = await runSSOTQuery({
+        sql: `SELECT * FROM curated_recon.v_unmapped_network_customers_latest`,
+        queryId: 'unmapped_network_customers',
+        label: 'Unmapped Network Customers (Detail)',
+        params: { schema_version: '2026-02-11' }
+      });
+      const payload = response.data;
+      if (!payload?.data_rows || !payload?.columns) return;
+      const rows = payload.data_rows.map((row) => {
+        const values = Array.isArray(row) ? row : Object.values(row);
+        return values.map(escapeCsv).join(',');
+      });
+      const header = payload.columns.map(escapeCsv).join(',');
+      const csv = [header, ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `unmapped_customers_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <section className="mac-panel rounded-3xl p-6">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="mac-section-header">
+          <div className="mac-icon-badge">
+            <AlertCircle className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="mac-section-meta">Reconciliation</div>
+            <h2 className="font-display text-2xl text-foreground mt-2">Unmapped Systems</h2>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span>Lake source: curated_recon.v_unmapped_network_services_latest</span>
+          <button
+            type="button"
+            className="mac-button-outline inline-flex items-center gap-2 px-3 py-2 rounded-lg text-[0.65rem] uppercase tracking-[0.18em]"
+            onClick={handleExport}
+            disabled={exporting}
+          >
+            <Download className="h-4 w-4" />
+            {exporting ? 'Exporting…' : 'Export Details'}
+          </button>
+          <button
+            type="button"
+            className="mac-button-outline inline-flex items-center gap-2 px-3 py-2 rounded-lg text-[0.65rem] uppercase tracking-[0.18em]"
+            onClick={() => setCollapsed((prev) => !prev)}
+          >
+            {collapsed ? 'Show Table' : 'Hide Table'}
+          </button>
+        </div>
+      </div>
+
+      {isLoading && (
+        <div className="mt-4 text-sm text-muted-foreground">Loading unmapped systems…</div>
+      )}
+
+      {error && !isLoading && (
+        <div className="mt-4 text-sm text-muted-foreground">
+          Unmapped systems are temporarily unavailable. Evidence is logged in the query broker.
+        </div>
+      )}
+
+      {!isLoading && !error && totalServices === 0 && (
+        <div className="mt-4 text-sm text-muted-foreground">All active services are mapped to a network.</div>
+      )}
+
+      {!isLoading && !error && totalServices > 0 && (
+        <>
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="mac-kpi-card">
+              <div className="mac-kpi-label">Unmapped Services</div>
+              <div className="mac-kpi-value">{totalServices.toLocaleString()}</div>
+            </div>
+            <div className="mac-kpi-card">
+              <div className="mac-kpi-label">Billed Customers</div>
+              <div className="mac-kpi-value">{totalBilled.toLocaleString()}</div>
+            </div>
+            <div className="mac-kpi-card">
+              <div className="mac-kpi-label">Billed MRR</div>
+              <div className="mac-kpi-value">${totalMrr.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+            </div>
+          </div>
+          {collapsed ? (
+            <div className="mt-4 text-sm text-muted-foreground">
+              Unmapped rows are hidden. Click “Show Table” to expand.
+            </div>
+          ) : (
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <th className="py-2 pr-4">GWI System</th>
+                    <th className="py-2 pr-4">Active Services</th>
+                    <th className="py-2 pr-4">Billed Customers</th>
+                    <th className="py-2 pr-4">Billed MRR</th>
+                    <th className="py-2 pr-4">Period</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {resolved.rows.map((row) => (
+                    <tr key={`${row.gwiSystem}`} className="border-t border-border/40">
+                      <td className="py-2 pr-4 text-foreground">{row.gwiSystem}</td>
+                      <td className="py-2 pr-4">{row.activeServices.toLocaleString()}</td>
+                      <td className="py-2 pr-4">{row.billedCustomers.toLocaleString()}</td>
+                      <td className="py-2 pr-4">${row.billedMrr.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                      <td className="py-2 pr-4 text-xs text-muted-foreground">
+                        {row.periodMonth ? String(row.periodMonth).split(' ')[0] : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
+function InsightsPanel() {
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <section className="mac-panel rounded-3xl p-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="mac-section-header">
+            <div className="mac-icon-badge">
+              <Activity className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="mac-section-meta">Insights</div>
+              <h2 className="font-display text-2xl text-foreground mt-2">Operational Breakdown</h2>
+              <p className="text-xs text-muted-foreground mt-1">
+                Uniform view of finance, unit economics, operations, and ownership.
+              </p>
+            </div>
+          </div>
+          <CollapsibleTrigger asChild>
+            <button className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-foreground bg-[var(--mac-panel)] border border-[color:var(--mac-panel-border)] px-4 py-2 rounded-lg">
+              {open ? 'Hide' : 'Show'} Insights
+              <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+            </button>
+          </CollapsibleTrigger>
+        </div>
+
+        <CollapsibleContent>
+          <div className="mt-6">
+            <Tabs defaultValue="finance" className="w-full">
+              <TabsList className="bg-[var(--mac-panel)] text-foreground border border-[color:var(--mac-panel-border)]">
+                <TabsTrigger value="finance">Finance</TabsTrigger>
+                <TabsTrigger value="unit">Unit Economics</TabsTrigger>
+                <TabsTrigger value="ops">Operations</TabsTrigger>
+                <TabsTrigger value="ownership">Ownership</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="finance">
+                <div className="space-y-6">
+                  <FinanceKPITiles />
+                  <div className="grid lg:grid-cols-2 gap-6">
+                    <div className="mac-panel-strong rounded-2xl p-4">
+                      <div className="mac-eyebrow">Fiscal 2025</div>
+                      <h3 className="font-display text-lg text-foreground mt-2">MRR Rollup</h3>
+                      <div className="mt-4">
+                        <MRRFy2025Tile />
+                      </div>
+                    </div>
+                    <div className="mac-panel-strong rounded-2xl p-4">
+                      <div className="mac-eyebrow">Close Pack</div>
+                      <h3 className="font-display text-lg text-foreground mt-2">GL Revenue (Close Pack)</h3>
+                      <div className="mt-4">
+                        <GLClosePack />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              );
-            }}
-          />
+              </TabsContent>
 
-          {/* Tile 2: MRR & Churn by Segment */}
-          <DashboardTile
-            title="Account Movement (Last 6 Months)"
-            icon={TrendingUp}
-            tileId="account_movement"
-            supportedPeriods={['current', 'ytd', 'monthly']}
-            sql={`SELECT *
-          FROM curated_core.v_monthly_account_churn_by_segment
-          ORDER BY period_month DESC, segment
-          LIMIT 30`}
-            renderContent={(data) => {
-              if (!data?.data_rows || data.data_rows.length === 0) {
-                return <div className="text-center text-muted-foreground py-8 text-sm">No data available</div>;
-              }
-              
-              const chartData = data.data_rows.slice(0, 12).map(row => {
-                const values = Array.isArray(row) ? row : Object.values(row);
-                return {
-                  month: values[0],
-                  segment: values[1],
-                  net_adds: values[4] || 0
-                };
-              });
-              
-              return (
-                <ResponsiveContainer width="100%" height={180}>
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="month" tick={{ fontSize: 10 }} stroke="#64748b" />
-                    <YAxis tick={{ fontSize: 10 }} stroke="#64748b" />
-                    <Tooltip contentStyle={{ fontSize: 12, backgroundColor: 'var(--card)', border: '1px solid var(--border)' }} />
-                    <Bar dataKey="net_adds" fill="#5C7B5F" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              );
-            }}
-          />
+              <TabsContent value="unit">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <DashboardTile
+                    title="A–E Band Distribution"
+                    icon={BarChart3}
+                    tileId="band_distribution"
+                    supportedPeriods={['current']}
+                    sql={`WITH customer_month AS (
+                  SELECT
+                    customer_id,
+                    SUM(mrr_total) AS mrr_total_customer_month
+                  FROM curated_core.v_monthly_mrr_platt
+                  WHERE period_month = (SELECT MAX(period_month) FROM curated_core.v_monthly_mrr_platt)
+                  GROUP BY 1
+                ),
+                customer_bands AS (
+                  SELECT
+                    cm.customer_id,
+                    cm.mrr_total_customer_month,
+                    b.action_band
+                  FROM customer_month cm
+                  LEFT JOIN curated_core.v_customer_fully_loaded_margin_banded b
+                    ON b.customer_id = cm.customer_id
+                  WHERE cm.mrr_total_customer_month > 0
+                )
+                SELECT
+                  action_band,
+                  COUNT(*) AS customer_count,
+                  SUM(mrr_total_customer_month) AS total_mrr
+                FROM customer_bands
+                WHERE action_band IS NOT NULL
+                GROUP BY 1
+                ORDER BY 1
+                LIMIT 50`}
+                    renderContent={(data) => {
+                      if (!data?.data_rows || data.data_rows.length === 0) {
+                        return <div className="text-center text-muted-foreground py-8 text-sm">No data available</div>;
+                      }
 
-          {/* Tile 3: MRR Trend */}
-          <DashboardTile
-            title="MRR Summary (Last 12 Months)"
-            icon={TrendingUp}
-            tileId="mrr_summary"
-            supportedPeriods={['current', 'ytd', 'monthly']}
-            sql={`SELECT *
-          FROM curated_core.v_monthly_mrr_and_churn_summary
-          ORDER BY period_month DESC
-          LIMIT 12`}
-            renderContent={(data) => {
-              if (!data?.data_rows || data.data_rows.length === 0) {
-                return <div className="text-center text-muted-foreground py-8 text-sm">No data available</div>;
-              }
-              
-              const chartData = data.data_rows.slice(0, 12).reverse().map(row => {
-                const values = Array.isArray(row) ? row : Object.values(row);
-                return {
-                  month: values[0],
-                  mrr: values[1] || 0,
-                  churn: Math.abs(values[2] || 0)
-                };
-              });
-              
-              return (
-                <ResponsiveContainer width="100%" height={180}>
-                  <ComposedChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="month" tick={{ fontSize: 10 }} stroke="#64748b" />
-                    <YAxis yAxisId="left" tick={{ fontSize: 10 }} stroke="#5C7B5F" />
-                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} stroke="#ef4444" />
-                    <Tooltip contentStyle={{ fontSize: 12, backgroundColor: 'var(--card)', border: '1px solid var(--border)' }} />
-                    <Legend wrapperStyle={{ fontSize: 11 }} />
-                    <Bar yAxisId="left" dataKey="mrr" fill="#5C7B5F" radius={[4, 4, 0, 0]} name="MRR" />
-                    <Bar yAxisId="right" dataKey="churn" fill="#ef4444" radius={[4, 4, 0, 0]} name="Churn" />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              );
-            }}
-          />
+                      const chartData = data.data_rows.slice(0, 5).map(row => {
+                        const values = Array.isArray(row) ? row : Object.values(row);
+                        return {
+                          name: `Band ${values[0]}`,
+                          value: Number(values[1]) || 0
+                        };
+                      }).filter(d => d.value > 0);
+
+                      if (chartData.length === 0) {
+                        return <div className="text-center text-muted-foreground py-8 text-sm">No data available</div>;
+                      }
+
+                      return (
+                        <ResponsiveContainer width="100%" height={200}>
+                          <PieChart>
+                            <Pie
+                              data={chartData}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                              outerRadius={70}
+                              fill="#8884d8"
+                              dataKey="value"
+                            >
+                              {chartData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      );
+                    }}
+                  />
+
+                  <DashboardTile
+                    title="Worst E-Band Accounts (Top 20)"
+                    icon={AlertCircle}
+                    tileId="worst_e_band"
+                    supportedPeriods={['current']}
+                    sql={`SELECT *
+                FROM curated_core.v_cci_e_band_exit_accounts
+                LIMIT 20`}
+                    renderContent={(data) => (
+                      <div className="overflow-x-auto max-h-48">
+                        <table className="mac-table w-full text-xs">
+                          <thead className="sticky top-0">
+                            <tr>
+                              {data.columns?.slice(0, 3).map((col, i) => (
+                                <th key={i} className="px-2 py-1.5 text-left text-xs font-medium uppercase">
+                                  {col}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {data.data_rows?.slice(0, 10).map((row, i) => {
+                              const values = Array.isArray(row) ? row : Object.values(row);
+                              return (
+                                <tr key={i}>
+                                  {values.slice(0, 3).map((val, j) => (
+                                    <td key={j} className="px-2 py-1.5">
+                                      {val === null || val === undefined ? '-' : String(val)}
+                                    </td>
+                                  ))}
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  />
+
+                  <DashboardTile
+                    title="At Risk (D/E)"
+                    icon={AlertCircle}
+                    tileId="at_risk_detail"
+                    supportedPeriods={['current']}
+                    sql={`SELECT
+                b.customer_id,
+                c.customer_name,
+                b.action_band,
+                b.fully_loaded_margin_pct
+              FROM curated_core.v_customer_fully_loaded_margin_banded b
+              LEFT JOIN curated_core.dim_customer_platt_v1_1 c
+                ON c.customer_id = b.customer_id
+              WHERE b.action_band IN ('D_PRICE_PLUS_SIMPLIFY', 'E_EXIT_OR_RESCOPE')
+              ORDER BY b.fully_loaded_margin_pct ASC
+              LIMIT 500`}
+                    renderValue={(data) => {
+                      const atRisk = data.data_rows?.length || 0;
+                      return (
+                        <div>
+                          <div className="text-3xl font-bold text-amber-700">
+                            {atRisk.toLocaleString()}
+                          </div>
+                          <div className="text-xs text-amber-700/70 mt-1">Customers flagged for action</div>
+                        </div>
+                      );
+                    }}
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="ops">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <DashboardTile
+                    title="Ticket Burden Banded"
+                    icon={BarChart3}
+                    tileId="ticket_burden_banded"
+                    supportedPeriods={['current', 'ytd', 'monthly']}
+                    sql={`SELECT 
+                    ticket_burden_band,
+                    COUNT(*) as customer_count,
+                    SUM(ticket_count_lake) as total_tickets
+                  FROM curated_core.v_ticket_burden_banded
+                  GROUP BY ticket_burden_band
+                  ORDER BY
+                    CASE ticket_burden_band
+                      WHEN '0' THEN 0
+                      WHEN '1-5' THEN 1
+                      WHEN '6-20' THEN 2
+                      WHEN '20+' THEN 3
+                      ELSE 4
+                    END`}
+                    renderContent={(data) => {
+                      if (!data?.data_rows || data.data_rows.length === 0) {
+                        return <div className="text-center text-muted-foreground py-8 text-sm">No data available</div>;
+                      }
+                      const chartData = data.data_rows.map(row => {
+                        const values = Array.isArray(row) ? row : Object.values(row);
+                        return {
+                          band: values[0],
+                          customers: values[1] || 0,
+                          tickets: values[2] || 0
+                        };
+                      });
+                      return (
+                        <ResponsiveContainer width="100%" height={180}>
+                          <BarChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--mac-grid-line)" />
+                            <XAxis dataKey="band" tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} stroke="var(--muted-foreground)" />
+                            <YAxis tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} stroke="var(--muted-foreground)" />
+                            <Tooltip contentStyle={{ fontSize: 12, backgroundColor: 'var(--mac-panel)', border: '1px solid var(--mac-panel-border)', color: 'var(--foreground)' }} />
+                            <Bar dataKey="customers" fill="var(--mac-sky)" radius={[4, 4, 0, 0]} name="Customers" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      );
+                    }}
+                  />
+
+                  <DashboardTile
+                    title="Ticket Volume Trend"
+                    icon={Activity}
+                    tileId="ticket_trend"
+                    supportedPeriods={['current', 'ytd', 'monthly']}
+                    sql={`SELECT 
+                CAST(DATE_TRUNC('day', TRY(from_iso8601_timestamp(created_time))) AS DATE) as ticket_date,
+                COUNT(*) as ticket_count
+                FROM curated_core.v_cci_tickets_clean
+                WHERE created_time IS NOT NULL
+                AND created_time <> ''
+                AND TRY(from_iso8601_timestamp(created_time)) IS NOT NULL
+                GROUP BY CAST(DATE_TRUNC('day', TRY(from_iso8601_timestamp(created_time))) AS DATE)
+                ORDER BY ticket_date DESC
+                LIMIT 90`}
+                    renderContent={(data) => {
+                      if (!data?.data_rows || data.data_rows.length === 0) {
+                        return <div className="text-center text-muted-foreground py-8 text-sm">No data available</div>;
+                      }
+                      const chartData = data.data_rows.slice(0, 30).reverse().map(row => {
+                        const values = Array.isArray(row) ? row : Object.values(row);
+                        return {
+                          date: values[0] ? new Date(values[0]).toLocaleDateString() : '-',
+                          count: values[1] || 0
+                        };
+                      });
+                      return (
+                        <ResponsiveContainer width="100%" height={180}>
+                          <LineChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--mac-grid-line)" />
+                            <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} stroke="var(--muted-foreground)" />
+                            <YAxis tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} stroke="var(--muted-foreground)" />
+                            <Tooltip contentStyle={{ fontSize: 12, backgroundColor: 'var(--mac-panel)', border: '1px solid var(--mac-panel-border)', color: 'var(--foreground)' }} />
+                            <Line type="monotone" dataKey="count" stroke="var(--mac-green)" strokeWidth={2} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      );
+                    }}
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="ownership">
+                <div className="mac-panel-strong rounded-2xl p-4">
+                  <div className="mac-eyebrow">Bucket Summary</div>
+                  <h3 className="font-display text-lg text-foreground mt-2">Owned vs Contracted</h3>
+                  <div className="mt-4">
+                    <BucketSummaryTile />
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </CollapsibleContent>
+      </section>
+    </Collapsible>
+  );
+}
+
+function DashboardContent({ user }) {
+  return (
+    <div className="mac-dashboard relative min-h-screen">
+      <div className="mac-dashboard-bg" aria-hidden="true">
+        <div className="mac-grid" />
+        <div className="mac-glow" />
+      </div>
+
+      <div className="relative z-10 max-w-[1800px] mx-auto px-6 pb-16 pt-10 space-y-10">
+        <motion.header
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="mac-panel rounded-3xl p-8"
+        >
+          <div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-6">
+            <div>
+              <div className="mac-section-meta">MAC MOUNTAIN · LAKE</div>
+              <h1 className="font-display text-4xl md:text-5xl text-foreground mt-3">
+                Customer Intelligence{user?.full_name ? ` · ${user.full_name.split(' ')[0]}` : ''}
+              </h1>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <DataFreshnessWidget />
+              <RefreshControls />
+            </div>
+          </div>
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <span className="mac-pill">SSOT: curated_core</span>
         </div>
-      </motion.div>
+      </motion.header>
 
-      {/* Support & Tickets */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.4 }}
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-[var(--mac-sky)]" />
-            Support & Tickets Analytics
-          </h2>
-        </div>
+        <QuickActionBanner />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-          {/* Tile 1: Raw Ticket Feed */}
-          <DashboardTile
-            title="Raw Ticket Feed (CCI)"
-            icon={AlertCircle}
-            tileId="raw_tickets_cci"
-            supportedPeriods={['current', 'ytd', 'monthly']}
-            sql={`SELECT
-          st_number AS ticket_number,
-          customer_name,
-          customer_display_name,
-          service_location_city,
-          service_location_state,
-          status,
-          type,
-          priority,
-          service_area,
-          operations_code,
-          equipment_name,
-          estimated_arrival_time,
-          SUBSTR(work_done, 1, 200) AS work_done_preview,
-          case_or_ticket_number,
-          created_time
-          FROM curated_core.v_cci_tickets_clean
-          ORDER BY created_time DESC
-          LIMIT 500`}
-            renderContent={(data) => (
-              <div className="overflow-x-auto max-h-48">
-                <table className="w-full text-xs">
-                  <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0">
-                    <tr>
-                      <th className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase">ST #</th>
-                      <th className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase">Customer</th>
-                      <th className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase">Status</th>
-                      <th className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase">Type</th>
-                      <th className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase">Priority</th>
-                      <th className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase">Work Done</th>
-                      <th className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase">Created</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.data_rows?.slice(0, 10).map((row, i) => {
-                      const values = Array.isArray(row) ? row : Object.values(row);
-                      return (
-                        <tr key={i} className="border-t border-slate-100 dark:border-slate-700">
-                          <td className="px-2 py-1.5 text-slate-700 dark:text-slate-300">{values[0] || '-'}</td>
-                          <td className="px-2 py-1.5 text-slate-700 dark:text-slate-300">{values[1] || '-'}</td>
-                          <td className="px-2 py-1.5 text-slate-700 dark:text-slate-300">{values[5] || '-'}</td>
-                          <td className="px-2 py-1.5 text-slate-700 dark:text-slate-300">{values[6] || '-'}</td>
-                          <td className="px-2 py-1.5 text-slate-700 dark:text-slate-300">{values[7] || '-'}</td>
-                          <td className="px-2 py-1.5 text-slate-700 dark:text-slate-300 max-w-xs truncate">{values[12] || '-'}</td>
-                          <td className="px-2 py-1.5 text-slate-700 dark:text-slate-300">{values[14] || '-'}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+        <CustomerAnalyticsPanel />
+        <UnmappedNetworkPanel />
+        <section className="mac-panel rounded-3xl p-4">
+          <div className="flex items-center justify-between px-4 pt-2">
+            <div className="mac-section-header">
+              <div className="mac-icon-badge">
+                <Map className="w-5 h-5" />
               </div>
-            )}
-          />
-
-          {/* Tile 2: Ticket Burden Lake */}
-          <DashboardTile
-            title="Ticket Burden Lake"
-            icon={TrendingUp}
-            tileId="ticket_burden_lake"
-            supportedPeriods={['current', 'ytd', 'monthly']}
-            sql={`SELECT 
-              customer_id,
-              customer_name,
-              ticket_count_lake
-            FROM curated_core.v_ticket_burden_lake
-            ORDER BY ticket_count_lake DESC
-            LIMIT 200`}
-            renderContent={(data) => (
-              <div className="overflow-x-auto max-h-48">
-                <table className="w-full text-xs">
-                  <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0">
-                    <tr>
-                      <th className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase">Account</th>
-                      <th className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase">Tickets</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.data_rows?.slice(0, 10).map((row, i) => {
-                      const values = Array.isArray(row) ? row : Object.values(row);
-                      return (
-                        <tr key={i} className="border-t border-slate-100 dark:border-slate-700">
-                          <td className="px-2 py-1.5 text-slate-700 dark:text-slate-300">{values[1] || values[0] || '-'}</td>
-                          <td className="px-2 py-1.5 text-slate-700 dark:text-slate-300">{values[2] || 0}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div>
+                <div className="mac-section-meta">Network Map</div>
+                <h2 className="font-display text-xl text-foreground mt-2">Coverage & Footprint</h2>
               </div>
-            )}
-          />
+            </div>
+            <span className="text-xs text-muted-foreground">GIS + Vetro layers</span>
+          </div>
+          <div className="mt-4">
+            <NetworkMapTile />
+          </div>
+        </section>
 
-          {/* Tile 3: Ticket Burden by Customer */}
-          <DashboardTile
-            title="Ticket Burden by Customer"
-            icon={Users}
-            tileId="ticket_burden_customer"
-            supportedPeriods={['current', 'ytd', 'monthly']}
-            sql={`SELECT 
-              c.customer_id,
-              c.customer_name,
-              b.ticket_count_lake,
-              b.ticket_burden_band
-            FROM curated_core.v_ticket_burden_banded b
-            LEFT JOIN curated_core.dim_customer_platt_v1_1 c
-              ON c.customer_id = b.customer_id
-            ORDER BY b.ticket_count_lake DESC
-            LIMIT 200`}
-            renderContent={(data) => (
-              <div className="overflow-x-auto max-h-48">
-                <table className="w-full text-xs">
-                  <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0">
-                    <tr>
-                      <th className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase">Customer</th>
-                      <th className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase">Tickets</th>
-                      <th className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase">Band</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.data_rows?.slice(0, 10).map((row, i) => {
-                      const values = Array.isArray(row) ? row : Object.values(row);
-                      return (
-                        <tr key={i} className="border-t border-slate-100 dark:border-slate-700">
-                          <td className="px-2 py-1.5 text-slate-700 dark:text-slate-300">{values[1] || '-'}</td>
-                          <td className="px-2 py-1.5 text-slate-700 dark:text-slate-300">{values[2] || 0}</td>
-                          <td className="px-2 py-1.5 text-slate-700 dark:text-slate-300">{values[3] || '-'}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+        <section className="mac-panel rounded-3xl p-4">
+          <div className="flex items-center justify-between px-4 pt-2">
+            <div className="mac-section-header">
+              <div className="mac-icon-badge">
+                <LineChartIcon className="w-5 h-5" />
               </div>
-            )}
-          />
-
-          {/* Tile 4: Ticket Burden Banded */}
-          <DashboardTile
-            title="Ticket Burden Banded"
-            icon={BarChart3}
-            tileId="ticket_burden_banded"
-            supportedPeriods={['current', 'ytd', 'monthly']}
-            sql={`SELECT 
-              ticket_burden_band,
-              COUNT(*) as customer_count,
-              SUM(ticket_count_lake) as total_tickets
-            FROM curated_core.v_ticket_burden_banded
-            GROUP BY ticket_burden_band
-            ORDER BY
-              CASE ticket_burden_band
-                WHEN '0' THEN 0
-                WHEN '1-5' THEN 1
-                WHEN '6-20' THEN 2
-                WHEN '20+' THEN 3
-                ELSE 4
-              END`}
-            renderContent={(data) => {
-              if (!data?.data_rows || data.data_rows.length === 0) {
-                return <div className="text-center text-muted-foreground py-8 text-sm">No data available</div>;
-              }
-              const chartData = data.data_rows.map(row => {
-                const values = Array.isArray(row) ? row : Object.values(row);
-                return {
-                  band: values[0],
-                  customers: values[1] || 0,
-                  tickets: values[2] || 0
-                };
-              });
-              return (
-                <ResponsiveContainer width="100%" height={180}>
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="band" tick={{ fontSize: 10 }} stroke="#f97316" />
-                    <YAxis tick={{ fontSize: 10 }} stroke="#f97316" />
-                    <Tooltip contentStyle={{ fontSize: 12, backgroundColor: 'var(--card)', border: '1px solid var(--border)' }} />
-                    <Bar dataKey="customers" fill="#5C7B5F" radius={[4, 4, 0, 0]} name="Customers" />
-                  </BarChart>
-                </ResponsiveContainer>
-              );
-            }}
-          />
-
-          {/* Tile 5: Margin with Tickets */}
-          <DashboardTile
-            title="Margin + Tickets View"
-            icon={DollarSign}
-            tileId="margin_tickets"
-            supportedPeriods={['current', 'ytd', 'monthly']}
-            sql={`SELECT 
-              customer_id,
-              customer_name,
-              total_mrr,
-              total_cci_cost,
-              gross_margin_dollars,
-              gross_margin_pct,
-              ticket_count_lake,
-              ticket_burden_band,
-              partner_pct,
-              hosted_pbx_flag
-            FROM curated_core.v_customer_margin_plus_tickets
-            ORDER BY
-              ticket_count_lake DESC,
-              gross_margin_pct ASC
-            LIMIT 500`}
-            renderContent={(data) => (
-              <div className="overflow-x-auto max-h-48">
-                <table className="w-full text-xs">
-                  <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0">
-                    <tr>
-                      <th className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase">Customer</th>
-                      <th className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase">MRR</th>
-                      <th className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase">Margin %</th>
-                      <th className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase">Tickets</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.data_rows?.slice(0, 10).map((row, i) => {
-                      const values = Array.isArray(row) ? row : Object.values(row);
-                      return (
-                        <tr key={i} className="border-t border-slate-100 dark:border-slate-700">
-                          <td className="px-2 py-1.5 text-slate-700 dark:text-slate-300">{values[1] || '-'}</td>
-                          <td className="px-2 py-1.5 text-slate-700 dark:text-slate-300">${typeof values[2] === 'number' ? values[2].toFixed(2) : '-'}</td>
-                          <td className="px-2 py-1.5 text-slate-700 dark:text-slate-300">{typeof values[5] === 'number' ? values[5].toFixed(1) + '%' : '-'}</td>
-                          <td className="px-2 py-1.5 text-slate-700 dark:text-slate-300">{values[6] || 0}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div>
+                <div className="mac-section-meta">Revenue Pulse</div>
+                <h2 className="font-display text-xl text-foreground mt-2">MRR Trend (12 Months)</h2>
               </div>
-            )}
-          />
+            </div>
+            <span className="text-xs text-muted-foreground">curated_core</span>
+          </div>
+          <div className="mt-4">
+            <MainChartCard />
+          </div>
+        </section>
 
-          {/* Tile 6: Ticket Trend Summary */}
-          <DashboardTile
-            title="Ticket Volume Trend"
-            icon={Activity}
-            tileId="ticket_trend"
-            supportedPeriods={['current', 'ytd', 'monthly']}
-            sql={`SELECT 
-          CAST(DATE_TRUNC('day', TRY(from_iso8601_timestamp(created_time))) AS DATE) as ticket_date,
-          COUNT(*) as ticket_count
-          FROM curated_core.v_cci_tickets_clean
-          WHERE created_time IS NOT NULL
-          AND created_time <> ''
-          AND TRY(from_iso8601_timestamp(created_time)) IS NOT NULL
-          GROUP BY CAST(DATE_TRUNC('day', TRY(from_iso8601_timestamp(created_time))) AS DATE)
-          ORDER BY ticket_date DESC
-          LIMIT 90`}
-            renderContent={(data) => {
-              if (!data?.data_rows || data.data_rows.length === 0) {
-                return <div className="text-center text-muted-foreground py-8 text-sm">No data available</div>;
-              }
-              const chartData = data.data_rows.slice(0, 30).reverse().map(row => {
-                const values = Array.isArray(row) ? row : Object.values(row);
-                return {
-                  date: values[0] ? new Date(values[0]).toLocaleDateString() : '-',
-                  count: values[1] || 0
-                };
-              });
-              return (
-                <ResponsiveContainer width="100%" height={180}>
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="#f97316" />
-                    <YAxis tick={{ fontSize: 10 }} stroke="#f97316" />
-                    <Tooltip contentStyle={{ fontSize: 12, backgroundColor: 'var(--card)', border: '1px solid var(--border)' }} />
-                    <Line type="monotone" dataKey="count" stroke="#B8D8E5" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              );
-            }}
-          />
-        </div>
-      </motion.div>
-
-      {/* Action & Unit Economics */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.35, duration: 0.4 }}
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-[var(--mac-mountain)]" />
-            Action & Unit Economics
-          </h2>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Tile 4: A-E Band Distribution */}
-          <DashboardTile
-            title="A–E Band Distribution"
-            icon={BarChart3}
-            tileId="band_distribution"
-            supportedPeriods={['current']}
-            sql={`WITH customer_month AS (
-            SELECT
-              customer_id,
-              SUM(mrr_total) AS mrr_total_customer_month
-            FROM curated_core.v_monthly_mrr_platt
-            WHERE period_month = (SELECT MAX(period_month) FROM curated_core.v_monthly_mrr_platt)
-            GROUP BY 1
-          ),
-          customer_bands AS (
-            SELECT
-              cm.customer_id,
-              cm.mrr_total_customer_month,
-              b.action_band
-            FROM customer_month cm
-            LEFT JOIN curated_core.v_customer_fully_loaded_margin_banded b
-              ON b.customer_id = cm.customer_id
-            WHERE cm.mrr_total_customer_month > 0
-          )
-          SELECT
-            action_band,
-            COUNT(*) AS customer_count,
-            SUM(mrr_total_customer_month) AS total_mrr
-          FROM customer_bands
-          WHERE action_band IS NOT NULL
-          GROUP BY 1
-          ORDER BY 1
-          LIMIT 50`}
-            renderContent={(data) => {
-              if (!data?.data_rows || data.data_rows.length === 0) {
-                return <div className="text-center text-muted-foreground py-8 text-sm">No data available</div>;
-              }
-              
-              const chartData = data.data_rows.slice(0, 5).map(row => {
-                const values = Array.isArray(row) ? row : Object.values(row);
-                return {
-                  name: `Band ${values[0]}`,
-                  value: Number(values[1]) || 0
-                };
-              }).filter(d => d.value > 0);
-              
-              if (chartData.length === 0) {
-                return <div className="text-center text-muted-foreground py-8 text-sm">No data available</div>;
-              }
-              
-              return (
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={chartData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={70}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              );
-            }}
-          />
-
-          {/* Tile 5: Worst E-Band Accounts */}
-          <DashboardTile
-            title="Worst E-Band Accounts (Top 20)"
-            icon={AlertCircle}
-            tileId="worst_e_band"
-            supportedPeriods={['current']}
-            sql={`SELECT *
-          FROM curated_core.v_cci_e_band_exit_accounts
-          LIMIT 20`}
-            renderContent={(data) => (
-              <div className="overflow-x-auto max-h-48">
-                <table className="w-full text-xs">
-                  <thead className="bg-slate-50 sticky top-0">
-                    <tr>
-                      {data.columns?.slice(0, 3).map((col, i) => (
-                        <th key={i} className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 uppercase">
-                          {col}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.data_rows?.slice(0, 10).map((row, i) => {
-                      const values = Array.isArray(row) ? row : Object.values(row);
-                      return (
-                        <tr key={i} className="border-t border-slate-100">
-                          {values.slice(0, 3).map((val, j) => (
-                            <td key={j} className="px-2 py-1.5 text-slate-700">
-                              {val === null || val === undefined ? '-' : String(val)}
-                            </td>
-                          ))}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          />
-
-          {/* Tile 6: Hosted PBX Uplift */}
-          <DashboardTile
-            title="Hosted PBX Uplift (>$1k)"
-            icon={Zap}
-            tileId="hosted_pbx"
-            supportedPeriods={['current']}
-            sql={`SELECT *
-          FROM curated_core.v_hosted_pbx_migration
-          WHERE mrr_uplift_to_50 > 1000
-          ORDER BY mrr_uplift_to_50 DESC
-          LIMIT 200`}
-            renderContent={(data) => (
-              <div className="overflow-x-auto max-h-48">
-                <table className="w-full text-xs">
-                  <thead className="bg-slate-50 sticky top-0">
-                    <tr>
-                      {data.columns?.slice(0, 3).map((col, i) => (
-                        <th key={i} className="px-2 py-1.5 text-left text-xs font-medium text-slate-600 uppercase">
-                          {col}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.data_rows?.slice(0, 10).map((row, i) => {
-                      const values = Array.isArray(row) ? row : Object.values(row);
-                      return (
-                        <tr key={i} className="border-t border-slate-100">
-                          {values.slice(0, 3).map((val, j) => (
-                            <td key={j} className="px-2 py-1.5 text-slate-700">
-                              {val === null || val === undefined ? '-' : String(val)}
-                            </td>
-                          ))}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          />
-        </div>
-      </motion.div>
+        <InsightsPanel />
+      </div>
     </div>
   );
 }
@@ -897,15 +1005,7 @@ export default function Dashboard() {
   const [user, setUser] = React.useState(null);
 
   React.useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.error('Failed to load user:', error);
-      }
-    };
-    loadUser();
+    setUser({ email: 'aws-only@mac.app' });
   }, []);
 
   return (

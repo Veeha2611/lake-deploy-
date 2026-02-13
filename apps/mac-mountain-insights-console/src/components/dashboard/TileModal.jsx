@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Database, ChevronDown, ChevronUp, BarChart3, PieChart, LineChart, Table, Download, Loader2, Calendar } from 'lucide-react';
 import { BarChart, Bar, PieChart as RePieChart, Pie, LineChart as ReLineChart, Line, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { runSSOTQuery } from '@/api/ssotQuery';
+import { MAC_AWS_ONLY } from '@/lib/mac-app-flags';
 import TableWithSort from '../console/TableWithSort';
 
 const COLORS = ['#5C7B5F', '#7B8B8E', '#B8D8E5', '#2D3E2D', '#8FA88F', '#A6B8B0'];
@@ -14,21 +15,29 @@ export default function TileModal({ isOpen, onClose, title, data, sql, icon: Ico
   const [viewType, setViewType] = useState('table');
   const [showEvidence, setShowEvidence] = useState(false);
   const [timePeriod, setTimePeriod] = useState('current');
+  const effectivePeriods = MAC_AWS_ONLY
+    ? supportedPeriods.filter((period) => period === 'current')
+    : supportedPeriods;
 
   // Fetch extended data when modal opens and period changes
   const { data: extendedData, isLoading: isLoadingExtended } = useQuery({
     queryKey: ['tile-extended', tileId, timePeriod],
     queryFn: async () => {
       if (timePeriod === 'current') return data;
-      
+
+      if (MAC_AWS_ONLY) {
+        return data;
+      }
+
       const { getTileSql } = await import('@/components/dashboard/tileSqlDefinitions');
       const { sql: sqlToUse } = getTileSql(tileId, timePeriod);
-      
-      const response = await base44.functions.invoke('aiLayerQuery', {
-        template_id: 'freeform_sql_v1',
-        params: { sql: sqlToUse }
+
+      const response = await runSSOTQuery({
+        queryId: tileId,
+        sql: sqlToUse,
+        label: title
       });
-      
+
       return response.data;
     },
     enabled: isOpen && tileId !== undefined,
@@ -109,14 +118,14 @@ export default function TileModal({ isOpen, onClose, title, data, sql, icon: Ico
               <DialogTitle className="text-2xl font-bold text-card-foreground">{title}</DialogTitle>
             </div>
             <div className="flex items-center gap-2">
-              {supportedPeriods.length > 1 && (
+              {effectivePeriods.length > 1 && (
                 <div className="flex items-center gap-1 mr-2 border-r pr-3">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
                   <Button
                     variant={timePeriod === 'current' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setTimePeriod('current')}
-                    disabled={!supportedPeriods.includes('current')}
+                    disabled={!effectivePeriods.includes('current')}
                     className={timePeriod === 'current' ? 'bg-[var(--mac-forest)] h-7 text-xs' : 'h-7 text-xs'}
                   >
                     Current
@@ -125,7 +134,7 @@ export default function TileModal({ isOpen, onClose, title, data, sql, icon: Ico
                     variant={timePeriod === 'ytd' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setTimePeriod('ytd')}
-                    disabled={!supportedPeriods.includes('ytd')}
+                    disabled={!effectivePeriods.includes('ytd')}
                     className={timePeriod === 'ytd' ? 'bg-[var(--mac-forest)] h-7 text-xs' : 'h-7 text-xs'}
                   >
                     YTD
@@ -134,7 +143,7 @@ export default function TileModal({ isOpen, onClose, title, data, sql, icon: Ico
                     variant={timePeriod === 'monthly' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setTimePeriod('monthly')}
-                    disabled={!supportedPeriods.includes('monthly')}
+                    disabled={!effectivePeriods.includes('monthly')}
                     className={timePeriod === 'monthly' ? 'bg-[var(--mac-forest)] h-7 text-xs' : 'h-7 text-xs'}
                   >
                     Monthly

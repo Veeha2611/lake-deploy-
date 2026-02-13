@@ -1,110 +1,145 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { runSSOTQuery } from '@/api/ssotQuery';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, DollarSign, Users, AlertCircle, Activity } from 'lucide-react';
+import { TrendingUp, DollarSign, Users, Signal, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function FinanceKPITiles() {
+  const formatCurrencyCompact = (value) => {
+    if (value === null || value === undefined || Number.isNaN(value)) return '—';
+    const abs = Math.abs(value);
+    if (abs >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;
+    if (abs >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+    if (abs >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
+    return `$${value.toFixed(0)}`;
+  };
+
+  const formatNumber = (value) => {
+    if (value === null || value === undefined || Number.isNaN(value)) return '—';
+    return Number(value).toLocaleString();
+  };
+
+  const formatPercent = (value) => {
+    if (value === null || value === undefined || Number.isNaN(value)) return '—';
+    return `${Number(value).toFixed(1)}%`;
+  };
+
+  const parseNumeric = (value) => {
+    if (value === null || value === undefined) return null;
+    const asString = String(value).trim();
+    if (!asString || asString.toLowerCase() === 'null' || asString.toLowerCase() === 'nan') return null;
+    const num = Number(asString);
+    return Number.isFinite(num) ? num : null;
+  };
+
   const { data: kpiData, isLoading } = useQuery({
-    queryKey: ['finance-kpis-aws'],
+    queryKey: ['finance-kpis-snapshot'],
     queryFn: async () => {
-      const [mrrRes, customersRes, churnRes] = await Promise.all([
-        base44.functions.invoke('aiLayerQuery', {
-          template_id: 'freeform_sql_v1',
-          params: { 
-            sql: `WITH customer_month AS (
-              SELECT customer_id, SUM(mrr_total) AS mrr
-              FROM curated_core.v_monthly_mrr_platt
-              WHERE period_month = (SELECT MAX(period_month) FROM curated_core.v_monthly_mrr_platt)
-              GROUP BY 1
-            )
-            SELECT 
-              SUM(mrr) as total_mrr,
-              COUNT(*) as customers_with_mrr
-            FROM customer_month WHERE mrr > 0 LIMIT 1`
-          }
-        }),
-        base44.functions.invoke('aiLayerQuery', {
-          template_id: 'freeform_sql_v1',
-          params: { 
-            sql: `SELECT COUNT(*) as active_customers
-            FROM curated_core.dim_customer_platt
-            WHERE has_active_service = true AND is_test_internal = false LIMIT 1`
-          }
-        }),
-        base44.functions.invoke('aiLayerQuery', {
-          template_id: 'freeform_sql_v1',
-          params: { 
-            sql: `SELECT 
-              ending_mrr,
-              mrr_churn
-            FROM curated_core.v_monthly_mrr_and_churn_summary
-            ORDER BY period_month DESC LIMIT 1`
-          }
-        })
+      // Avoid heavy billing rollups that can exceed API Gateway timeout.
+      // These two metrics are fast and deterministic in AWS-only mode.
+      const [mixRes, customersRes] = await Promise.all([
+        runSSOTQuery({ queryId: 'passings_subscribers', label: 'Passings & Subscribers (Latest)' }),
+        runSSOTQuery({ queryId: 'customer_count', label: 'Customer Count (Active vs Inactive)' })
       ]);
 
-      const mrrRow = mrrRes.data?.data_rows?.[0] || [];
-      const custRow = customersRes.data?.data_rows?.[0] || [];
-      const churnRow = churnRes.data?.data_rows?.[0] || [];
+      const mixColumns = mixRes.data?.columns || [];
+      const mixRow = mixRes.data?.data_rows?.[0] || [];
+      const mixIndex = (name) => mixColumns.findIndex((c) => String(c || '').trim().toLowerCase() === name);
 
-      const totalMRR = parseFloat(mrrRow[0] || 0);
-      const mrrCustomers = parseInt(mrrRow[1] || 0);
-      const activeCustomers = parseInt(custRow[0] || 0);
-      const endingMRR = parseFloat(churnRow[0] || 0);
-      const churn = parseFloat(churnRow[1] || 0);
-      const churnRate = endingMRR > 0 ? (Math.abs(churn) / endingMRR) * 100 : 0;
+      const periodMonth = mixIndex('period_month') !== -1 ? String(mixRow[mixIndex('period_month')] || '') : '';
+      const modeledDt = mixIndex('dt') !== -1 ? String(mixRow[mixIndex('dt')] || '') : '';
+      const totalMRR = parseNumeric(mixIndex('total_mrr') !== -1 ? mixRow[mixIndex('total_mrr')] : null);
+      const totalPassings = parseNumeric(mixIndex('total_passings') !== -1 ? mixRow[mixIndex('total_passings')] : null);
+      const totalSubscriptions = parseNumeric(mixIndex('total_subscriptions') !== -1 ? mixRow[mixIndex('total_subscriptions')] : null);
+      const penetrationPct = parseNumeric(mixIndex('penetration_pct') !== -1 ? mixRow[mixIndex('penetration_pct')] : null);
+      const avgArpu = parseNumeric(mixIndex('avg_arpu') !== -1 ? mixRow[mixIndex('avg_arpu')] : null);
+      const billedCustomers = parseNumeric(
+        mixIndex('total_billed_customers') !== -1 ? mixRow[mixIndex('total_billed_customers')] : null
+      );
+
+      const customerColumns = customersRes.data?.columns || [];
+      const customerRow = customersRes.data?.data_rows?.[0] || [];
+      const customerIndex = (name) => customerColumns.findIndex((c) => String(c || '').trim().toLowerCase() === name);
+      const activeCustomers = parseNumeric(
+        customerIndex('active_customers') !== -1 ? customerRow[customerIndex('active_customers')] : null
+      );
 
       return {
+        periodMonth,
+        modeledDt,
         totalMRR,
-        mrrCustomers,
+        totalPassings,
+        totalSubscriptions,
+        billedCustomers,
         activeCustomers,
-        churnRate,
-        avgMRRPerCustomer: mrrCustomers > 0 ? totalMRR / mrrCustomers : 0
+        penetrationPct,
+        avgArpu
       };
     },
     staleTime: 0,
     refetchInterval: 60000,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
+    retry: 0,
   });
 
   const kpis = [
     {
-      label: 'Total MRR',
-      value: kpiData ? `$${(kpiData.totalMRR / 1000).toFixed(1)}K` : '—',
+      label: 'Total MRR (Latest)',
+      value: kpiData ? formatCurrencyCompact(kpiData.totalMRR) : '—',
       icon: DollarSign,
       color: 'emerald',
-      description: 'Monthly Recurring Revenue'
+      description: 'Modeled total MRR (Network Mix, latest snapshot)'
     },
     {
-      label: 'MRR Customers',
-      value: kpiData?.mrrCustomers?.toLocaleString() || '—',
+      label: 'Active Subscribers',
+      value: formatNumber(kpiData?.totalSubscriptions),
       icon: Users,
       color: 'blue',
-      description: 'Customers with active MRR'
+      description: 'Total subscriptions (Network Mix)'
     },
     {
-      label: 'Active Accounts',
-      value: kpiData?.activeCustomers?.toLocaleString() || '—',
+      label: 'Active Customers',
+      value: formatNumber(kpiData?.activeCustomers),
+      icon: Users,
+      color: 'blue',
+      description: 'Distinct customer IDs w/ active service (dim_customer_platt_v1_1)'
+    },
+    {
+      label: 'Billing Customers',
+      value: formatNumber(kpiData?.billedCustomers),
+      icon: Users,
+      color: 'blue',
+      description: 'Investor revenue mix billed customers (latest as_of_date)'
+    },
+    {
+      label: 'Avg MRR / Subscriber',
+      value: kpiData?.avgArpu !== null && kpiData?.avgArpu !== undefined ? `$${Number(kpiData.avgArpu).toFixed(0)}` : '—',
       icon: Activity,
       color: 'purple',
-      description: 'All active service accounts'
+      description: 'Modeled MRR / subscriptions'
     },
     {
-      label: 'Avg MRR/Customer',
-      value: kpiData ? `$${kpiData.avgMRRPerCustomer.toFixed(0)}` : '—',
+      label: 'Total Passings',
+      value: formatNumber(kpiData?.totalPassings),
+      icon: Users,
+      color: 'teal',
+      description: 'Total passings (Network Mix)'
+    },
+    {
+      label: 'Penetration',
+      value: formatPercent(kpiData?.penetrationPct),
       icon: TrendingUp,
       color: 'indigo',
-      description: 'Average revenue per customer'
+      description: 'Subscriptions / passings'
     },
     {
-      label: 'Churn Rate',
-      value: kpiData ? `${kpiData.churnRate.toFixed(1)}%` : '—',
-      icon: AlertCircle,
+      label: 'As-of Period',
+      value: kpiData?.periodMonth ? String(kpiData.periodMonth).slice(0, 7) : '—',
+      icon: Signal,
       color: 'amber',
-      description: 'Monthly churn percentage'
+      description: kpiData?.modeledDt ? `Modeled dt: ${kpiData.modeledDt}` : 'Latest available snapshot'
     }
   ];
 
@@ -117,24 +152,19 @@ export default function FinanceKPITiles() {
     >
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-[var(--mac-forest)]" />
-          Finance & Operations KPIs
+          <div className="mac-icon-badge">
+            <TrendingUp className="w-4 h-4" />
+          </div>
+          Finance KPIs
         </h2>
         <div className="text-xs text-muted-foreground font-mono">
           Live from AWS Athena
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {kpis.map((kpi, index) => {
           const Icon = kpi.icon;
-          const colorClasses = {
-            emerald: 'from-emerald-500 to-emerald-600',
-            blue: 'from-blue-500 to-blue-600',
-            purple: 'from-purple-500 to-purple-600',
-            indigo: 'from-indigo-500 to-indigo-600',
-            amber: 'from-amber-500 to-amber-600'
-          };
 
           return (
             <motion.div
@@ -143,18 +173,19 @@ export default function FinanceKPITiles() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05, duration: 0.3 }}
             >
-              <Card className="relative overflow-hidden hover:shadow-lg transition-all duration-300">
-                <div className={`absolute inset-0 bg-gradient-to-br ${colorClasses[kpi.color]}/10`} />
-                <CardHeader className="pb-3 relative">
-                  <div className={`p-2 rounded-lg bg-gradient-to-br ${colorClasses[kpi.color]} shadow-sm w-fit mb-2`}>
-                    <Icon className="w-4 h-4 text-white" />
+              <Card className="mac-panel hover:shadow-md transition-all duration-300">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="mac-icon-badge">
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      {kpi.label}
+                    </CardTitle>
                   </div>
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    {kpi.label}
-                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-1 relative">
-                  <div className="text-2xl font-bold text-foreground">
+                <CardContent className="space-y-1">
+                  <div className="text-2xl font-bold text-[var(--mac-forest)]">
                     {isLoading ? '...' : kpi.value}
                   </div>
                   <div className="text-xs text-muted-foreground">

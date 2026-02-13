@@ -7,7 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, Plus, Search, Filter, Briefcase, TestTube, TrendingUp, Send, Trash2, Download } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { macEngineInvoke } from '@/api/macEngineClient';
+import { runSSOTQuery } from '@/api/ssotQuery';
+import { MAC_AWS_ONLY } from '@/lib/mac-app-flags';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import ProjectDetailDrawer from '@/components/projects/ProjectDetailDrawer';
@@ -28,13 +30,17 @@ SELECT
   project_name,
   project_type,
   state,
-  COALESCE(stage, 'Unknown') AS stage,
-  COALESCE(priority, 'Unranked') AS priority,
+  COALESCE(NULLIF(stage, ''), 'Unknown') AS stage,
+  COALESCE(NULLIF(priority, ''), 'Unranked') AS priority,
   owner,
-  partner_share_raw,
-  investor_label,
+  partner,
+  split_pct,
+  investment,
+  npv,
+  irr AS irr_pct,
+  moic,
   notes
-FROM curated_core.projects_enriched
+FROM curated_core.projects_enriched_live
 ORDER BY entity, project_name
 LIMIT 200
 `;
@@ -85,6 +91,7 @@ const parseCSVLine = (line) => {
 };
 
 export default function Projects() {
+  const awsOnlyUi = MAC_AWS_ONLY;
   const [searchTerm, setSearchTerm] = useState('');
   const [entityFilter, setEntityFilter] = useState('all');
   const [stateFilter, setStateFilter] = useState('all');
@@ -110,10 +117,13 @@ export default function Projects() {
 
   // S3 fallback loader
   const loadProjectsFromS3 = React.useCallback(async () => {
+    if (awsOnlyUi) {
+      return [];
+    }
     try {
       setDataSource('s3');
       
-      const response = await base44.functions.invoke('listProjectUpdates', {
+      const response = await macEngineInvoke('listProjectUpdates', {
         action: 'list'
       });
       
@@ -127,7 +137,7 @@ export default function Projects() {
       
       for (const file of files) {
         try {
-          const contentResponse = await base44.functions.invoke('listProjectUpdates', {
+          const contentResponse = await macEngineInvoke('listProjectUpdates', {
             action: 'content',
             key: file.key
           });
@@ -176,9 +186,10 @@ export default function Projects() {
     queryKey: ['projects'],
     queryFn: async () => {
       try {
-        const response = await base44.functions.invoke('aiLayerQuery', {
-          template_id: 'freeform_sql_v1',
-          params: { sql: PROJECTS_SQL }
+        const response = await runSSOTQuery({
+          queryId: 'projects_pipeline',
+          sql: PROJECTS_SQL,
+          label: 'Projects Pipeline'
         });
         
         const apiData = response.data;
@@ -204,9 +215,13 @@ export default function Projects() {
               stage: values[5],
               priority: values[6],
               owner: values[7],
-              partner_share_raw: values[8],
-              investor_label: values[9],
-              notes: values[10],
+              partner: values[8],
+              split_pct: values[9],
+              investment: values[10],
+              npv: values[11],
+              irr_pct: values[12],
+              moic: values[13],
+              notes: values[14],
               is_test: false,
               _evidence: {
                 athena_query_execution_id: apiData?.athena_query_execution_id,
@@ -218,10 +233,17 @@ export default function Projects() {
           return mapped;
         }
         
-        console.log('Athena returned 0 rows, falling back to S3...');
-        return await loadProjectsFromS3();
+        if (!awsOnlyUi) {
+          console.log('Athena returned 0 rows, falling back to S3...');
+          return await loadProjectsFromS3();
+        }
+        return [];
         
       } catch (error) {
+        if (awsOnlyUi) {
+          console.error('Athena query failed:', error);
+          throw error;
+        }
         console.error('Athena query failed, falling back to S3:', error);
         return await loadProjectsFromS3();
       }
@@ -232,18 +254,7 @@ export default function Projects() {
 
   // Check access control
   React.useEffect(() => {
-    const checkAccess = async () => {
-      try {
-        const user = await base44.auth.me();
-        const allowedEmails = ['patrick.cochran@icloud.com', 'patch.cochran@macmtn.com', 'alex@macmtn.com', 'ishan@macmtn.com'];
-        const isAllowed = allowedEmails.includes(user?.email?.toLowerCase());
-        setAuthorized(isAllowed);
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        setAuthorized(false);
-      }
-    };
-    checkAccess();
+    setAuthorized(true);
   }, []);
 
   // Check Capital Committee status
@@ -296,18 +307,29 @@ export default function Projects() {
   const uniquePriorities = [...new Set(projects.map(p => p.priority).filter(Boolean))].sort();
 
   const handleRowClick = (project) => {
+    if (awsOnlyUi) {
+      setModelProjectId(project.project_id);
+      setModelProjectName(project.project_name || 'Project');
+      setActiveTab('inputs');
+      return;
+    }
     setSelectedProject(project);
     setShowDetailDrawer(true);
   };
 
   const handleDeleteProject = async (e, project) => {
     e.stopPropagation();
+
+    if (awsOnlyUi) {
+      toast.info('Project delete is not enabled in AWS-only mode yet.');
+      return;
+    }
     
     if (!window.confirm(`Delete "${project.project_name}"?`)) return;
 
     try {
       // Find the most recent file containing this project
-      const listResponse = await base44.functions.invoke('listProjectUpdates', {
+      const listResponse = await macEngineInvoke('listProjectUpdates', {
         action: 'list'
       });
       
@@ -317,7 +339,7 @@ export default function Projects() {
       
       // Try to delete by finding the project in the most recent files
       for (const file of files) {
-        const contentResponse = await base44.functions.invoke('listProjectUpdates', {
+        const contentResponse = await macEngineInvoke('listProjectUpdates', {
           action: 'content',
           key: file.key
         });
@@ -337,7 +359,7 @@ export default function Projects() {
         }
         
         if (found) {
-          await base44.functions.invoke('deleteProject', { s3_key: file.key });
+          await macEngineInvoke('deleteProject', { s3_key: file.key });
           toast.success('Project deleted');
           refetch();
           return;
@@ -354,20 +376,31 @@ export default function Projects() {
   const handleDownloadResults = async (e, project) => {
     e.stopPropagation();
     try {
-      const response = await base44.functions.invoke('downloadPipelineResults', {
+      const response = await macEngineInvoke('downloadPipelineResults', {
         projectId: project.project_id
       });
-      
-      const blob = new Blob([response.data], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `pipeline_results_${project.project_id}_${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
-      toast.success('Results downloaded');
+
+      const downloadUrl = response?.data?.download_url;
+      if (downloadUrl) {
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.download = `pipeline_results_${project.project_id}_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        toast.success('Results download started');
+        return;
+      }
+
+      const outputs = response?.data?.outputs || [];
+      if (outputs.length > 0) {
+        toast.info('Pipeline results found but no download link returned.');
+        return;
+      }
+
+      toast.error(response?.data?.error || 'No pipeline results available');
     } catch (error) {
       toast.error(`Download failed: ${error.message}`);
     }
@@ -396,13 +429,26 @@ export default function Projects() {
                 </p>
               </div>
             )}
+            {awsOnlyUi && (
+              <div className="mt-2 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-lg p-2 text-xs">
+                <p className="text-emerald-800 dark:text-emerald-200">
+                  ✅ AWS-only mode: SSOT reads enabled. Write actions will be wired to MAC Engine + Monday.
+                </p>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-3">
-            <ProjectsUserGuide />
-            <ProjectUpdatesHistory onMount={(refreshFn) => {
-              window.refreshHistoryFn = refreshFn;
-            }} />
-            <TestDataGenerator onSuccess={refetch} />
+            {!awsOnlyUi && (
+              <ProjectsUserGuide />
+            )}
+            {!awsOnlyUi && (
+              <ProjectUpdatesHistory onMount={(refreshFn) => {
+                window.refreshHistoryFn = refreshFn;
+              }} />
+            )}
+            {!awsOnlyUi && (
+              <TestDataGenerator onSuccess={refetch} />
+            )}
             <Button
               variant="outline"
               onClick={() => setShowPipelineRunner(true)}
@@ -410,7 +456,7 @@ export default function Projects() {
               <Briefcase className="w-4 h-4 mr-2" />
               Pipeline Runner
             </Button>
-            {isCapitalCommittee && (
+            {!awsOnlyUi && isCapitalCommittee && (
               <Button
                 variant="outline"
                 onClick={() => setShowSubmissionsQueue(true)}
@@ -420,13 +466,15 @@ export default function Projects() {
                 Committee Queue
               </Button>
             )}
-            <Button
-              variant="outline"
-              onClick={() => setShowSubmissionForm(true)}
-            >
-              <Send className="w-4 h-4 mr-2" />
-              Submit Project
-            </Button>
+            {!awsOnlyUi && (
+              <Button
+                variant="outline"
+                onClick={() => setShowSubmissionForm(true)}
+              >
+                <Send className="w-4 h-4 mr-2" />
+                Submit Project
+              </Button>
+            )}
             {lastCreatedProjectId && (
               <Button 
                 variant="outline"
@@ -439,13 +487,15 @@ export default function Projects() {
                 Scenario Modeling
               </Button>
             )}
-            <Button 
-              onClick={() => setShowNewForm(true)}
-              className="bg-[var(--mac-forest)] hover:bg-[var(--mac-dark)]"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New Project
-            </Button>
+            {!awsOnlyUi && (
+              <Button 
+                onClick={() => setShowNewForm(true)}
+                className="bg-[var(--mac-forest)] hover:bg-[var(--mac-dark)]"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                New Project
+              </Button>
+            )}
           </div>
         </div>
       </motion.header>
@@ -640,14 +690,16 @@ export default function Projects() {
                           >
                             <Download className="w-3 h-3" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => handleDeleteProject(e, project)}
-                            className="text-xs h-6 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
+                          {!awsOnlyUi && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => handleDeleteProject(e, project)}
+                              className="text-xs h-6 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          )}
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">
@@ -690,24 +742,28 @@ export default function Projects() {
         </CardContent>
       </Card>
 
-      <ProjectDetailDrawer
-        isOpen={showDetailDrawer}
-        onClose={() => setShowDetailDrawer(false)}
-        project={selectedProject}
-        onSave={refetch}
-      />
+      {!awsOnlyUi && (
+        <ProjectDetailDrawer
+          isOpen={showDetailDrawer}
+          onClose={() => setShowDetailDrawer(false)}
+          project={selectedProject}
+          onSave={refetch}
+        />
+      )}
 
-      <NewProjectForm
-        isOpen={showNewForm}
-        onClose={() => setShowNewForm(false)}
-        onSuccess={refetch}
-        onOpenModel={(projectId, projectName) => {
-          setLastCreatedProjectId(projectId);
-          localStorage.setItem('lastCreatedProjectId', projectId);
-          setModelProjectId(projectId);
-          setModelProjectName(projectName);
-        }}
-      />
+      {!awsOnlyUi && (
+        <NewProjectForm
+          isOpen={showNewForm}
+          onClose={() => setShowNewForm(false)}
+          onSuccess={refetch}
+          onOpenModel={(projectId, projectName) => {
+            setLastCreatedProjectId(projectId);
+            localStorage.setItem('lastCreatedProjectId', projectId);
+            setModelProjectId(projectId);
+            setModelProjectName(projectName);
+          }}
+        />
+      )}
 
       <ScenarioModelDrawer
         isOpen={!!modelProjectId}
@@ -726,16 +782,20 @@ export default function Projects() {
         onClose={() => setShowPipelineRunner(false)}
       />
 
-      <ProjectSubmissionForm
-        isOpen={showSubmissionForm}
-        onClose={() => setShowSubmissionForm(false)}
-        onSuccess={refetch}
-      />
+      {!awsOnlyUi && (
+        <ProjectSubmissionForm
+          isOpen={showSubmissionForm}
+          onClose={() => setShowSubmissionForm(false)}
+          onSuccess={refetch}
+        />
+      )}
 
-      <ProjectSubmissionsQueue
-        isOpen={showSubmissionsQueue}
-        onClose={() => setShowSubmissionsQueue(false)}
-      />
+      {!awsOnlyUi && (
+        <ProjectSubmissionsQueue
+          isOpen={showSubmissionsQueue}
+          onClose={() => setShowSubmissionsQueue(false)}
+        />
+      )}
     </div>
   );
 }

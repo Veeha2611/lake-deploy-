@@ -53,7 +53,7 @@ export default function RefreshControls() {
           variant="outline"
           size="sm"
           onClick={handleResumeRefresh}
-          className="gap-2 border-amber-500 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950"
+          className="gap-2 border-amber-500 text-amber-700 hover:bg-amber-50"
         >
           <AlertCircle className="w-4 h-4" />
           New Data Available
@@ -61,12 +61,11 @@ export default function RefreshControls() {
       )}
       
       <div className="flex items-center gap-2">
-        <span className="text-xs text-muted-foreground">Auto-refresh:</span>
         <Select
           value={String(refreshInterval)}
           onValueChange={(val) => setRefreshInterval(Number(val))}
         >
-          <SelectTrigger className="w-32 h-8 text-xs">
+          <SelectTrigger className="w-32 h-8 text-xs mac-input">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -84,14 +83,14 @@ export default function RefreshControls() {
         size="sm"
         onClick={handleManualRefresh}
         disabled={refreshing}
-        className="gap-2"
+        className="gap-2 mac-button-outline"
       >
         <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-        Refresh Now
+        Refresh
       </Button>
 
-      <Badge variant="outline" className="text-xs">
-        Updated {timeAgo()}
+      <Badge variant="outline" className="text-xs mac-pill" title="Last refresh">
+        {timeAgo()}
       </Badge>
     </div>
   );

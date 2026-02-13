@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FileText, Download, Loader2, Database, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { MAC_AWS_ONLY } from '@/lib/mac-app-flags';
+import { runSSOTQuery } from '@/api/ssotQuery';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
@@ -13,14 +15,24 @@ export default function GLClosePack() {
   const [showSummaryEvidence, setShowSummaryEvidence] = useState(false);
   const [showDetailEvidence, setShowDetailEvidence] = useState(false);
 
+  const invokeQuery = async ({ sql, queryId, params, label }) => {
+    if (MAC_AWS_ONLY) {
+      return runSSOTQuery({ queryId, params, label });
+    }
+    return base44.functions.invoke('aiLayerQuery', {
+      template_id: 'freeform_sql_v1',
+      params: { sql }
+    });
+  };
+
   // Step 1: Discover available months
   const { data: discovery, isLoading: discoveryLoading } = useQuery({
     queryKey: ['gl-close-pack-discovery'],
     queryFn: async () => {
-      const response = await base44.functions.invoke('aiLayerQuery', {
-        template_id: 'freeform_sql_v1',
-        params: {
-          sql: `SELECT table_schema, table_name
+      const response = await invokeQuery({
+        queryId: 'glclosepack_discovery',
+        label: 'GL Close Pack Discovery',
+        sql: `SELECT table_schema, table_name
 FROM information_schema.tables
 WHERE table_schema = 'curated_core'
   AND (
@@ -30,7 +42,6 @@ WHERE table_schema = 'curated_core'
   )
 ORDER BY table_name
 LIMIT 200`
-        }
       });
 
       if (response.data?.error || response.data?.ok === false) {
@@ -38,18 +49,30 @@ LIMIT 200`
       }
 
       const tables = response.data?.data_rows || [];
-      const hasGenericView = tables.some(row => row[1] === 'v_platt_gl_revenue');
+      const columns = response.data?.columns || [];
+      const normalize = (value) => String(value || '').toLowerCase();
+      const hasPeriodMonthColumn = columns.some((col) => normalize(col) === 'period_month');
+      const source = hasPeriodMonthColumn ? 'intacct' : 'platt';
+      const hasGenericView = source === 'platt' && tables.some(row => row[1] === 'v_platt_gl_revenue');
+      const hasGenericDetailView = source === 'platt' && tables.some(row => row[1] === 'v_platt_gl_revenue_by_customer');
       
-      // Parse YYYY_MM from table names
       const months = new Set();
-      tables.forEach(row => {
-        const tableName = row[1];
-        const match = tableName.match(/v_platt_gl_revenue(?:_by_customer)?_(\d{4})_(\d{2})$/);
-        if (match) {
-          const [_, year, month] = match;
-          months.add(`${year}-${month}`);
-        }
-      });
+      if (source === 'intacct') {
+        tables.forEach(row => {
+          const value = Array.isArray(row) ? row[0] : Object.values(row)[0];
+          if (value) months.add(String(value));
+        });
+      } else {
+        // Parse YYYY_MM from table names
+        tables.forEach(row => {
+          const tableName = row[1];
+          const match = tableName.match(/v_platt_gl_revenue(?:_by_customer)?_(\\d{4})_(\\d{2})$/);
+          if (match) {
+            const [_, year, month] = match;
+            months.add(`${year}-${month}`);
+          }
+        });
+      }
 
       const sortedMonths = Array.from(months).sort().reverse();
       
@@ -63,7 +86,9 @@ LIMIT 200`
 
       return {
         months: sortedMonths,
+        source,
         hasGenericView,
+        hasGenericDetailView,
         defaultMonth,
         discoveryData: tables
       };
@@ -88,17 +113,23 @@ LIMIT 200`
 
       const monthFormatted = selectedMonth.replace('-', '_');
       
-      // Try generic view first
+      const buildIntacctSummarySql = (period) => `WITH base AS (\n  SELECT\n    COALESCE(business_date, TRY(date_parse(entry_date, '%m/%d/%Y'))) AS entry_dt,\n    accountno,\n    account_title,\n    account_category,\n    TRY_CAST(amount AS double) AS amount\n  FROM curated_core.intacct_gl_entries_current_ssot\n)\nSELECT\n  account_category,\n  accountno,\n  account_title,\n  SUM(amount) AS amount_total\nFROM base\nWHERE entry_dt >= date_parse(concat('${period}', '-01'), '%Y-%m-%d')\n  AND entry_dt < date_add('month', 1, date_parse(concat('${period}', '-01'), '%Y-%m-%d'))\n  AND account_category IS NOT NULL\n  AND (account_category LIKE 'Revenue%' OR account_category LIKE '%Revenue' OR account_category = 'Sales Returns and Discounts')\nGROUP BY 1,2,3\nORDER BY 1,2\nLIMIT 500`;
+
+      // Try generic view first (Platt) or Intacct rollup
       let sql;
-      if (discovery?.hasGenericView) {
+      if (discovery?.source === 'intacct') {
+        sql = buildIntacctSummarySql(selectedMonth);
+      } else if (discovery?.hasGenericView) {
         sql = `SELECT * FROM curated_core.v_platt_gl_revenue WHERE period_month = '${selectedMonth}' ORDER BY 1 LIMIT 500`;
       } else {
         sql = `SELECT * FROM curated_core.v_platt_gl_revenue_${monthFormatted} LIMIT 500`;
       }
 
-      const response = await base44.functions.invoke('aiLayerQuery', {
-        template_id: 'freeform_sql_v1',
-        params: { sql }
+      const response = await invokeQuery({
+        queryId: MAC_AWS_ONLY ? 'glclosepack_summary' : undefined,
+        params: MAC_AWS_ONLY ? { period_month: selectedMonth, limit: 500 } : undefined,
+        label: 'GL Close Pack Summary',
+        sql
       });
 
       return {
@@ -117,16 +148,22 @@ LIMIT 200`
 
       const monthFormatted = selectedMonth.replace('-', '_');
       
+      const buildIntacctDetailSql = (period, limit) => `WITH base AS (\n  SELECT\n    COALESCE(business_date, TRY(date_parse(entry_date, '%m/%d/%Y'))) AS entry_dt,\n    accountno,\n    account_title,\n    account_category,\n    customerid,\n    customername,\n    document,\n    description,\n    TRY_CAST(amount AS double) AS amount\n  FROM curated_core.intacct_gl_entries_current_ssot\n)\nSELECT\n  entry_dt,\n  account_category,\n  accountno,\n  account_title,\n  customerid,\n  customername,\n  amount,\n  document,\n  description\nFROM base\nWHERE entry_dt >= date_parse(concat('${period}', '-01'), '%Y-%m-%d')\n  AND entry_dt < date_add('month', 1, date_parse(concat('${period}', '-01'), '%Y-%m-%d'))\n  AND account_category IS NOT NULL\n  AND (account_category LIKE 'Revenue%' OR account_category LIKE '%Revenue' OR account_category = 'Sales Returns and Discounts')\nORDER BY entry_dt DESC\nLIMIT ${limit}`;
+
       let sql;
-      if (discovery?.hasGenericView) {
+      if (discovery?.source === 'intacct') {
+        sql = buildIntacctDetailSql(selectedMonth, 5000);
+      } else if (discovery?.hasGenericView) {
         sql = `SELECT * FROM curated_core.v_platt_gl_revenue WHERE period_month = '${selectedMonth}' LIMIT 5000`;
       } else {
         sql = `SELECT * FROM curated_core.v_platt_gl_revenue_by_customer_${monthFormatted} LIMIT 5000`;
       }
 
-      const response = await base44.functions.invoke('aiLayerQuery', {
-        template_id: 'freeform_sql_v1',
-        params: { sql }
+      const response = await invokeQuery({
+        queryId: MAC_AWS_ONLY ? 'glclosepack_detail' : undefined,
+        params: MAC_AWS_ONLY ? { period_month: selectedMonth, limit: 5000 } : undefined,
+        label: 'GL Close Pack Detail',
+        sql
       });
 
       return {
@@ -138,6 +175,10 @@ LIMIT 200`
   });
 
   const handleExportDetail = async () => {
+    if (MAC_AWS_ONLY && discovery?.source === 'platt' && discovery?.hasGenericDetailView === false) {
+      toast.error('GL detail view is not available yet.');
+      return;
+    }
     const result = await refetchDetail();
     const data = result.data;
     
@@ -318,7 +359,7 @@ LIMIT 200`
             <div className="space-y-3">
               <div className="overflow-x-auto max-h-80 rounded-lg border border-slate-200">
                 <table className="w-full text-xs">
-                  <thead className="bg-gradient-to-r from-[var(--mac-forest)] to-[var(--mac-dark)] text-white sticky top-0">
+                  <thead className="bg-[var(--mac-sky)] text-[var(--mac-forest)] sticky top-0">
                     <tr>
                       {summaryData.columns?.map((col, i) => (
                         <th key={i} className="px-3 py-2 text-left text-[10px] font-semibold uppercase">
@@ -362,7 +403,7 @@ LIMIT 200`
                 <div className="p-3 bg-slate-50 rounded-lg space-y-2 text-xs">
                   <div>
                     <span className="text-slate-500 font-medium">SQL:</span>
-                    <pre className="mt-1 p-2 bg-slate-900 text-slate-100 rounded text-[10px] overflow-x-auto">
+                    <pre className="mt-1 p-2 bg-[var(--mac-ice)] text-[var(--mac-ash)] border border-[var(--mac-panel-border)] rounded text-[10px] overflow-x-auto">
                       {summaryData.sql_used}
                     </pre>
                   </div>

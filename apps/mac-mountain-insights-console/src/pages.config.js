@@ -51,6 +51,7 @@ import Architecture from './pages/Architecture';
 import Console from './pages/Console';
 import Dashboard from './pages/Dashboard';
 import DebugProjects from './pages/DebugProjects';
+import Home from './pages/Home';
 import KnowledgeBase from './pages/KnowledgeBase';
 import MACAppEngine from './pages/MACAppEngine';
 import Projects from './pages/Projects';
@@ -68,6 +69,7 @@ export const PAGES = {
     "Console": Console,
     "Dashboard": Dashboard,
     "DebugProjects": DebugProjects,
+    "Home": Home,
     "KnowledgeBase": KnowledgeBase,
     "MACAppEngine": MACAppEngine,
     "Projects": Projects,
@@ -80,7 +82,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "Dashboard",
+    mainPage: "Home",
     Pages: PAGES,
     Layout: __Layout,
 };

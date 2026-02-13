@@ -4,18 +4,19 @@ import DashboardTile from '@/components/dashboard/DashboardTile';
 import { motion } from 'framer-motion';
 
 const BUCKET_SQL = `
-WITH mrr_by_bucket AS (
+WITH mix_by_bucket AS (
   SELECT
-    COALESCE(sb.bucket, 'clec_business') AS bucket,
-    COUNT(DISTINCT b.customer_id)        AS customer_count,
-    SUM(b.mrr_total)                     AS total_mrr
-  FROM curated_core.v_monthly_mrr_platt AS b
-  LEFT JOIN curated_core.dim_customer_system AS cs
-    ON b.customer_id = cs.customer_id
-  LEFT JOIN curated_core.dim_system_bucket AS sb
-    ON UPPER(cs.system_key) = sb.system_key
-  WHERE b.period_month = (SELECT MAX(period_month) FROM curated_core.v_monthly_mrr_platt)
-  GROUP BY COALESCE(sb.bucket, 'clec_business')
+    CASE
+      WHEN network_type = 'Owned FTTP' THEN 'owned_fttp'
+      WHEN network_type = 'Contracted' THEN 'contracted_fttp'
+      WHEN network_type = 'CLEC' THEN 'clec_business'
+      ELSE 'clec_business'
+    END AS bucket,
+    SUM(COALESCE(mrr_billed, mrr)) AS total_mrr,
+    SUM(COALESCE(billed_customers, subscriptions, active_services, 0)) AS customer_count
+  FROM curated_recon.v_network_mix_billing_aligned_latest
+  WHERE network_type IN ('Owned FTTP', 'Contracted', 'CLEC')
+  GROUP BY 1
 ),
 fsa_by_bucket AS (
   SELECT
@@ -27,13 +28,13 @@ fsa_by_bucket AS (
 SELECT
   m.bucket,
   COALESCE(f.fsa_count, 0) AS fsa_count,
-  m.customer_count,
-  m.total_mrr,
+  COALESCE(m.customer_count, 0) AS customer_count,
+  COALESCE(m.total_mrr, 0) AS total_mrr,
   CASE
-    WHEN m.customer_count > 0 THEN m.total_mrr / m.customer_count
+    WHEN COALESCE(m.customer_count, 0) > 0 THEN m.total_mrr / m.customer_count
     ELSE NULL
   END AS revenue_per_customer
-FROM mrr_by_bucket AS m
+FROM mix_by_bucket AS m
 LEFT JOIN fsa_by_bucket AS f
   ON m.bucket = f.bucket
 ORDER BY

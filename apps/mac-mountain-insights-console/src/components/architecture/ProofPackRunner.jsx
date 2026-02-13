@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Loader2, CheckCircle2, XCircle, AlertTriangle, Download, PlayCircle, FileJson } from 'lucide-react';
 import { MAC_AWS_ONLY, MAC_API_BASE } from '@/lib/mac-app-flags';
+import { getAuthToken } from '@/lib/cognitoAuth';
 import { toast } from 'sonner';
 
 let base44ClientPromise = null;
@@ -43,9 +44,14 @@ export default function ProofPackRunner({ onComplete }) {
       throw new Error('MAC API base URL not configured');
     }
     const url = `${MAC_API_BASE.replace(/\/$/, '')}${path}`;
+    const token = await getAuthToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
     const res = await fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: body ? JSON.stringify(body) : undefined
     });
     const text = await res.text();
@@ -389,16 +395,16 @@ export default function ProofPackRunner({ onComplete }) {
             label: 'Network Map Points (AWS)'
           });
           const countsRow = counts?.data?.data_rows?.[0] || [];
-          const totalLocations = countsRow[1] || 0;
-          const ok = (points?.data?.data_rows?.length || 0) > 0 && Number(totalLocations) >= 0;
+          const totalLocationsUnique = countsRow[1] || 0;
+          const ok = (points?.data?.data_rows?.length || 0) > 0 && Number(totalLocationsUnique) >= 0;
           auditLog.tests.push({
             test_id: 'AUDIT-005',
             test_name: 'GIS Network Map - Counts',
             status: ok ? 'PASS' : 'FAIL',
             details: {
               plans: countsRow[0] || 0,
-              total_locations: totalLocations,
-              served_count: countsRow[2] || 0,
+              service_locations_unique: totalLocationsUnique,
+              build_yes_unique: countsRow[2] || 0,
               sample_points: points?.data?.data_rows?.length || 0
             },
             evidence: {

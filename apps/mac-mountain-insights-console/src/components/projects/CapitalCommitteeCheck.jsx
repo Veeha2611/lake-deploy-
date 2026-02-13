@@ -1,4 +1,5 @@
 import { base44 } from '@/api/base44Client';
+import { MAC_AWS_ONLY } from '@/lib/mac-app-flags';
 
 // Capital Committee members who can edit scenario assumptions
 const CAPITAL_COMMITTEE = [
@@ -7,6 +8,9 @@ const CAPITAL_COMMITTEE = [
 ];
 
 export const isCapitalCommittee = async () => {
+  if (MAC_AWS_ONLY) {
+    return true;
+  }
   try {
     const user = await base44.auth.me();
     return CAPITAL_COMMITTEE.includes(user?.email);

@@ -1,30 +1,34 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, TrendingUp, MessageSquare, Trash2 } from 'lucide-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { Clock, TrendingUp, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { loadQueryHistory, clearQueryHistory } from '@/lib/queryHistoryStore';
 
 export default function QueryHistory({ onSelectQuery }) {
-  const queryClient = useQueryClient();
-  
-  const { data: queries } = useQuery({
-    queryKey: ['query-history'],
-    queryFn: async () => {
-      const result = await base44.entities.Query.list('-created_date', 10);
-      return result || [];
-    },
-  });
+  const [queries, setQueries] = useState([]);
+
+  useEffect(() => {
+    const refresh = () => setQueries(loadQueryHistory());
+    refresh();
+    if (typeof window !== 'undefined') {
+      window.addEventListener('mac-query-history-updated', refresh);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('mac-query-history-updated', refresh);
+      }
+    };
+  }, []);
 
   const handleClearHistory = async () => {
     if (!queries || queries.length === 0) return;
     
     try {
-      await Promise.all(queries.map(q => base44.entities.Query.delete(q.id)));
-      queryClient.invalidateQueries({ queryKey: ['query-history'] });
+      clearQueryHistory();
+      setQueries([]);
       toast.success('Query history cleared');
     } catch (error) {
       toast.error('Failed to clear history');
@@ -33,10 +37,10 @@ export default function QueryHistory({ onSelectQuery }) {
 
   const popularQueries = [
     'What is our total MRR?',
-    'Show me at-risk accounts',
-    'How many active customers do we have?',
-    'What are the top revenue generating accounts?',
-    'Show me churn rate trend'
+    'Show me active accounts',
+    'Which customers are at risk?',
+    'Show the network health summary',
+    'Show me the projects pipeline'
   ];
 
   return (
@@ -100,7 +104,7 @@ export default function QueryHistory({ onSelectQuery }) {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-[var(--mac-forest)]" />
-              <CardTitle className="text-base">Popular Queries</CardTitle>
+              <CardTitle className="text-base">Example Prompts</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="space-y-2">

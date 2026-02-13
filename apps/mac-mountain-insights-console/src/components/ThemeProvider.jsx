@@ -10,7 +10,11 @@ export const useTheme = () => useContext(ThemeContext);
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('mac-theme');
-    return saved || 'dark';
+    const userSet = localStorage.getItem('mac-theme-user-set');
+    if (userSet === '1' && (saved === 'light' || saved === 'dark')) {
+      return saved;
+    }
+    return 'dark';
   });
 
   useEffect(() => {
@@ -19,7 +23,11 @@ export function ThemeProvider({ children }) {
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+    setTheme(prev => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      localStorage.setItem('mac-theme-user-set', '1');
+      return next;
+    });
   };
 
   return (

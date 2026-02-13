@@ -400,11 +400,295 @@ function buildAssumptions(projectData, existingData, overrides) {
   return merged;
 }
 
+function buildEomonthDates(startDate: Date, months: number) {
+  const dates: Date[] = [];
+  for (let i = 0; i < months; i += 1) {
+    const d = new Date(startDate);
+    d.setMonth(d.getMonth() + i + 1, 0);
+    dates.push(d);
+  }
+  return dates;
+}
+
+function computeXirr(cashflows: number[], dates: Date[]) {
+  if (!cashflows.length || cashflows.length !== dates.length) {
+    return { rate: null, status: 'invalid_input', reason: 'Cashflows and dates length mismatch' };
+  }
+  const minCF = Math.min(...cashflows);
+  const maxCF = Math.max(...cashflows);
+  if (!(minCF < 0 && maxCF > 0)) {
+    return { rate: null, status: 'no_sign_change', reason: 'No sign change in cashflows' };
+  }
+
+  const day0 = dates[0].getTime();
+  const yearFrac = dates.map((d) => (d.getTime() - day0) / (365 * 24 * 60 * 60 * 1000));
+  const xnpv = (rate: number) => {
+    let total = 0;
+    for (let i = 0; i < cashflows.length; i += 1) {
+      total += cashflows[i] / Math.pow(1 + rate, yearFrac[i]);
+    }
+    return total;
+  };
+
+  let low = -0.95;
+  let high = 3.0;
+  let fLow = xnpv(low);
+  let fHigh = xnpv(high);
+  if (fLow * fHigh > 0) {
+    return { rate: null, status: 'no_root_in_range', reason: 'No XIRR root in range [-95%, +300%]' };
+  }
+
+  let rate: number | null = null;
+  for (let i = 0; i < 80; i += 1) {
+    const mid = (low + high) / 2;
+    const fMid = xnpv(mid);
+    if (Math.abs(fMid) < 1e-6) {
+      rate = mid;
+      break;
+    }
+    if (fLow * fMid < 0) {
+      high = mid;
+      fHigh = fMid;
+    } else {
+      low = mid;
+      fLow = fMid;
+    }
+    rate = mid;
+  }
+
+  return { rate, status: 'converged', reason: null };
+}
+
+function runDeveloperTemplateModel(assumptions: any) {
+  const {
+    passings,
+    build_months,
+    subscription_months,
+    subscription_rate,
+    capex_per_passing,
+    install_cost_per_subscriber,
+    arpu_start,
+    circuit,
+    circuit_type,
+    min_non_circuit_cogs,
+    cogs_pct_revenue,
+    opex_per_sub,
+    opex_per_passing,
+    min_monthly_opex,
+    ebitda_multiple,
+    discount_rate_pct,
+    analysis_months,
+    model_profile,
+    start_date
+  } = assumptions;
+
+  const months = analysis_months || 120;
+  const subscriptionDelay = assumptions.subscription_start_delay_months != null
+    ? assumptions.subscription_start_delay_months
+    : 5;
+  const passingsStartDelay = assumptions.passings_start_delay_months != null
+    ? assumptions.passings_start_delay_months
+    : 1;
+  const blueprintShare = assumptions.blueprint_share ?? 0.5;
+  const contributionShare = assumptions.contribution_share ?? 0.5;
+  const distributionStartMonth = assumptions.distribution_start_month ?? 27;
+
+  const normalizedProfile = String(model_profile || '').trim().toLowerCase() || 'developer_template_2_9_26';
+  const circuitDefaults = {
+    1: { nrc: 0, mrc: 1300, threshold: 100 },
+    2: { nrc: 0, mrc: 2400, threshold: 200 },
+    5: { nrc: 0, mrc: 3500, threshold: 500 },
+    10: { nrc: 0, mrc: 5000, threshold: 1000 }
+  };
+  const circuitConfig = circuitDefaults[circuit_type] || circuitDefaults[1];
+  const effectiveCircuitNrc = assumptions.circuit_nrc ?? circuitConfig.nrc;
+  const effectiveCircuitMrc = assumptions.circuit_mrc ?? circuitConfig.mrc;
+  const effectiveCircuitThreshold = assumptions.circuit_sub_threshold ?? circuitConfig.threshold;
+
+  const totalPassings = passings || 0;
+  const totalSubscribersTarget = totalPassings * (subscription_rate ?? 0);
+  const subscriptionMonths = subscription_months || build_months || 36;
+  const passingsPerMonth = build_months ? (totalPassings / build_months) : 0;
+  const subsPerMonth = subscriptionMonths ? (totalSubscribersTarget / subscriptionMonths) : 0;
+  const distributionThreshold = totalSubscribersTarget * (arpu_start || 0);
+
+  const epsilon = 1e-6;
+  let passingsEnd = 0;
+  let subscribersEnd = 0;
+  let totalCircuitsPrev = 0;
+  let ebCashPrev = 0;
+  let cumulativeContribution = 0;
+
+  const monthly: any[] = [];
+  const cashOutflows: number[] = [];
+  const cashInflows: number[] = [];
+
+  for (let i = 0; i < months; i += 1) {
+    const monthNumber = i + 1;
+    const remainingPassings = totalPassings - passingsEnd;
+    const passingsAdded = (i < passingsStartDelay || remainingPassings <= epsilon)
+      ? 0
+      : Math.min(passingsPerMonth, remainingPassings);
+    passingsEnd = Math.min(totalPassings, passingsEnd + passingsAdded);
+
+    let subscribersAdded = 0;
+    const remainingSubscribers = totalSubscribersTarget - subscribersEnd;
+    if (i >= subscriptionDelay && remainingSubscribers > epsilon) {
+      subscribersAdded = Math.min(subsPerMonth, remainingSubscribers);
+    }
+    subscribersEnd = Math.min(totalSubscribersTarget, subscribersEnd + subscribersAdded);
+
+    const revenue = subscribersEnd * (arpu_start || 0);
+
+    let totalCircuits = 0;
+    let circuitCostNrc = 0;
+    let circuitCostMrc = 0;
+    if (circuit) {
+      const firstCircuit = passingsEnd > 0 ? 1 : 0;
+      const additionalCircuits = subscribersEnd >= effectiveCircuitThreshold
+        ? Math.floor(subscribersEnd / effectiveCircuitThreshold)
+        : 0;
+      totalCircuits = firstCircuit + additionalCircuits;
+      const circuitAdditions = totalCircuits - totalCircuitsPrev;
+      circuitCostNrc = circuitAdditions * effectiveCircuitNrc;
+      circuitCostMrc = totalCircuits * effectiveCircuitMrc;
+    }
+
+    const otherCogs = revenue === 0
+      ? 0
+      : Math.max(min_non_circuit_cogs || 0, revenue * (cogs_pct_revenue || 0));
+    const grossProfit = revenue - circuitCostNrc - circuitCostMrc - otherCogs;
+
+    let opex = 0;
+    if (i === 0) {
+      opex = passingsAdded > 1 ? 5000 : 0;
+    } else {
+      const opexVariable = (passingsEnd * (opex_per_passing || 0)) + (subscribersEnd * (opex_per_sub || 0));
+      opex = Math.max(opexVariable, min_monthly_opex || 0);
+    }
+
+    const ebitda = grossProfit - opex;
+
+    const capexPerPassing = passingsAdded * (capex_per_passing || 0);
+    const capexPerSubscriber = subscribersAdded * (install_cost_per_subscriber || 0);
+    const capexBook = capexPerPassing + capexPerSubscriber;
+    const projectCapex = -capexBook;
+    const projectFcf = projectCapex + ebitda;
+
+    const bbCash = i === 0 ? 0 : ebCashPrev;
+    const contribution = (bbCash + projectFcf) < 0 ? -(bbCash + projectFcf) : 0;
+    let distribution = 0;
+    if (monthNumber >= distributionStartMonth && projectFcf > 0) {
+      const tentative = bbCash + projectFcf + contribution;
+      if (tentative > distributionThreshold) {
+        distribution = tentative - distributionThreshold;
+      }
+    }
+    const ebCash = bbCash + projectFcf + contribution - distribution;
+
+    const tier1 = -contribution;
+    if (tier1 < 0) {
+      cumulativeContribution += tier1 * contributionShare;
+    }
+    const cashOut = monthNumber === 1 ? cumulativeContribution : (cumulativeContribution - (monthly[i - 1]?.cumulative_contribution ?? 0));
+    const cashIn = projectFcf > 0 ? projectFcf * blueprintShare : 0;
+
+    monthly.push({
+      month_number: monthNumber,
+      passings_added: passingsAdded,
+      passings: passingsEnd,
+      subscribers_added: subscribersAdded,
+      subscribers: subscribersEnd,
+      revenue,
+      circuit_count: totalCircuits,
+      circuit_cost_nrc: circuitCostNrc,
+      circuit_cost_mrc: circuitCostMrc,
+      other_cogs: otherCogs,
+      gross_profit: grossProfit,
+      opex,
+      ebitda,
+      capex_book: capexBook,
+      project_fcf: projectFcf,
+      bb_cash: bbCash,
+      contribution,
+      distribution,
+      eb_cash: ebCash,
+      cumulative_contribution: cumulativeContribution,
+      cash_out: cashOut,
+      cash_in: cashIn,
+      fcf: cashIn
+    });
+
+    cashOutflows.push(cashOut);
+    cashInflows.push(cashIn);
+    ebCashPrev = ebCash;
+    totalCircuitsPrev = totalCircuits;
+  }
+
+  const terminalEbitda = monthly.slice(-12).reduce((sum, m) => sum + (m.ebitda || 0), 0);
+  const terminalValueEbitda = terminalEbitda > 0 ? terminalEbitda * (ebitda_multiple || 0) : 0;
+  const saleProceeds = terminalValueEbitda * blueprintShare;
+  const endingCashShare = (monthly[monthly.length - 1]?.eb_cash || 0) * blueprintShare;
+  if (monthly.length) {
+    monthly[monthly.length - 1].fcf = (monthly[monthly.length - 1].fcf || 0) + saleProceeds;
+  }
+
+  const cashflows = monthly.map((m, idx) => {
+    if (idx === 0) return (m.cash_out + m.cash_in - 0.01);
+    if (idx === monthly.length - 1) return m.cash_out + saleProceeds + endingCashShare;
+    return m.cash_out + m.cash_in;
+  });
+
+  const startDate = start_date ? new Date(start_date) : new Date('2025-01-31');
+  const dates = buildEomonthDates(startDate, months);
+  const irrResult = computeXirr(cashflows, dates);
+  const irrAnnualPct = irrResult.rate != null ? Number((irrResult.rate * 100).toFixed(2)) : null;
+
+  const cashInvested = -cashOutflows.reduce((sum, v) => sum + v, 0);
+  const cashReturned = cashInflows.reduce((sum, v) => sum + v, 0) + saleProceeds;
+  const moic = cashInvested > 0 ? Number((cashReturned / cashInvested).toFixed(2)) : null;
+
+  const discountRate = (discount_rate_pct || 10) / 100;
+  const npv = cashflows.reduce((sum, cf, idx) => {
+    const t = (dates[idx].getTime() - dates[0].getTime()) / (365 * 24 * 60 * 60 * 1000);
+    return sum + cf / Math.pow(1 + discountRate, t);
+  }, 0);
+
+  const peakSubscribers = Math.max(...monthly.map((m) => m.subscribers || 0));
+  const peakEbitda = Math.max(...monthly.map((m) => m.ebitda || 0));
+  const totalCapexBook = monthly.reduce((sum, m) => sum + (m.capex_book || 0), 0);
+  const peakExternalCash = Math.max(...monthly.map((m) => -(m.cumulative_contribution || 0)));
+
+  return {
+    monthly,
+    metrics: {
+      total_capex_book: Math.round(totalCapexBook),
+      actual_cash_invested: Math.round(cashInvested),
+      peak_external_cash: Math.round(peakExternalCash),
+      npv: Math.round(npv),
+      irr_monthly_decimal: null,
+      irr_annual_pct: irrAnnualPct,
+      irr_status: irrResult.status,
+      irr_reason: irrResult.reason,
+      moic,
+      moic_status: moic != null ? 'defined' : 'not_defined',
+      peak_subscribers: Math.round(peakSubscribers),
+      peak_monthly_ebitda: Math.round(peakEbitda),
+      terminal_value: Math.round(terminalValueEbitda),
+      terminal_value_ebitda: Math.round(terminalValueEbitda),
+      terminal_value_method: 'ebitda',
+      model_profile: normalizedProfile,
+      cash_returned: Math.round(cashReturned)
+    },
+    metric_explanations: []
+  };
+}
+
 // Run the 120-month financial model with EBITDA reinvestment logic
 function runFinancialModel(assumptions) {
   const months = assumptions.analysis_months || 120;
   const monthly = [];
-  
+
   const {
     passings,
     build_months,
@@ -415,14 +699,66 @@ function runFinancialModel(assumptions) {
     ramp_months = 36,
     capex_per_passing = 1200,
     opex_per_sub = 25,
-    discount_rate_pct = 10
+    discount_rate_pct = 10,
+    subscription_months,
+    subscription_rate,
+    subscription_start_delay_months,
+    install_cost_per_subscriber = 0,
+    opex_per_passing = 0,
+    min_monthly_opex = 0,
+    cogs_pct_revenue = 0,
+    min_non_circuit_cogs = 0,
+    circuit = false,
+    circuit_type = 1,
+    circuit_nrc,
+    circuit_mrc,
+    circuit_sub_threshold,
+    ebitda_multiple = 15,
+    startup_opex = 0,
+    model_profile,
+    terminal_value_method,
+    terminal_value_weight,
+    per_subscriber_terminal_value
   } = assumptions;
 
-  const total_capex_book = total_capex || (passings * capex_per_passing);
+  const normalizeRate = (value, fallback) => {
+    if (value === null || value === undefined) return fallback;
+    const num = Number(value);
+    if (Number.isNaN(num)) return fallback;
+    return num > 1 ? num / 100 : num;
+  };
+
+  const normalizedProfile = String(model_profile || '').trim().toLowerCase();
+  const profileKey = normalizedProfile || 'standard';
+  const isDeveloperTemplate = ['developer_template_2_9_26', 'developer_template', 'exec_dashboard'].includes(profileKey);
+  if (isDeveloperTemplate) {
+    return runDeveloperTemplateModel({ ...assumptions, model_profile: profileKey });
+  }
+  const effectiveSubscriptionDelay = subscription_start_delay_months != null
+    ? subscription_start_delay_months
+    : (isDeveloperTemplate ? 0 : 6);
+
+  const effectiveSubscriptionRate = normalizeRate(subscription_rate, penetration_target_pct ?? 0.4);
+  const effectiveSubscriptionMonths = subscription_months || ramp_months || 36;
+
+  const circuitDefaults = {
+    1: { nrc: 0, mrc: 1300, threshold: 100 },
+    2: { nrc: 0, mrc: 2400, threshold: 200 },
+    5: { nrc: 0, mrc: 3500, threshold: 500 },
+    10: { nrc: 0, mrc: 5000, threshold: 1000 }
+  };
+  const circuitConfig = circuitDefaults[circuit_type] || circuitDefaults[1];
+  const effectiveCircuitNrc = circuit_nrc ?? circuitConfig.nrc;
+  const effectiveCircuitMrc = circuit_mrc ?? circuitConfig.mrc;
+  const effectiveCircuitThreshold = circuit_sub_threshold ?? circuitConfig.threshold;
+
+  const total_capex_book = total_capex || (
+    (passings || 0) * (capex_per_passing || 0) +
+    (passings || 0) * effectiveSubscriptionRate * (install_cost_per_subscriber || 0)
+  );
   const monthly_rate = discount_rate_pct / 100 / 12;
 
-  // Edge case: Zero or negative total CAPEX
-  if (total_capex_book <= 0) {
+  if (total_capex_book <= 0 || !passings) {
     return {
       monthly: [],
       metrics: {
@@ -430,61 +766,105 @@ function runFinancialModel(assumptions) {
         actual_cash_invested: 0,
         peak_external_cash: 0,
         npv: null,
-        irr: null,
+        irr_monthly_decimal: null,
+        irr_annual_pct: null,
         irr_status: 'not_defined_no_investment',
         moic: null,
         moic_status: 'not_defined_no_investment',
         peak_subscribers: 0,
-        peak_monthly_ebitda: 0
+        peak_monthly_ebitda: 0,
+        terminal_value: 0
       },
       metric_explanations: []
     };
   }
 
-  // Track both Total CAPEX (book) and Actual Cash Invested (with reinvestment)
-  const monthly_capex_schedule = total_capex_book / build_months;
+  const monthly_capex_schedule = total_capex_book / (build_months || 1);
   let cumulative_external_cash = 0;
   let peak_external_cash = 0;
-  
-  for (let month = 1; month <= months; month++) {
-    // Subscriber growth
-    const buildProgress = Math.min(month / build_months, 1);
-    const rampProgress = Math.min(Math.max(month - build_months, 0) / ramp_months, 1);
-    const penetration = penetration_start_pct + (penetration_target_pct - penetration_start_pct) * rampProgress;
-    const subscribers = Math.floor(passings * buildProgress * penetration);
-    
-    const revenue = subscribers * arpu_start;
-    const opex = subscribers * opex_per_sub;
-    const ebitda = revenue - opex;
-    const capex_book = month <= build_months ? monthly_capex_schedule : 0;
-    
-    // Reinvestment logic: EBITDA offsets CAPEX
+  let passings_end = 0;
+  let subscribers_end = 0;
+  let totalCircuitsPrev = 0;
+
+  const passings_add_per_month = build_months ? (passings / build_months) : 0;
+  const totalSubscribersTarget = passings * effectiveSubscriptionRate;
+  const subscribers_add_per_month = effectiveSubscriptionMonths ? (totalSubscribersTarget / effectiveSubscriptionMonths) : 0;
+
+  for (let month = 1; month <= months; month += 1) {
+    const passings_added = month <= build_months ? passings_add_per_month : 0;
+    passings_end = Math.min(passings, passings_end + passings_added);
+
+    let subscribers_added = 0;
+    if (month > effectiveSubscriptionDelay && subscribers_end < totalSubscribersTarget) {
+      subscribers_added = Math.min(subscribers_add_per_month, totalSubscribersTarget - subscribers_end);
+    }
+    subscribers_end = Math.min(totalSubscribersTarget, subscribers_end + subscribers_added);
+
+    const penetration = passings_end > 0 ? subscribers_end / passings_end : 0;
+    const revenue = subscribers_end * arpu_start;
+
+    let totalCircuits = 0;
+    let circuit_cost_nrc = 0;
+    let circuit_cost_mrc = 0;
+
+    if (circuit) {
+      const firstCircuit = subscribers_end > 0 ? 1 : 0;
+      const additionalCircuits = subscribers_end >= effectiveCircuitThreshold
+        ? Math.floor(subscribers_end / effectiveCircuitThreshold)
+        : 0;
+      totalCircuits = firstCircuit + additionalCircuits;
+      const circuitAdditions = totalCircuits - totalCircuitsPrev;
+      circuit_cost_nrc = circuitAdditions * effectiveCircuitNrc;
+      circuit_cost_mrc = totalCircuits * effectiveCircuitMrc;
+    }
+
+    const other_cogs = revenue > 0
+      ? Math.max(min_non_circuit_cogs || 0, revenue * (cogs_pct_revenue || 0))
+      : 0;
+
+    const gross_profit = revenue - circuit_cost_nrc - circuit_cost_mrc - other_cogs;
+    const opex_variable = (passings_end * (opex_per_passing || 0)) + (subscribers_end * (opex_per_sub || 0));
+    const opex_base = Math.max(min_monthly_opex || 0, opex_variable);
+    const opex = (month === 1 ? startup_opex : 0) + opex_base;
+    const ebitda = gross_profit - opex;
+
+    const useDetailCapex = (capex_per_passing || install_cost_per_subscriber) && passings;
+    const capex_book = useDetailCapex
+      ? (passings_added * (capex_per_passing || 0)) + (subscribers_added * (install_cost_per_subscriber || 0))
+      : (month <= build_months ? monthly_capex_schedule : 0);
+
     let external_cash_this_month = 0;
     if (ebitda < 0) {
-      // Operating loss - need external cash for both opex shortfall and capex
       external_cash_this_month = capex_book - ebitda;
     } else {
-      // EBITDA positive - reinvest into CAPEX first
       external_cash_this_month = Math.max(0, capex_book - ebitda);
     }
-    
+
     cumulative_external_cash += external_cash_this_month;
     peak_external_cash = Math.max(peak_external_cash, cumulative_external_cash);
-    
+
     const fcf = ebitda - capex_book;
     const discountFactor = Math.pow(1 + monthly_rate, -month);
     const pv = fcf * discountFactor;
-    
+
     const date = new Date();
     date.setMonth(date.getMonth() + month);
-    
+
     monthly.push({
       date: date.toISOString().split('T')[0],
       month_number: month,
-      subscribers,
+      passings_added: passings_added.toFixed(2),
+      passings: passings_end.toFixed(2),
+      subscribers_added: subscribers_added.toFixed(2),
+      subscribers: subscribers_end.toFixed(2),
       penetration_pct: (penetration * 100).toFixed(2),
       arpu: arpu_start.toFixed(2),
       revenue: revenue.toFixed(2),
+      circuit_count: totalCircuits,
+      circuit_cost_nrc: circuit_cost_nrc.toFixed(2),
+      circuit_cost_mrc: circuit_cost_mrc.toFixed(2),
+      other_cogs: other_cogs.toFixed(2),
+      gross_profit: gross_profit.toFixed(2),
       opex: opex.toFixed(2),
       ebitda: ebitda.toFixed(2),
       capex_book: capex_book.toFixed(2),
@@ -493,26 +873,55 @@ function runFinancialModel(assumptions) {
       fcf: fcf.toFixed(2),
       pv: pv.toFixed(2)
     });
+
+    totalCircuitsPrev = totalCircuits;
   }
 
   const actual_cash_invested = peak_external_cash;
-  
-  // Calculate NPV using Actual Cash Invested as CF[0]
-  const npv = monthly.reduce((sum, m) => sum + parseFloat(m.pv), -actual_cash_invested);
-  
-  // Calculate IRR using Actual Cash Invested with robust solver
+
+  const terminalEbitda = monthly.slice(-12).reduce((sum, m) => sum + parseFloat(m.ebitda), 0);
+  const terminalValueEbitda = terminalEbitda > 0 ? terminalEbitda * (ebitda_multiple || 0) : 0;
+  const terminalSubscriberValue = per_subscriber_terminal_value != null
+    ? per_subscriber_terminal_value
+    : (isDeveloperTemplate ? 10000 : 0);
+  const terminalValueSubscribers = terminalSubscriberValue && subscribers_end
+    ? subscribers_end * terminalSubscriberValue
+    : 0;
+  const terminalMethod = String(terminal_value_method || (isDeveloperTemplate ? 'blended' : 'ebitda')).toLowerCase();
+  const terminalWeight = terminal_value_weight != null ? terminal_value_weight : 0.5;
+  let terminal_value = terminalValueEbitda;
+  if (terminalMethod === 'subscriber') {
+    terminal_value = terminalValueSubscribers;
+  } else if (terminalMethod === 'blended') {
+    terminal_value = (terminalValueEbitda * terminalWeight) + (terminalValueSubscribers * (1 - terminalWeight));
+  }
+  if (monthly.length) {
+    const last = monthly[monthly.length - 1];
+    last.terminal_value = terminal_value.toFixed(2);
+    last.terminal_value_ebitda = terminalValueEbitda.toFixed(2);
+    last.terminal_value_subscriber = terminalValueSubscribers.toFixed(2);
+    const fcfWithTerminal = parseFloat(last.fcf) + terminal_value;
+    last.fcf_with_terminal = fcfWithTerminal.toFixed(2);
+    const pvWithTerminal = fcfWithTerminal * Math.pow(1 + monthly_rate, -months);
+    last.pv_with_terminal = pvWithTerminal.toFixed(2);
+  }
+
+  const npv = monthly.reduce((sum, m) => sum + parseFloat(m.pv), -actual_cash_invested) +
+    (terminal_value * Math.pow(1 + monthly_rate, -months));
+
   let irr_monthly_decimal = null;
   let irrStatus = 'converged';
   let irrReason = null;
   let irrDebug = null;
-  
-  // Build explicit cashflow array: CF[0] = -investment, CF[1..N] = monthly FCF
-  const cashflows = [-actual_cash_invested, ...monthly.map(m => parseFloat(m.fcf))];
+  const cashflows = [-actual_cash_invested, ...monthly.map((m, idx) => {
+    const base = parseFloat(m.fcf);
+    if (idx === monthly.length - 1) return base + terminal_value;
+    return base;
+  })];
   const minCF = Math.min(...cashflows);
   const maxCF = Math.max(...cashflows);
   const hasSignChange = minCF < 0 && maxCF > 0;
-  
-  // Pre-flight checks
+
   if (actual_cash_invested <= 0) {
     irrStatus = 'no_investment';
     irrReason = 'Actual cash invested is zero or negative';
@@ -520,95 +929,90 @@ function runFinancialModel(assumptions) {
     irrStatus = 'no_sign_change';
     irrReason = 'No sign change in cashflow sequence - IRR does not exist';
   } else {
-    // IRR exists - attempt to solve
     const testNPV = (rate) => {
-      let npv = -actual_cash_invested;
+      let npvVal = -actual_cash_invested;
       monthly.forEach((m, idx) => {
-        npv += parseFloat(m.fcf) / Math.pow(1 + rate, idx + 1);
+        const fcfVal = parseFloat(m.fcf) + (idx === monthly.length - 1 ? terminal_value : 0);
+        npvVal += fcfVal / Math.pow(1 + rate, idx + 1);
       });
-      return npv;
+      return npvVal;
     };
-    
-    // Check for root existence in reasonable range
+
     const npvAtNeg95 = testNPV(-0.95);
     const npvAtPos300 = testNPV(3.0);
-    
+
     if (npvAtNeg95 * npvAtPos300 > 0) {
       irrStatus = 'no_root_in_range';
       irrReason = 'No IRR solution found in range [-95%, +300%] monthly';
       irrDebug = { npv_at_neg95: npvAtNeg95.toFixed(2), npv_at_pos300: npvAtPos300.toFixed(2) };
     } else {
-      // Try Newton-Raphson with safeguards
-      let rate = 0.10; // Start at 10% monthly
+      let rate = 0.10;
       let irrConverged = false;
       let iterations = 0;
       let lastNPV = 0;
       let lastDerivative = 0;
-      
-      for (let i = 0; i < 50; i++) {
+
+      for (let i = 0; i < 50; i += 1) {
         iterations = i + 1;
         let npvAtRate = -actual_cash_invested;
         let derivative = 0;
-        
+
         monthly.forEach((m, idx) => {
           const factor = Math.pow(1 + rate, -(idx + 1));
-          npvAtRate += parseFloat(m.fcf) * factor;
-          derivative -= (idx + 1) * parseFloat(m.fcf) * factor / (1 + rate);
+          const fcfVal = parseFloat(m.fcf) + (idx === monthly.length - 1 ? terminal_value : 0);
+          npvAtRate += fcfVal * factor;
+          derivative -= (idx + 1) * fcfVal * factor / (1 + rate);
         });
-        
+
         lastNPV = npvAtRate;
         lastDerivative = derivative;
-        
+
         if (Math.abs(npvAtRate) < 0.001) {
           irr_monthly_decimal = rate;
           irrConverged = true;
           break;
         }
-        
+
         if (Math.abs(derivative) < 1e-10) {
           irrStatus = 'derivative_too_small';
           irrReason = 'Newton-Raphson derivative too small to continue';
           break;
         }
-        
+
         const step = npvAtRate / derivative;
         rate = rate - step;
-        
-        // Clamp to reasonable bounds
         if (rate < -0.95) rate = -0.95;
         if (rate > 3.0) rate = 3.0;
-        
-        // Check for oscillation
+
         if (Math.abs(step) < 1e-8) {
           irr_monthly_decimal = rate;
           irrConverged = true;
           break;
         }
       }
-      
-      // If Newton didn't converge, try bisection
+
       if (!irrConverged && irrStatus === 'converged') {
         let low = -0.95;
         let high = 3.0;
-        
-        for (let i = 0; i < 100; i++) {
+
+        for (let i = 0; i < 100; i += 1) {
           iterations += 1;
           const mid = (low + high) / 2;
           const npvMid = testNPV(mid);
-          
+
           if (Math.abs(npvMid) < 0.001) {
             irr_monthly_decimal = mid;
             irrConverged = true;
             break;
           }
-          
+
           const npvLow = testNPV(low);
           if (npvLow * npvMid < 0) {
             high = mid;
           } else {
             low = mid;
           }
-          
+
           if (Math.abs(high - low) < 1e-7) {
             irr_monthly_decimal = mid;
             irrConverged = true;
@@ -616,7 +1020,7 @@ function runFinancialModel(assumptions) {
           }
         }
       }
-      
+
       if (!irrConverged && irrStatus === 'converged') {
         irrStatus = 'did_not_converge';
         irrReason = `Solver failed to converge after ${iterations} iterations`;
@@ -632,14 +1036,16 @@ function runFinancialModel(assumptions) {
       }
     }
   }
-  
-  // Calculate MOIC using same cashflow vector as IRR/NPV
-  const distributed_sum_pos_fcf = monthly.reduce((sum, m) => sum + Math.max(0, parseFloat(m.fcf)), 0);
+
+  const distributed_sum_pos_fcf = monthly.reduce((sum, m, idx) => {
+    const fcfVal = parseFloat(m.fcf) + (idx === monthly.length - 1 ? terminal_value : 0);
+    return sum + Math.max(0, fcfVal);
+  }, 0);
   const paid_in = actual_cash_invested;
   let moic = null;
   let moicStatus = 'defined';
   let moicReason = null;
-  
+
   if (paid_in <= 0) {
     moicStatus = 'not_defined';
     moicReason = 'No external investment required';
@@ -649,19 +1055,17 @@ function runFinancialModel(assumptions) {
   } else {
     moic = distributed_sum_pos_fcf / paid_in;
   }
-  
-  // Cashflow summary for diagnostics
-  const fcfValues = monthly.map(m => parseFloat(m.fcf));
+
+  const fcfValues = monthly.map((m) => parseFloat(m.fcf));
   const min_fcf = Math.min(...fcfValues);
   const max_fcf = Math.max(...fcfValues);
-  const count_pos_fcf_months = fcfValues.filter(f => f > 0).length;
-  const count_neg_fcf_months = fcfValues.filter(f => f < 0).length;
-  
-  const peakSubscribers = Math.max(...monthly.map(m => m.subscribers));
-  const peakEbitda = Math.max(...monthly.map(m => parseFloat(m.ebitda)));
+  const count_pos_fcf_months = fcfValues.filter((f) => f > 0).length;
+  const count_neg_fcf_months = fcfValues.filter((f) => f < 0).length;
 
-  // Calculate annualized IRR using compound formula
-  const irr_annual_pct = irr_monthly_decimal !== null 
+  const peakSubscribers = Math.max(...monthly.map((m) => parseFloat(m.subscribers)));
+  const peakEbitda = Math.max(...monthly.map((m) => parseFloat(m.ebitda)));
+
+  const irr_annual_pct = irr_monthly_decimal !== null
     ? ((Math.pow(1 + irr_monthly_decimal, 12) - 1) * 100)
     : null;
 
@@ -675,85 +1079,35 @@ function runFinancialModel(assumptions) {
     irr_annual_pct: irr_annual_pct !== null ? parseFloat(irr_annual_pct.toFixed(2)) : null,
     irr_status: irrStatus,
     irr_reason: irrReason,
-    irr_color: irr_annual_pct !== null ? classifyIRR(irr_annual_pct) : 'unknown',
     ...(irrDebug && { irr_debug: irrDebug }),
-    distributed_sum_pos_fcf: Math.round(distributed_sum_pos_fcf),
-    paid_in: Math.round(paid_in),
+    irr_color: irr_annual_pct !== null ? classifyIRR(irr_annual_pct) : 'unknown',
     moic: moic !== null ? parseFloat(moic.toFixed(2)) : null,
     moic_status: moicStatus,
     moic_reason: moicReason,
     moic_color: moic !== null ? classifyMOIC(moic) : 'unknown',
-    peak_subscribers: peakSubscribers,
+    peak_subscribers: Math.round(peakSubscribers),
     peak_monthly_ebitda: Math.round(peakEbitda),
-    cashflow_summary: {
-      min_fcf: Math.round(min_fcf),
-      max_fcf: Math.round(max_fcf),
-      count_pos_fcf_months,
-      count_neg_fcf_months
-    }
+    min_fcf: Math.round(min_fcf),
+    max_fcf: Math.round(max_fcf),
+    count_pos_fcf_months,
+    count_neg_fcf_months,
+    terminal_value: Math.round(terminal_value),
+    terminal_ebitda: Math.round(terminalEbitda),
+    terminal_value_ebitda: Math.round(terminalValueEbitda),
+    terminal_value_subscriber: Math.round(terminalValueSubscribers),
+    terminal_value_method: terminalMethod,
+    terminal_value_weight: terminalMethod === 'blended' ? terminalWeight : null,
+    model_profile: profileKey,
+    subscription_start_delay_months: effectiveSubscriptionDelay
   };
 
-  // Add calculation explanations
-  const metric_explanations = [
-    {
-      metric_name: "Total CAPEX (Book)",
-      formula_human: "Total planned capital expenditure over the project life, without considering EBITDA reinvestment. This is the 'book cost' to build.",
-      formula_expression: "total_capex_book = passings × capex_per_passing",
-      notes: "Spread evenly over build_months. This is the full project cost if no operating cashflows were available to fund construction."
-    },
-    {
-      metric_name: "Actual Cash Invested",
-      formula_human: "External cash required after EBITDA reinvestment. Peak external cash draw represents the maximum capital commitment needed.",
-      formula_expression: "actual_cash_invested = peak(cumulative external cash)\nwhere external_cash[t] = CAPEX[t] - max(0, EBITDA[t])",
-      notes: "Always ≤ Total CAPEX. Difference shows how much the project 'self-funds' via operating cashflows."
-    },
-    {
-      metric_name: "NPV (Net Present Value)",
-      formula_human: "Present value of all future cashflows discounted at specified rate, minus Actual Cash Invested.",
-      formula_expression: "NPV = Σ(FCF[t] / (1 + r/12)^t) - Actual_Cash_Invested",
-      coloring_logic: "Green when NPV > 0, red when NPV < 0, yellow for borderline.",
-      notes: "Uses Actual Cash Invested (not Total CAPEX) as initial outlay."
-    },
-    {
-      metric_name: "IRR (Internal Rate of Return)",
-      formula_human: "Annualized return rate where NPV = 0, calculated using Actual Cash Invested as CF[0]. Uses compound annualization: (1 + monthly_rate)^12 - 1.",
-      formula_expression: "Solve for r_monthly where: Σ(FCF[t] / (1 + r_monthly)^t) - Actual_Cash_Invested = 0\nThen: IRR_annual = ((1 + r_monthly)^12 - 1) × 100",
-      coloring_logic: "Green ≥15%, yellow 0-15%, red <0%.",
-      notes: "IRR uses same cashflow vector as NPV/MOIC for consistency. Stored as both monthly decimal and annual percent."
-    },
-    {
-      metric_name: "MOIC (Multiple on Invested Capital)",
-      formula_human: "Total positive cash returned divided by Actual Cash Invested. Uses same FCF vector as IRR/NPV.",
-      formula_expression: "distributed = Σ(max(0, FCF[t])) for t≥1\npaid_in = actual_cash_invested\nMOIC = distributed / paid_in",
-      coloring_logic: "Green ≥2.0x, yellow 1.0-2.0x, red <1.0x.",
-      notes: "MOIC ignores timing. High MOIC with low IRR means returns take long time. Stored as distributed_sum_pos_fcf / paid_in."
-    },
-    {
-      metric_name: "Peak Subscribers",
-      formula_human: "Maximum number of subscribers reached during the analysis period. Subscribers grow as the network is built (build_months) and as penetration ramps from start to target level (ramp_months). Calculated monthly as: subscribers[t] = passings × buildProgress[t] × penetration[t].",
-      formula_expression: "subscribers[t] = passings × min(t/build_months, 1) × penetration[t]\nwhere penetration[t] = penetration_start + (penetration_target - penetration_start) × min(max(t - build_months, 0) / ramp_months, 1)",
-      inputs_frontend: ["passings", "build_months", "penetration_start_pct", "penetration_target_pct", "ramp_months"],
-      inputs_backend: ["None - calculated in-memory from model run"],
-      s3_sources: [`raw/projects_pipeline/model_outputs/${assumptions.project_id}/*/economics_monthly.csv`],
-      notes: "Subscribers begin growing once the network starts being built, and continue ramping up for ramp_months after build completes."
-    },
-    {
-      metric_name: "Peak Monthly EBITDA",
-      formula_human: "Maximum monthly EBITDA (Earnings Before Interest, Tax, Depreciation, and Amortization) reached during the analysis period. EBITDA = Revenue - OpEx, where Revenue = subscribers × ARPU and OpEx = subscribers × opex_per_sub.",
-      formula_expression: "EBITDA[t] = Revenue[t] - OpEx[t]\nRevenue[t] = subscribers[t] × arpu_start\nOpEx[t] = subscribers[t] × opex_per_sub",
-      inputs_frontend: ["passings", "build_months", "arpu_start", "opex_per_sub", "penetration_start_pct", "penetration_target_pct", "ramp_months"],
-      inputs_backend: ["None - calculated in-memory from model run"],
-      s3_sources: [`raw/projects_pipeline/model_outputs/${assumptions.project_id}/*/economics_monthly.csv`],
-      coloring_logic: "Green when peak EBITDA > 0 (operating profit), red when peak EBITDA < 0 (operating loss).",
-      notes: "Peak EBITDA typically occurs when subscriber count and penetration are at their maximum."
-    },
-    {
-      metric_name: "External Cash This Month",
-      formula_human: "Cash needed from outside this month after EBITDA reinvestment into CAPEX.",
-      formula_expression: "external_cash[t] = max(0, CAPEX[t] - EBITDA[t]) when EBITDA > 0\n= CAPEX[t] - EBITDA[t] when EBITDA < 0",
-      notes: "Negative values mean project is returning cash. Cumulative sum gives peak external cash requirement."
-    }
-  ];
+  const metric_explanations = [];
+  if (irrStatus !== 'converged') {
+    metric_explanations.push(`IRR not computed: ${irrReason || irrStatus}`);
+  }
+  if (moicStatus !== 'defined') {
+    metric_explanations.push(`MOIC not computed: ${moicReason || moicStatus}`);
+  }
 
   return { monthly, metrics, metric_explanations };
 }

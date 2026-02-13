@@ -113,17 +113,17 @@ export default function ProjectDetailDrawer({ isOpen, onClose, project, onSave }
               <p className="text-sm font-medium">{project.state || '-'}</p>
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Partner Share</Label>
-              <p className="text-sm font-medium">{project.partner_share_raw || '-'}</p>
+              <Label className="text-xs text-muted-foreground">Partner</Label>
+              <p className="text-sm font-medium">{project.partner || '-'}</p>
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Investor Label</Label>
-              <p className="text-sm font-medium">{project.investor_label || '-'}</p>
+              <Label className="text-xs text-muted-foreground">Split %</Label>
+              <p className="text-sm font-medium">{project.split_pct || '-'}</p>
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">Investment Amount</Label>
               <p className="text-sm font-medium">
-                {project.investment_amount ? `$${Number(project.investment_amount).toLocaleString()}` : '-'}
+                {project.investment ? `$${Number(project.investment).toLocaleString()}` : '-'}
               </p>
             </div>
           </div>

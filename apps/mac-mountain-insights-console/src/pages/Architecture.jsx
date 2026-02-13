@@ -804,7 +804,7 @@ LIMIT 2000`}</pre>
                       <div>• v_monthly_revenue_platt_long</div>
                       <div>• v_customer_spine</div>
                       <div>• v_support_tickets</div>
-                      <div>• v_network_health</div>
+                      <div>• v_network_mix_billing_aligned_latest</div>
                       <div>• invoice_line_item_repro_v1</div>
                       <div>• projects_enriched</div>
                     </div>
@@ -858,7 +858,7 @@ LIMIT 2000`}</pre>
                       <div>• <strong>MRR Tile:</strong> curated_core.v_monthly_revenue_platt_long</div>
                       <div>• <strong>Customer Health:</strong> curated_core.v_customer_spine</div>
                       <div>• <strong>Support Tickets:</strong> curated_core.v_support_tickets</div>
-                      <div>• <strong>Network Health:</strong> curated_core.v_network_health</div>
+                      <div>• <strong>Network Mix (Billing-Aligned):</strong> curated_recon.v_network_mix_billing_aligned_latest</div>
                       <div>• <strong>Bucket Summary:</strong> curated_core.v_customer_spine + v_monthly_revenue_platt_long</div>
                     </div>
                   </div>

@@ -116,7 +116,7 @@ export default function MetricTile({ title, sql, icon: Icon, onClick, tileId }) 
               {data.sql_used && (
                 <details>
                   <summary className="cursor-pointer text-slate-600 hover:text-slate-800">SQL</summary>
-                  <pre className="mt-1 p-2 bg-slate-900 text-slate-100 rounded text-[10px] overflow-x-auto">
+                  <pre className="mt-1 p-2 bg-[var(--mac-ice)] text-[var(--mac-ash)] border border-[var(--mac-panel-border)] rounded text-[10px] overflow-x-auto">
                     {data.sql_used}
                   </pre>
                 </details>
