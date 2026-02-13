@@ -1170,6 +1170,7 @@ function resolveDeterministicQuestion(questionText) {
   const wantsCustomers = includesAny(['customer', 'customers', 'subscriber', 'subscribers', 'subscription', 'subscriptions', 'subs']);
   const wantsWorkbookDomain = includesAny(['investor', 'workbook', 'customer mix', 'revenue mix', 'mix network', 'network mix']);
   const wantsRevenueMix = includesAny(['revenue mix', 'plat id', 'platid', 'billed', 'billing', 'invoice']);
+  const wantsCustomerMix = includesAny(['customer mix', 'customer-mix']) || (includesAny(['mix']) && wantsCustomers);
 
   const buildCustomerMixParams = ({ networkType = '', customerType = '', accessType = '' }) => ({
     network_type: networkType,
@@ -1272,6 +1273,27 @@ function resolveDeterministicQuestion(questionText) {
     return { questionId: 'copper_customers_count', params: hasCopperScope ? copperParams : {} };
   }
 
+  // Workbook "mix" summaries (global): when the user asks for customer mix / revenue mix without a specific segment.
+  // These are deterministic and match the workbook grain (customer mix = subscriptions; revenue mix = PLAT ID COUNT + billed MRR).
+  if (wantsWorkbookDomain && wantsCustomerMix && !wantsOwned && !wantsContracted && !wantsClec) {
+    const isList = isListQuestion && includesAny(['which', 'list', 'show', 'networks', 'systems']);
+    if (isList) {
+      return { questionId: 'workbook_customer_mix_networks_list', params: buildCustomerMixParams({}) };
+    }
+    return { questionId: 'workbook_customer_mix_summary', params: {} };
+  }
+
+  if (wantsWorkbookDomain && wantsRevenueMix && !wantsOwned && !wantsContracted && !wantsClec) {
+    const isList = isListQuestion && includesAny(['which', 'list', 'show', 'networks', 'systems']);
+    if (includesAny(['exclude dvfiber', 'excluding dvfiber', 'without dvfiber'])) {
+      return { questionId: 'workbook_revenue_mix_totals_excluding_dvfiber', params: {} };
+    }
+    if (isList) {
+      return { questionId: 'workbook_revenue_mix_networks_list', params: { network_type_like: '', network_like: '' } };
+    }
+    return { questionId: 'workbook_revenue_mix_summary', params: {} };
+  }
+
   // Workbook-domain customer mix questions: deterministically answer from modeled lake SSOT,
   // and provide a drill-down list route. This is the "like-for-like" path for CLEC/Owned/Contracted.
   //
@@ -1291,19 +1313,21 @@ function resolveDeterministicQuestion(questionText) {
       customerType = 'Owned Customer';
       accessType = 'Fiber';
       segmentLabel = 'Owned';
-      networkTypeLike = '%owned%';
+      networkTypeLike = '%owned%fiber%';
     } else if (wantsContracted) {
       networkType = 'Contracted';
       customerType = 'Contracted Customer';
       accessType = 'Fiber';
       segmentLabel = 'Contracted';
-      networkTypeLike = '%contract%';
+      // Revenue Mix sheet uses "Resold; Fiber" to represent contracted/resold fiber billing.
+      networkTypeLike = '%resold%fiber%';
     } else if (wantsClec) {
       networkType = 'CLEC';
       customerType = 'Owned Customer';
       accessType = 'Copper';
       segmentLabel = 'CLEC';
-      networkTypeLike = '%clec%';
+      // Revenue Mix sheet uses Copper tagging (e.g., "Resold; Copper") for CLEC/copper billing.
+      networkTypeLike = '%copper%';
     }
 
     if (wantsRevenueMix) {
@@ -4252,6 +4276,16 @@ function buildAnswerMarkdown(questionId, columns, rows) {
     ].join('\n');
   }
 
+  if (questionId === 'workbook_customer_mix_summary') {
+    const modeledDt = formatMonth(record.modeled_dt);
+    return [
+      '**Workbook Customer Mix — Summary (modeled SSOT, deterministic)**',
+      `- Rows returned: ${dataRows.length}.`,
+      `- As of ${modeledDt}.`,
+      '_This matches the workbook grain: subscriptions/services and passings, grouped by Network Type + Customer Type + Access Type._'
+    ].join('\n');
+  }
+
   if (questionId === 'workbook_revenue_mix_kpis') {
     const asOf = formatMonth(record.as_of_date);
     return [
@@ -4269,6 +4303,24 @@ function buildAnswerMarkdown(questionId, columns, rows) {
       `- Rows returned: ${dataRows.length}.`,
       `- As of ${asOf}.`,
       '_See table for networks and their billed customers (PLAT ID COUNT) and billed MRR._'
+    ].join('\n');
+  }
+
+  if (questionId === 'workbook_revenue_mix_summary') {
+    const asOf = formatMonth(record.as_of_date);
+    return [
+      '**Workbook Revenue Mix — Summary (billed, deterministic)**',
+      `- Rows returned: ${dataRows.length}.`,
+      `- As of ${asOf}.`,
+      '_This matches the workbook grain: billed customer IDs (PLAT ID COUNT) and billed MRR, grouped by Network Type._'
+    ].join('\n');
+  }
+
+  if (questionId === 'workbook_revenue_mix_totals_excluding_dvfiber') {
+    const asOf = formatMonth(record.as_of_date);
+    return [
+      '**Workbook Revenue Mix — Totals Excluding DVFiber (billed, deterministic)**',
+      `- As of ${asOf}: ${formatNumber(record.billed_customers)} billed customers (PLAT IDs) and ${formatCurrency(record.billed_mrr)} billed MRR (ARPU ${formatCurrency(record.arpu_billed, 2)}).`
     ].join('\n');
   }
 

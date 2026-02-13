@@ -1,0 +1,218 @@
+[
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "11200",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "40100",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "40150",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "40160",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "40170",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "40250",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "40300",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "40350",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "40400",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "40450",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "40500",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "40550",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "40560",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "40600",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "41100",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "41300",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "43100",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "43200",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "43300",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "43400",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "44100",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "44200",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "44300",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "52600",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "DVFiber; DVFiber",
+    "plat_id_count": 867.0,
+    "revenue": 83339.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "DVFiber; GWI",
+    "plat_id_count": 2.0,
+    "revenue": 145820.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "ECFiber; GWI",
+    "plat_id_count": 1.0,
+    "revenue": 89576.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "GWI-VT",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "Lyme; GWI",
+    "plat_id_count": 1.0,
+    "revenue": 5640.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "MMLC",
+    "plat_id_count": 0.0,
+    "revenue": 0.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "NWFX; GWI",
+    "plat_id_count": 1.0,
+    "revenue": 10000.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "Owned; Fiber",
+    "plat_id_count": 398.0,
+    "revenue": 32199.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "Resold",
+    "plat_id_count": 796.0,
+    "revenue": 323524.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "Resold; Copper",
+    "plat_id_count": 2819.0,
+    "revenue": 301634.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "Resold; Fiber",
+    "plat_id_count": 743.0,
+    "revenue": 253172.0
+  },
+  {
+    "as_of_date": "2026-01-25",
+    "network_type": "ValleyNet",
+    "plat_id_count": 1.0,
+    "revenue": 32395.0
+  }
+]

@@ -1,0 +1,274 @@
+[
+  {
+    "actual": 1634.0,
+    "delta": 0.0,
+    "expected": 1634.0,
+    "metric": "customer_mix.passings.('clec', 'owned customer', 'copper')",
+    "ok": true
+  },
+  {
+    "actual": 1634.0,
+    "delta": 0.0,
+    "expected": 1634.0,
+    "metric": "customer_mix.subscriptions.('clec', 'owned customer', 'copper')",
+    "ok": true
+  },
+  {
+    "actual": 8913.0,
+    "delta": 0.0,
+    "expected": 8913.0,
+    "metric": "customer_mix.passings.('contracted', 'contracted customer', 'fiber')",
+    "ok": true
+  },
+  {
+    "actual": 2209.0,
+    "delta": 0.0,
+    "expected": 2209.0,
+    "metric": "customer_mix.subscriptions.('contracted', 'contracted customer', 'fiber')",
+    "ok": true
+  },
+  {
+    "actual": 124.0,
+    "delta": 0.0,
+    "expected": 124.0,
+    "metric": "customer_mix.passings.('contracted', 'owned customer', 'fiber')",
+    "ok": true
+  },
+  {
+    "actual": 124.0,
+    "delta": 0.0,
+    "expected": 124.0,
+    "metric": "customer_mix.subscriptions.('contracted', 'owned customer', 'fiber')",
+    "ok": true
+  },
+  {
+    "actual": 3885.0,
+    "delta": 0.0,
+    "expected": 3885.0,
+    "metric": "customer_mix.passings.('owned fttp', 'owned customer', 'fiber')",
+    "ok": true
+  },
+  {
+    "actual": 912.0,
+    "delta": 0.0,
+    "expected": 912.0,
+    "metric": "customer_mix.subscriptions.('owned fttp', 'owned customer', 'fiber')",
+    "ok": true
+  },
+  {
+    "actual": 32199.0,
+    "delta": 0.0,
+    "expected": 32199.0,
+    "metric": "revenue_mix.revenue.Owned; Fiber",
+    "ok": true,
+    "tol": 0.01
+  },
+  {
+    "actual": 253172.0,
+    "delta": 1.0,
+    "expected": 253171.0,
+    "metric": "revenue_mix.revenue.Resold; Fiber",
+    "ok": false,
+    "tol": 0.01
+  },
+  {
+    "actual": 83339.0,
+    "delta": 0.0,
+    "expected": 83339.0,
+    "metric": "revenue_mix.revenue.DVFiber; DVFiber",
+    "ok": true,
+    "tol": 0.01
+  },
+  {
+    "actual": 145820.0,
+    "delta": 0.0,
+    "expected": 145820.0,
+    "metric": "revenue_mix.revenue.DVFiber; GWI",
+    "ok": true,
+    "tol": 0.01
+  },
+  {
+    "actual": 301634.0,
+    "delta": -26035.0,
+    "expected": 327669.0,
+    "metric": "revenue_mix.revenue.Resold (Copper rollup)",
+    "ok": false,
+    "tol": 0.01
+  },
+  {
+    "actual": 301634.0,
+    "delta": 0.0,
+    "expected": 301634.0,
+    "metric": "revenue_mix.revenue.Resold; Copper",
+    "ok": true,
+    "tol": 0.01
+  },
+  {
+    "actual": 10000.0,
+    "delta": 0.0,
+    "expected": 10000.0,
+    "metric": "revenue_mix.revenue.NWFX; GWI",
+    "ok": true,
+    "tol": 0.01
+  },
+  {
+    "actual": 89576.0,
+    "delta": 0.0,
+    "expected": 89576.0,
+    "metric": "revenue_mix.revenue.ECFiber; GWI",
+    "ok": true,
+    "tol": 0.01
+  },
+  {
+    "actual": 5640.0,
+    "delta": 0.0,
+    "expected": 5640.0,
+    "metric": "revenue_mix.revenue.Lyme; GWI",
+    "ok": true,
+    "tol": 0.01
+  },
+  {
+    "actual": 398.0,
+    "delta": 0.0,
+    "expected": 398.0,
+    "metric": "revenue_mix.plat_id_count.Owned; Fiber",
+    "ok": true,
+    "tol": 0.01
+  },
+  {
+    "actual": 743.0,
+    "delta": 0.0,
+    "expected": 743.0,
+    "metric": "revenue_mix.plat_id_count.Resold; Fiber",
+    "ok": true,
+    "tol": 0.01
+  },
+  {
+    "actual": 867.0,
+    "delta": 0.0,
+    "expected": 867.0,
+    "metric": "revenue_mix.plat_id_count.DVFiber; DVFiber",
+    "ok": true,
+    "tol": 0.01
+  },
+  {
+    "actual": 2.0,
+    "delta": 0.0,
+    "expected": 2.0,
+    "metric": "revenue_mix.plat_id_count.DVFiber; GWI",
+    "ok": true,
+    "tol": 0.01
+  },
+  {
+    "actual": 2819.0,
+    "delta": 1987.0,
+    "expected": 832.0,
+    "metric": "revenue_mix.plat_id_count.Resold (Copper rollup)",
+    "ok": false,
+    "tol": 0.01
+  },
+  {
+    "actual": 2819.0,
+    "delta": 0.0,
+    "expected": 2819.0,
+    "metric": "revenue_mix.plat_id_count.Resold; Copper",
+    "ok": true,
+    "tol": 0.01
+  },
+  {
+    "actual": 1.0,
+    "delta": 0.0,
+    "expected": 1.0,
+    "metric": "revenue_mix.plat_id_count.NWFX; GWI",
+    "ok": true,
+    "tol": 0.01
+  },
+  {
+    "actual": 1.0,
+    "delta": 0.0,
+    "expected": 1.0,
+    "metric": "revenue_mix.plat_id_count.ECFiber; GWI",
+    "ok": true,
+    "tol": 0.01
+  },
+  {
+    "actual": 1.0,
+    "delta": 0.0,
+    "expected": 1.0,
+    "metric": "revenue_mix.plat_id_count.Lyme; GWI",
+    "ok": true,
+    "tol": 0.01
+  },
+  {
+    "actual": 80.90201005025126,
+    "delta": -0.09798994974873665,
+    "expected": 81.0,
+    "metric": "revenue_mix.arpu.Owned; Fiber",
+    "ok": true,
+    "tol": 0.5
+  },
+  {
+    "actual": 340.742934051144,
+    "delta": -0.25706594885599543,
+    "expected": 341.0,
+    "metric": "revenue_mix.arpu.Resold; Fiber",
+    "ok": true,
+    "tol": 0.5
+  },
+  {
+    "actual": 96.12341407151095,
+    "delta": 0.12341407151095041,
+    "expected": 96.0,
+    "metric": "revenue_mix.arpu.DVFiber; DVFiber",
+    "ok": true,
+    "tol": 0.5
+  },
+  {
+    "actual": 72910.0,
+    "delta": 0.0,
+    "expected": 72910.0,
+    "metric": "revenue_mix.arpu.DVFiber; GWI",
+    "ok": true,
+    "tol": 0.5
+  },
+  {
+    "actual": 107.00035473572188,
+    "delta": -286.9996452642781,
+    "expected": 394.0,
+    "metric": "revenue_mix.arpu.Resold (Copper rollup)",
+    "ok": false,
+    "tol": 0.5
+  },
+  {
+    "actual": 107.00035473572188,
+    "delta": 0.00035473572188493563,
+    "expected": 107.0,
+    "metric": "revenue_mix.arpu.Resold; Copper",
+    "ok": true,
+    "tol": 0.5
+  },
+  {
+    "actual": 10000.0,
+    "delta": 0.0,
+    "expected": 10000.0,
+    "metric": "revenue_mix.arpu.NWFX; GWI",
+    "ok": true,
+    "tol": 0.5
+  },
+  {
+    "actual": 89576.0,
+    "delta": 0.0,
+    "expected": 89576.0,
+    "metric": "revenue_mix.arpu.ECFiber; GWI",
+    "ok": true,
+    "tol": 0.5
+  },
+  {
+    "actual": 5640.0,
+    "delta": 0.0,
+    "expected": 5640.0,
+    "metric": "revenue_mix.arpu.Lyme; GWI",
+    "ok": true,
+    "tol": 0.5
+  }
+]

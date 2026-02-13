@@ -868,6 +868,27 @@
       "network_like"
     ]
   },
+  "workbook_customer_mix_summary": {
+    "views_used": [
+      "curated_core.v_network_health"
+    ],
+    "sql": "SELECT\n  network_type,\n  customer_type,\n  CASE\n    WHEN LOWER(COALESCE(network_type, '')) = 'clec' THEN 'Copper'\n    ELSE 'Fiber'\n  END AS access_type,\n  CAST(MAX(dt) AS timestamp) AS modeled_dt,\n  SUM(COALESCE(passings, 0)) AS passings,\n  SUM(COALESCE(subscriptions, 0)) AS subscriptions,\n  CASE\n    WHEN SUM(COALESCE(passings, 0)) > 0 THEN (SUM(COALESCE(subscriptions, 0)) / SUM(COALESCE(passings, 0))) * 100\n    ELSE NULL\n  END AS penetration_pct,\n  SUM(COALESCE(mrr, 0)) AS mrr_modeled,\n  CASE\n    WHEN SUM(COALESCE(subscriptions, 0)) > 0 THEN SUM(COALESCE(mrr, 0)) / SUM(COALESCE(subscriptions, 0))\n    ELSE NULL\n  END AS arpu_modeled\nFROM curated_core.v_network_health\nWHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n  AND network IS NOT NULL\n  AND TRIM(network) <> ''\n  AND network <> 'Unmapped'\nGROUP BY 1, 2, 3\nORDER BY subscriptions DESC, passings DESC\nLIMIT 200;",
+    "params": []
+  },
+  "workbook_revenue_mix_summary": {
+    "views_used": [
+      "curated_core.v_investor_revenue_mix_latest"
+    ],
+    "sql": "SELECT\n  network_type,\n  CASE\n    WHEN LOWER(COALESCE(network_type, '')) LIKE '%copper%' THEN 'Copper'\n    ELSE 'Fiber'\n  END AS access_type,\n  MAX(as_of_date) AS as_of_date,\n  SUM(COALESCE(plat_id_count, 0)) AS billed_customers,\n  SUM(COALESCE(revenue, 0)) AS billed_mrr,\n  CASE\n    WHEN SUM(COALESCE(plat_id_count, 0)) > 0 THEN SUM(COALESCE(revenue, 0)) / SUM(COALESCE(plat_id_count, 0))\n    ELSE NULL\n  END AS arpu_billed\nFROM curated_core.v_investor_revenue_mix_latest\nWHERE network IS NOT NULL\n  AND TRIM(network) <> ''\n  AND network <> 'Total'\nGROUP BY 1, 2\nORDER BY billed_customers DESC\nLIMIT 200;",
+    "params": []
+  },
+  "workbook_revenue_mix_totals_excluding_dvfiber": {
+    "views_used": [
+      "curated_core.v_investor_revenue_mix_latest"
+    ],
+    "sql": "SELECT\n  MAX(as_of_date) AS as_of_date,\n  SUM(COALESCE(plat_id_count, 0)) AS billed_customers,\n  SUM(COALESCE(revenue, 0)) AS billed_mrr,\n  CASE\n    WHEN SUM(COALESCE(plat_id_count, 0)) > 0 THEN SUM(COALESCE(revenue, 0)) / SUM(COALESCE(plat_id_count, 0))\n    ELSE NULL\n  END AS arpu_billed\nFROM curated_core.v_investor_revenue_mix_latest\nWHERE network IS NOT NULL\n  AND TRIM(network) <> ''\n  AND network <> 'Total'\n  AND LOWER(COALESCE(network_type, '')) NOT LIKE '%dvfiber%'\nLIMIT 1;",
+    "params": []
+  },
   "platt_billing_customers_by_system_latest": {
     "views_used": [
       "curated_core.v_monthly_mrr_platt",

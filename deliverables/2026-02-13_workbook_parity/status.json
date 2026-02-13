@@ -1,0 +1,15 @@
+{
+  "athena_qids": {
+    "lake_customer_mix_combos": "8efcc7ad-6a77-4cac-a86f-15bbcc8da1fc",
+    "lake_revenue_mix_by_type": "9a6817cd-75cf-468a-a6fc-be253b09f3be",
+    "lake_revenue_mix_copper_rollup": "1bbb2352-6ab7-4446-8cf6-b94303369c89",
+    "lake_revenue_mix_max_as_of_date": "bc7c11d6-cc92-4e73-8e8c-5f28beb1b1de"
+  },
+  "comparisons_failed": 4,
+  "comparisons_total": 35,
+  "failures": [],
+  "result": "FAIL",
+  "run_at_utc": "2026-02-13T21:34:47.250328Z",
+  "workbook_path": "/Users/patch/Downloads/batch 9 vetro (act design)/Investor Questions - GWI Business (2).xlsx",
+  "workbook_revenue_mix_as_of_date": "2026-01-25"
+}
