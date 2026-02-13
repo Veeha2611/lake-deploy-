@@ -1,6 +1,6 @@
--- Network mix aligned to billing + active services (Platt SSOT).
--- Subscriptions = active services (not billed accounts).
--- MRR path = billing totals when available (fallback to modeled ARPU * subs).
+-- Network mix with billing + active services context.
+-- Subscriptions + ARPU + MRR remain workbook-modeled (curated_core.v_network_health) for Customer Mix alignment.
+-- Billing is exposed separately (billed_customers, mrr_billed) so UI can show both without mixing definitions.
 CREATE OR REPLACE VIEW curated_recon.v_network_mix_billing_aligned_latest AS
 WITH modeled AS (
   SELECT *
@@ -17,6 +17,7 @@ modeled_norm AS (
     subscriptions,
     arpu,
     arpu_label,
+    mrr AS mrr_modeled,
     REGEXP_REPLACE(LOWER(COALESCE(NULLIF(TRIM(network_norm), ''), NULLIF(TRIM(network), ''), 'unmapped')), '[^a-z0-9]', '') AS network_key,
     dt
   FROM modeled
@@ -50,6 +51,7 @@ keys AS (
     MAX(subscriptions) AS subscriptions,
     MAX(arpu) AS arpu,
     MAX(arpu_label) AS arpu_label,
+    MAX(mrr_modeled) AS mrr_modeled,
     MAX(dt) AS modeled_dt
   FROM modeled_norm
   GROUP BY network_key
@@ -65,6 +67,7 @@ keys AS (
     NULL AS subscriptions,
     NULL AS arpu,
     NULL AS arpu_label,
+    NULL AS mrr_modeled,
     NULL AS modeled_dt
   FROM billed
   GROUP BY network_key
@@ -80,6 +83,7 @@ keys AS (
     NULL AS subscriptions,
     NULL AS arpu,
     NULL AS arpu_label,
+    NULL AS mrr_modeled,
     NULL AS modeled_dt
   FROM active_services
   GROUP BY network_key
@@ -95,6 +99,7 @@ dedup AS (
     MAX(subscriptions) AS subscriptions,
     MAX(arpu) AS arpu,
     MAX(arpu_label) AS arpu_label,
+    MAX(mrr_modeled) AS mrr_modeled,
     MAX(modeled_dt) AS modeled_dt
   FROM keys
   GROUP BY network_key
@@ -109,25 +114,18 @@ SELECT
   a.active_services AS active_services,
   b.billed_customers,
   b.billed_mrr AS mrr_billed,
-  CASE
-    WHEN b.billed_mrr IS NOT NULL
-         AND COALESCE(d.subscriptions, a.active_services) IS NOT NULL
-         AND COALESCE(d.subscriptions, a.active_services) > 0
-      THEN b.billed_mrr / COALESCE(d.subscriptions, a.active_services)
-    WHEN d.arpu IS NOT NULL THEN d.arpu
-    ELSE NULL
-  END AS arpu,
-  CASE
-    WHEN b.billed_mrr IS NOT NULL THEN NULL
-    ELSE d.arpu_label
-  END AS arpu_label,
-  CASE
-    WHEN d.arpu IS NOT NULL AND COALESCE(d.subscriptions, a.active_services) IS NOT NULL
-      THEN d.arpu * COALESCE(d.subscriptions, a.active_services)
-    ELSE NULL
-  END AS mrr_modeled,
+  d.arpu AS arpu,
+  d.arpu_label AS arpu_label,
   COALESCE(
-    b.billed_mrr,
+    d.mrr_modeled,
+    CASE
+      WHEN d.arpu IS NOT NULL AND COALESCE(d.subscriptions, a.active_services) IS NOT NULL
+        THEN d.arpu * COALESCE(d.subscriptions, a.active_services)
+      ELSE NULL
+    END
+  ) AS mrr_modeled,
+  COALESCE(
+    d.mrr_modeled,
     CASE
       WHEN d.arpu IS NOT NULL AND COALESCE(d.subscriptions, a.active_services) IS NOT NULL
         THEN d.arpu * COALESCE(d.subscriptions, a.active_services)
