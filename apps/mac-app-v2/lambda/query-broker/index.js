@@ -83,6 +83,8 @@ const REPORTS_PREFIX = process.env.REPORTS_PREFIX || 'raw/mac_ai_console/reports
 const AGENT_ARTIFACTS_BUCKET = process.env.AGENT_ARTIFACTS_BUCKET || 'gwi-raw-us-east-2-pc';
 const AGENT_ARTIFACTS_PREFIX = process.env.AGENT_ARTIFACTS_PREFIX || 'raw/mac_ai_console/agent_artifacts/';
 const MODEL_VERSION_HASH = String(process.env.MODEL_VERSION_HASH || process.env.GIT_SHA || 'unknown').trim();
+// Bump this when user-visible response formatting changes, to avoid serving stale markdown from cache.
+const RESPONSE_FORMAT_VERSION = String(process.env.RESPONSE_FORMAT_VERSION || '2026-02-13.1').trim();
 // Freshness gating: when enabled, stale sources fail closed (UNAVAILABLE).
 const FRESHNESS_GATE_ENABLED = String(process.env.FRESHNESS_GATE_ENABLED || 'true').toLowerCase() === 'true';
 
@@ -9731,7 +9733,7 @@ LIMIT 200000;`;
     (questionId && queryDef && !queryDef.__dynamic
       ? `${questionId}:${stableStringify(params)}:${querySignature}`
       : `${questionText || inlineSql}:${stableStringify(params)}`);
-  const cacheKey = hashKey(cacheKeySeed);
+  const cacheKey = hashKey(`${cacheKeySeed}:fmt=${RESPONSE_FORMAT_VERSION}`);
 
   try {
     const cached = await getCache(cacheKey);
