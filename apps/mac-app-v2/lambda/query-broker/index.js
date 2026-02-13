@@ -359,11 +359,11 @@ function resolveNetworkMixDomainQuestion(questionText) {
     return {
       notSupportedPayload: buildNotSupportedPayload({
         questionText,
-        reason: 'DVFiber exclusion is not defined for Customer Mix in the workbook domain',
+        reason: 'DVFiber exclusion is not defined for Customer Mix in the Network Mix domain',
         nextStep: 'Ask for Revenue Mix totals excluding DVFiber, or add a governed DVFiber exclusion rule for Customer Mix and ingest/model it',
         details: [
-          'Revenue Mix has a workbook-defined “Total excluding DVFiber Customers” row.',
-          'Customer Mix does not define an equivalent exclusion rule.'
+          'Revenue Mix has a defined “Total excluding DVFiber Customers” rollup.',
+          'Customer Mix does not define an equivalent exclusion rule in the current governed model.'
         ]
       })
     };
@@ -387,7 +387,7 @@ function resolveNetworkMixDomainQuestion(questionText) {
       return {
         notSupportedPayload: buildNotSupportedPayload({
           questionText,
-          reason: `segment \"${segmentKey}\" is not supported for Revenue Mix in the workbook domain`,
+          reason: `segment \"${segmentKey}\" is not supported for Revenue Mix in the Network Mix domain`,
           nextStep: 'Add the segment mapping in apps/mac-app-v2/lambda/query-broker/network-mix-domain.yaml',
           details: [`segment_key=${segmentKey}`]
         })
@@ -435,8 +435,8 @@ function resolveNetworkMixDomainQuestion(questionText) {
     return {
       notSupportedPayload: buildNotSupportedPayload({
         questionText,
-        reason: `segment \"${segmentKey}\" is not supported for Customer Mix in the workbook domain`,
-        nextStep: 'Ask for Owned, Contracted, or CLEC (as defined by the workbook), or add a new segment mapping and deterministic templates',
+        reason: `segment \"${segmentKey}\" is not supported for Customer Mix in the Network Mix domain`,
+        nextStep: 'Ask for Owned, Contracted, or CLEC (as defined by the Network Mix domain), or add a new segment mapping and deterministic templates',
         details: [`segment_key=${segmentKey}`]
       })
     };
@@ -4428,7 +4428,7 @@ function buildAnswerMarkdown(questionId, columns, rows) {
     const modeledDt = formatMonth(record.modeled_dt);
     const period = formatMonth(record.period_month || record.modeled_dt);
     return [
-      '**Workbook Customer Mix (modeled SSOT, deterministic)**',
+      '**Network Mix — Customer Mix (modeled SSOT, deterministic)**',
       `- Network Type: ${record.network_type || 'All'}. Customer Type: ${record.customer_type || 'All'}. Access: ${record.access_type || 'All'}.`,
       `- Period: ${period}. As of ${modeledDt}: ${formatNumber(record.subscriptions)} subscriptions across ${formatNumber(record.passings)} passings (penetration ${record.penetration_pct ? `${Number(record.penetration_pct).toFixed(2)}%` : 'N/A'}).`,
       `- Modeled MRR: ${formatCurrency(record.mrr_modeled)} (ARPU ${formatCurrency(record.arpu_modeled, 2)}).`,
@@ -4439,7 +4439,7 @@ function buildAnswerMarkdown(questionId, columns, rows) {
   if (questionId === 'workbook_customer_mix_networks_list') {
     const modeledDt = formatMonth(record.dt);
     return [
-      '**Workbook Customer Mix — Networks List (modeled SSOT, deterministic)**',
+      '**Network Mix — Customer Mix — Networks List (modeled SSOT, deterministic)**',
       `- Rows returned: ${dataRows.length}.`,
       `- As of ${modeledDt}.`,
       '_See table for networks and their passings/subscriptions._'
@@ -4449,17 +4449,17 @@ function buildAnswerMarkdown(questionId, columns, rows) {
   if (questionId === 'workbook_customer_mix_summary') {
     const modeledDt = formatMonth(record.modeled_dt);
     return [
-      '**Workbook Customer Mix — Summary (modeled SSOT, deterministic)**',
+      '**Network Mix — Customer Mix — Summary (modeled SSOT, deterministic)**',
       `- Rows returned: ${dataRows.length}.`,
       `- As of ${modeledDt}.`,
-      '_This matches the workbook grain: subscriptions/services and passings, grouped by Network Type + Customer Type + Access Type._'
+      '_This uses the governed Customer Mix grain: subscriptions/services and passings, grouped by Network Type + Customer Type + Access Type._'
     ].join('\n');
   }
 
   if (questionId === 'workbook_revenue_mix_kpis') {
     const asOf = formatMonth(record.as_of_date);
     return [
-      '**Workbook Revenue Mix (billed, deterministic)**',
+      '**Network Mix — Revenue Mix (billed, deterministic)**',
       `- Segment: ${record.segment_label || 'All'}.`,
       `- As of ${asOf}: ${formatNumber(record.billed_customers)} billed customers (PLAT IDs) and ${formatCurrency(record.billed_mrr)} billed MRR.`,
       '_Ask “list networks” to see contributing networks._'
@@ -4469,7 +4469,7 @@ function buildAnswerMarkdown(questionId, columns, rows) {
   if (questionId === 'workbook_revenue_mix_networks_list') {
     const asOf = formatMonth(record.as_of_date);
     return [
-      '**Workbook Revenue Mix — Networks List (billed, deterministic)**',
+      '**Network Mix — Revenue Mix — Networks List (billed, deterministic)**',
       `- Rows returned: ${dataRows.length}.`,
       `- As of ${asOf}.`,
       '_See table for networks and their billed customers (PLAT ID COUNT) and billed MRR._'
@@ -4479,17 +4479,17 @@ function buildAnswerMarkdown(questionId, columns, rows) {
   if (questionId === 'workbook_revenue_mix_summary') {
     const asOf = formatMonth(record.as_of_date);
     return [
-      '**Workbook Revenue Mix — Summary (billed, deterministic)**',
+      '**Network Mix — Revenue Mix — Summary (billed, deterministic)**',
       `- Rows returned: ${dataRows.length}.`,
       `- As of ${asOf}.`,
-      '_This matches the workbook grain: billed customer IDs (PLAT ID COUNT) and billed MRR, grouped by Network Type._'
+      '_This uses the governed Revenue Mix grain: billed customer IDs (PLAT ID COUNT) and billed MRR, grouped by Network Type._'
     ].join('\n');
   }
 
   if (questionId === 'workbook_revenue_mix_totals_excluding_dvfiber') {
     const asOf = formatMonth(record.as_of_date);
     return [
-      '**Workbook Revenue Mix — Totals Excluding DVFiber (billed, deterministic)**',
+      '**Network Mix — Revenue Mix — Totals Excluding DVFiber (billed, deterministic)**',
       `- As of ${asOf}: ${formatNumber(record.billed_customers)} billed customers (PLAT IDs) and ${formatCurrency(record.billed_mrr)} billed MRR (ARPU ${formatCurrency(record.arpu_billed, 2)}).`
     ].join('\n');
   }
