@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReportSpec",
+  "type": "object",
+  "required": ["name"],
+  "properties": {
+    "name": { "type": "string" },
+    "query_id": { "type": ["string", "null"] },
+    "metric_key": { "type": ["string", "null"] },
+    "source_view": { "type": ["string", "null"] },
+    "filters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["field", "op", "value"],
+        "properties": {
+          "field": { "type": "string" },
+          "op": { "type": "string", "enum": ["=", "in", "between", ">=", "<=", "!=", "like"] },
+          "value": {}
+        }
+      }
+    },
+    "time_window": {
+      "type": ["object", "null"],
+      "properties": {
+        "type": { "type": "string", "enum": ["last_n", "between", "latest", "snapshot"] },
+        "n": { "type": ["number", "null"] },
+        "start": { "type": ["string", "null"] },
+        "end": { "type": ["string", "null"] },
+        "unit": { "type": ["string", "null"], "enum": ["day", "month", null] }
+      }
+    },
+    "columns": { "type": "array", "items": { "type": "string" } },
+    "limit": { "type": ["number", "null"] },
+    "format": { "type": "string", "enum": ["csv", "xlsx"] }
+  },
+  "additionalProperties": true
+}

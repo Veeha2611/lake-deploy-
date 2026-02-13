@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const AWS = require('aws-sdk');
 const XLSX = require('xlsx');
 const Ajv = require('ajv');
+const yaml = require('js-yaml');
 
 const athena = new AWS.Athena({ region: process.env.AWS_REGION || 'us-east-2' });
 const ddb = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION || 'us-east-2' });
@@ -47,6 +48,12 @@ const BEDROCK_TOOL_USE_ENABLED = String(process.env.BEDROCK_TOOL_USE_ENABLED || 
 const KB_ENABLED = String(process.env.KB_ENABLED || 'false').toLowerCase() === 'true';
 const VERIFY_ACTION_ENABLED = String(process.env.VERIFY_ACTION_ENABLED || 'false').toLowerCase() === 'true';
 const REPORT_EXPORT_ENABLED = String(process.env.REPORT_EXPORT_ENABLED || 'false').toLowerCase() === 'true';
+// Capability routing flags (safe defaults).
+const TEMPLATES_ONLY = String(process.env.TEMPLATES_ONLY || 'true').toLowerCase() === 'true';
+const PLANNER_ALLOWED = String(process.env.PLANNER_ALLOWED || 'false').toLowerCase() === 'true';
+const NATIVE_VERIFY_ENABLED = String(process.env.NATIVE_VERIFY_ENABLED || 'false').toLowerCase() === 'true';
+const CAPABILITY_ROUTER_ENABLED = String(process.env.CAPABILITY_ROUTER_ENABLED || 'false').toLowerCase() === 'true';
+const IPV4_ENABLED = String(process.env.IPV4_ENABLED || 'false').toLowerCase() === 'true';
 const MAX_RESULT_ROWS = Number(process.env.MAX_RESULT_ROWS || 2000);
 const MAX_RESULT_ROWS_HARD = Number(process.env.MAX_RESULT_ROWS_HARD || 50000);
 const GUARD_STATUS_BUCKET = process.env.GUARD_STATUS_BUCKET || 'gwi-raw-us-east-2-pc';
@@ -221,7 +228,11 @@ const ACTION_INTENT_SCHEMA = loadJsonFile(resolveMetadataFile('action_intent_sch
 const REPORT_SPEC_SCHEMA = loadJsonFile(resolveMetadataFile('report_spec_schema.json'), {});
 const GOLDEN_QUESTIONS = loadJsonFile(resolveMetadataFile('golden_questions.json'), { version: 'unknown', questions: [] });
 const REVENUE_REPORT_LABEL_MAP = loadJsonFile(resolveMetadataFile('revenue_report_label_map.json'), { company_map: {}, customer_type_map: {} });
-const CLAUDE_PLANNER_PROMPT = loadTextFile(resolveMetadataFile('claude_planner_prompt.txt'), '').trim();
+const PLANNER_SYSTEM_PROMPT = (
+  loadTextFile(resolveMetadataFile('planner_system_prompt.txt'), '').trim() ||
+  // Backwards compatibility with older lambda bundles.
+  loadTextFile(resolveMetadataFile('claude_planner_prompt.txt'), '').trim()
+);
 const GOVERNANCE_TEXT = loadTextFile(resolveMetadataFile('GOVERNANCE.md'), '').trim();
 const KNOWN_GAPS_TEXT = loadTextFile(resolveMetadataFile('KNOWN_GAPS_AND_RISK.md'), '').trim();
 
@@ -659,7 +670,7 @@ function buildBedrockPlanPrompt(question, validationErrors = []) {
     .slice(0, 30)
     .join(', ');
   const metricKeys = Object.keys(METRIC_DEFS || {}).slice(0, 40).join(', ');
-  const header = CLAUDE_PLANNER_PROMPT && !BEDROCK_TOOL_USE_ENABLED ? `${CLAUDE_PLANNER_PROMPT}\n\n` : '';
+  const header = PLANNER_SYSTEM_PROMPT && !BEDROCK_TOOL_USE_ENABLED ? `${PLANNER_SYSTEM_PROMPT}\n\n` : '';
   const errorBlock = validationErrors.length
     ? `Validation errors: ${validationErrors.join('; ')}\nPlease correct the JSON plan to resolve these errors.\n\n`
     : '';
@@ -1404,7 +1415,7 @@ async function invokeBedrockPlanToolUse(modelId, prompt) {
   }
   const res = await bedrock.converse({
     modelId,
-    system: CLAUDE_PLANNER_PROMPT ? [{ text: CLAUDE_PLANNER_PROMPT }] : undefined,
+    system: PLANNER_SYSTEM_PROMPT ? [{ text: PLANNER_SYSTEM_PROMPT }] : undefined,
     inferenceConfig: {
       maxTokens: BEDROCK_MAX_TOKENS,
       temperature: 0
