@@ -56,3 +56,23 @@ amplify-artifacts.zip
 *.ndjson
 *.zip
 /tmp/
+
+# Local evidence / exports (do not commit)
+/lake_audit/
+/ssot_audit/
+/mac_native_audit/
+/source_exports/
+/metadata/
+
+# Keep intake inbox templates/protocols tracked, but ignore per-thread exports.
+intake/threads_inbox_*/
+!intake/threads_inbox_*/README.md
+!intake/threads_inbox_*/PROTOCOL.md
+!intake/threads_inbox_*/THREAD_PROMPT_github.md
+!intake/threads_inbox_*/MANIFEST.template.json
+
+# Raw chat transcripts are not suitable for version control.
+docs/reference/chat_history_*/
+
+# Known non-schema artifact (contains sampled values); do not commit.
+external_sources/ops_raw_platt/platt_schema.csv
