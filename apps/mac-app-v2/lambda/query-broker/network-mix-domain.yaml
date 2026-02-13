@@ -103,7 +103,6 @@ intents:
     - "percent"
     - "percentage"
     - "share"
-    - "mix"
     - "portion"
   revenue_mix_terms:
     - "revenue mix"
@@ -128,4 +127,3 @@ intents:
     - "exclude dvfiber"
     - "without dvfiber"
     - "minus dvfiber"
-

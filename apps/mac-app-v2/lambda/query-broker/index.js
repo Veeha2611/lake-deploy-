@@ -271,14 +271,10 @@ function resolveNetworkMixDomainQuestion(questionText) {
   const operations = NETWORK_MIX_DOMAIN.operations || {};
   const segments = NETWORK_MIX_DOMAIN.segments || {};
 
-  const hasDomainSignal =
-    includesAnyNormalized(normalized, intents.customer_mix_terms) ||
-    includesAnyNormalized(normalized, intents.revenue_mix_terms) ||
-    includesAnyNormalized(normalized, intents.dvfiber_exclude_terms) ||
-    includesAnyNormalized(normalized, Object.values(NETWORK_MIX_DOMAIN.synonyms || {}).flat()) ||
-    includesAnyNormalized(normalized, ['network mix', 'customer mix', 'revenue mix']);
-
-  if (!hasDomainSignal) return null;
+  // Let the existing Network Health templates handle explicit "network health" + "by <dimension>" questions.
+  if (normalized.includes('network health') || normalized.includes('by network type') || normalized.includes('by customer type')) {
+    return null;
+  }
 
   const wantsListNetworks = includesAnyNormalized(normalized, intents.list_networks_terms) ||
     (includesAnyNormalized(normalized, ['list', 'show', 'which', 'what networks', 'which networks', 'networks']) &&
@@ -287,6 +283,22 @@ function resolveNetworkMixDomainQuestion(questionText) {
   const wantsExcludeDVFiber = includesAnyNormalized(normalized, intents.dvfiber_exclude_terms);
 
   const segmentKey = resolveNetworkMixSegmentKey(normalized);
+  const hasSheetSignal =
+    normalized.includes('customer mix') ||
+    normalized.includes('revenue mix') ||
+    includesAnyNormalized(normalized, ['investor', 'workbook']) ||
+    includesAnyNormalized(normalized, intents.revenue_mix_terms) ||
+    includesAnyNormalized(normalized, intents.dvfiber_exclude_terms) ||
+    includesAnyNormalized(normalized, ['customer mix', 'revenue mix']);
+  const hasAnchorSignal =
+    hasSheetSignal ||
+    includesAnyNormalized(normalized, ['network', 'networks', 'system', 'systems', 'workbook', 'investor', 'mix']);
+
+  // Don't hijack generic "owned customers" style questions unless the question is clearly anchored to this domain.
+  if (!hasAnchorSignal) return null;
+  // Summary questions: allow when sheet is explicit (customer mix / revenue mix / network mix).
+  if (!segmentKey && !hasSheetSignal) return null;
+
   if (segmentKey && segmentKey.ambiguous) {
     return {
       notSupportedPayload: buildNotSupportedPayload({
@@ -1377,6 +1389,11 @@ function resolveDeterministicQuestion(questionText) {
     access_type: accessType
   });
 
+  // Network Mix workbook domain (finite + deterministic).
+  // If this detects a Network Mix question, it either returns a deterministic route OR fails-closed as NOT SUPPORTED.
+  const networkMixEarly = resolveNetworkMixDomainQuestion(questionText);
+  if (networkMixEarly) return networkMixEarly;
+
   // Vetro construction / phase questions: don't let these fall into generic "network KPI" routing.
   if (
     includesAny(['construction', 'in construction', 'build phase', 'phase', 'in build']) &&
@@ -1471,11 +1488,6 @@ function resolveDeterministicQuestion(questionText) {
     }
     return { questionId: 'copper_customers_count', params: hasCopperScope ? copperParams : {} };
   }
-
-  // Network Mix workbook domain (finite + deterministic).
-  // If this detects a Network Mix question, it either returns a deterministic route OR fails-closed as NOT SUPPORTED.
-  const networkMix = resolveNetworkMixDomainQuestion(questionText);
-  if (networkMix) return networkMix;
 
   // Owned networks / owned customers (multi-scope). Users will not always say "investor workbook".
   // Return a reconciled view of "owned" counts across:
