@@ -8,7 +8,6 @@ import urllib.request
 def load_suite():
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     candidates = [
-        os.path.join(base_dir, "automation", "tests", "alex_questions.json"),
         os.path.join(
             base_dir,
             "apps",

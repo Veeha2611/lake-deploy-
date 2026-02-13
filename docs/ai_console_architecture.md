@@ -29,6 +29,26 @@ This document describes the MAC AI Console runtime and how it produces governed,
   - `config/ai/planner_system_prompt.txt` (canonical)
   - `apps/mac-app-v2/lambda/query-broker/metadata/planner_system_prompt.txt` (runtime bundle)
 
+## Capability Router (Optional, Feature-Flagged)
+- Capability routing is only enabled when `CAPABILITY_ROUTER_ENABLED=true`.
+- The router is driven by a registry file:
+  - `apps/mac-app-v2/lambda/query-broker/config/ai/capabilities.yaml`
+- Routing order:
+  1. Deterministic registry match (always first).
+  2. If no match and capability routing is enabled: pick a capability by keyword match.
+  3. Enforce required flags + required datasets for the capability.
+  4. If missing: return a clear "NOT SUPPORTED YET" response with the next step.
+  5. If present:
+     - Prefer deterministic capability handlers where available.
+     - Otherwise, invoke the governed planner only when `PLANNER_ALLOWED=true`.
+
+### "Not Supported Yet" Contract
+When a question cannot be supported (missing capability, flag, or dataset), the API must return:
+- `answer_markdown` containing:
+  - `NOT SUPPORTED YET: ...`
+  - `NEXT STEP: ...`
+- No numeric values are returned without an `evidence_pack`.
+
 ## Case Runtime (Stateful Threads)
 - Each `/query` response may be persisted as a Case record in DynamoDB:
   - `case_id`, `question_original`, `question_id`, `metric_key`
@@ -62,6 +82,15 @@ All runtime upgrades are gated behind configuration flags (default off unless ex
 - `KB_ENABLED`
 - `VERIFY_ACTION_ENABLED`
 - `REPORT_EXPORT_ENABLED`
+- `CAPABILITY_ROUTER_ENABLED`
+- `TEMPLATES_ONLY` (default true; disables planner execution)
+- `PLANNER_ALLOWED`
+- `NATIVE_VERIFY_ENABLED`
+- `IPV4_ENABLED`
+
+## Test Harness
+- Golden regression questions (template + action sanity): `metadata/golden_questions.json` via `scripts/golden_questions_runner.py`
+- Capability router contract suite: `automation/tests/alex_questions.json` via `automation/tests/run_alex_questions.py`
 
 ## Safe Write Paths
 Exports and reports can only be written to configured S3 prefixes:
