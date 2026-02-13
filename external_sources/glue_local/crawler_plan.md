@@ -11,6 +11,7 @@
 | intacct_gl_entries_json_crawler | Crawls GL entries | `s3://gwi-raw-us-east-2-pc/raw/intacct_json/gl_entries/` | 02:20 UTC |
 | platt-raw-crawler | Crawls all Platt raw tables | `s3://gwi-raw-us-east-2-pc/raw/platt/` | 02:22 UTC |
 | salesforce-raw-crawler | Crawls Salesforce exports | `s3://gwi-raw-us-east-2-pc/raw/salesforce/` | 02:24 UTC |
+| gaiia-graphql-raw-crawler | Crawls Gaiia GraphQL JSONL | `s3://gwi-raw-us-east-2-pc/raw/gaiia/graphql/` | 02:28 UTC |
 
 ## Gap: Vetro automation
 The raw Vetro exports needed for curated datasets land under `s3://gwi-raw-us-east-2-pc/raw/vetro/plan_id=<plan_id>/`. Add `vetro-raw-crawler` (schedule 02:26 UTC) per the inventory in `glue/crawlers.yaml`. It ensures the Step Functions workflow sees the newest Vetro JSON.

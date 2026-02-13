@@ -23,7 +23,7 @@ run_gaiia_ingest() {
     local url="${GAIIA_BASE_URL}/${object}?limit=${limit}&offset=${offset}&updated_after=${last_updated}"
     log "Requesting ${url}"
     local http_code
-    http_code=$(curl -sS -H "Authorization: Bearer ${GAIIA_API_TOKEN}" -o "$page_file" -w "%{http_code}" "$url")
+    http_code=$(curl -sS -H "${GAIIA_AUTH_HEADER}: ${GAIIA_AUTH_PREFIX}${GAIIA_API_TOKEN}" -o "$page_file" -w "%{http_code}" "$url")
     if [[ "$http_code" != "200" ]]; then
       log "Non-200 response (${http_code}) when hitting ${url}"
       exit 1

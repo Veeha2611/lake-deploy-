@@ -16,15 +16,27 @@ Parameters:
     Default: rate(24 hours)
   ScheduleState:
     Type: String
-    Default: DISABLED
+    Default: ENABLED
     AllowedValues: [ENABLED, DISABLED]
   S3Bucket:
     Type: String
     Default: gwi-raw-us-east-2-pc
   S3Prefix:
     Type: String
-    Default: raw/gaiia
+    Default: raw/gaiia/graphql
   GaiiaEndpoints:
+    Type: String
+    Default: ""
+  GaiiaApiUrl:
+    Type: String
+    Default: https://api.gaiia.com/api/v1
+  GaiiaQueryRegistryKey:
+    Type: String
+    Default: source_exports/gaiia/gaiia_graphql_query_registry.json
+  GaiiaAuthHeader:
+    Type: String
+    Default: X-Gaiia-Api-Key
+  GaiiaAuthPrefix:
     Type: String
     Default: ""
 
@@ -83,8 +95,10 @@ Resources:
           S3_PREFIX: !Ref S3Prefix
           GAIIA_SECRET_NAME: !Ref SecretName
           GAIIA_ENDPOINTS: !Ref GaiiaEndpoints
-          GAIIA_AUTH_HEADER: Authorization
-          GAIIA_AUTH_PREFIX: "Bearer "
+          GAIIA_API_URL: !Ref GaiiaApiUrl
+          GAIIA_QUERY_REGISTRY_KEY: !Ref GaiiaQueryRegistryKey
+          GAIIA_AUTH_HEADER: !Ref GaiiaAuthHeader
+          GAIIA_AUTH_PREFIX: !Ref GaiiaAuthPrefix
 
   GaiiaIngestSchedule:
     Type: AWS::Events::Rule

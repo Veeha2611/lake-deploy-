@@ -18,6 +18,9 @@ logger.setLevel(logging.INFO)
 
 # Environment variables (passed from CloudFormation)
 PLAN_IDS = os.getenv('PlanIds') or os.getenv('PLAN_IDS', '')
+PLAN_IDS_S3_URI = os.getenv('PLAN_IDS_S3_URI')
+PLAN_IDS_S3_BUCKET = os.getenv('PLAN_IDS_S3_BUCKET')
+PLAN_IDS_S3_KEY = os.getenv('PLAN_IDS_S3_KEY')
 STATE_BUCKET = os.getenv('StateBucket') or os.getenv('STATE_BUCKET')
 STATE_KEY = os.getenv('StateKey') or os.getenv('STATE_KEY')
 EXPORT_BUCKET = os.getenv('ExportBucket') or os.getenv('EXPORT_BUCKET')
@@ -44,6 +47,55 @@ class RateLimitExceeded(RuntimeError):
 
 s3 = boto3.client('s3')
 secrets_client = boto3.client('secretsmanager')
+
+
+def _parse_s3_uri(uri: str) -> tuple[str, str]:
+    if not uri.startswith('s3://'):
+        raise ValueError('plan_ids_s3_uri_invalid')
+    parts = uri[5:].split('/', 1)
+    if len(parts) != 2 or not parts[0] or not parts[1]:
+        raise ValueError('plan_ids_s3_uri_invalid')
+    return parts[0], parts[1]
+
+
+def _parse_plan_ids_payload(raw: str) -> list[str]:
+    raw = raw.strip()
+    if not raw:
+        return []
+    try:
+        payload = json.loads(raw)
+        if isinstance(payload, dict):
+            payload = payload.get('plan_ids') or payload.get('plans') or payload.get('ids')
+        if isinstance(payload, list):
+            return [str(p).strip() for p in payload if str(p).strip()]
+    except json.JSONDecodeError:
+        pass
+    if '\n' in raw:
+        return [line.strip() for line in raw.splitlines() if line.strip()]
+    return [p.strip() for p in raw.split(',') if p.strip()]
+
+
+def load_plan_ids() -> tuple[list[str], str]:
+    bucket = PLAN_IDS_S3_BUCKET
+    key = PLAN_IDS_S3_KEY
+    if PLAN_IDS_S3_URI:
+        try:
+            bucket, key = _parse_s3_uri(PLAN_IDS_S3_URI)
+        except ValueError:
+            logger.warning('Invalid PLAN_IDS_S3_URI provided. Falling back to PLAN_IDS env.')
+            bucket, key = None, None
+    if bucket and key:
+        try:
+            response = s3.get_object(Bucket=bucket, Key=key)
+            raw = response['Body'].read().decode('utf-8')
+            ids = _parse_plan_ids_payload(raw)
+            if ids:
+                return ids, f"s3://{bucket}/{key}"
+            logger.warning('PLAN_IDS S3 object is empty. Falling back to PLAN_IDS env.')
+        except ClientError as exc:
+            logger.warning('Unable to read PLAN_IDS S3 object: %s. Falling back to PLAN_IDS env.', exc)
+    env_ids = [pid.strip() for pid in PLAN_IDS.split(',') if pid.strip()]
+    return env_ids, 'env'
 
 
 def fetch_token(secret_name: str) -> str:
@@ -326,10 +378,7 @@ def run_network_diagnostic() -> dict:
 
 
 def lambda_handler(event, context):
-    if not PLAN_IDS:
-        raise ValueError('PlanIds environment variable is required.')
-
-    plan_list = [pid.strip() for pid in PLAN_IDS.split(',') if pid.strip()]
+    plan_list, plan_source = load_plan_ids()
     if not plan_list:
         raise ValueError('PlanIds must contain at least one plan identifier.')
 
@@ -347,6 +396,7 @@ def lambda_handler(event, context):
     token = fetch_token(VETRO_TOKEN_SECRET)
     dt = datetime.now(timezone.utc).date().isoformat()
     state['diagnostic'] = run_network_diagnostic()
+    state['plan_source'] = plan_source
 
     ingest_ok = False
     now_dt = datetime.now(timezone.utc)

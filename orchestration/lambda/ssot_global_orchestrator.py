@@ -143,7 +143,7 @@ def entity_policies() -> List[EntityPolicy]:
         EntityPolicy(
             system="salesforce",
             entity="account",
-            raw_db="raw_salesforce_prod",
+            raw_db="raw_salesforce_prod_appflow",
             raw_table="account",
             key_candidates=("id",),
             business_date_candidates=("createddate",),
@@ -153,7 +153,7 @@ def entity_policies() -> List[EntityPolicy]:
         EntityPolicy(
             system="salesforce",
             entity="contact",
-            raw_db="raw_salesforce_prod",
+            raw_db="raw_salesforce_prod_appflow",
             raw_table="contact",
             key_candidates=("id",),
             business_date_candidates=("createddate",),
@@ -163,7 +163,7 @@ def entity_policies() -> List[EntityPolicy]:
         EntityPolicy(
             system="salesforce",
             entity="opportunity",
-            raw_db="raw_salesforce_prod",
+            raw_db="raw_salesforce_prod_appflow",
             raw_table="opportunity",
             key_candidates=("id",),
             business_date_candidates=("closedate", "createddate"),
@@ -173,7 +173,7 @@ def entity_policies() -> List[EntityPolicy]:
         EntityPolicy(
             system="salesforce",
             entity="contract",
-            raw_db="raw_salesforce_prod",
+            raw_db="raw_salesforce_prod_appflow",
             raw_table="contract",
             key_candidates=("id", "contractnumber"),
             business_date_candidates=("startdate", "activateddate", "createddate"),
@@ -232,6 +232,12 @@ def entity_policies() -> List[EntityPolicy]:
 def ensure_databases(runner: AthenaRunner) -> Dict[str, str]:
     qids: Dict[str, str] = {}
     for db in ("curated_core", "curated_recon", "curated_ssot"):
+        try:
+            glue.get_database(Name=db)
+            qids[db] = "EXISTS"
+            continue
+        except glue.exceptions.EntityNotFoundException:
+            pass
         qid, state = runner.run(name=f"create_db_{db}", sql=f"CREATE DATABASE IF NOT EXISTS {db}", database="default")
         if state != "SUCCEEDED":
             raise RuntimeError(f"Failed to create database {db}")
@@ -281,17 +287,19 @@ def build_curated_raw_sql(policy: EntityPolicy, columns: Sequence[str]) -> Tuple
         else:
             updated_expr = business_expr
 
-    select_cols = ",\n  ".join(columns)
+    selected = list(columns)
     if key_expr and key_alias:
-        select_cols = f"{select_cols},\n  {key_expr} AS {key_alias}"
+        selected.append(f"{key_expr} AS {key_alias}")
+    if "run_date" not in columns:
+        selected.append(f"CAST({dt_expr} AS varchar) AS run_date")
+    selected.append(f"CAST({business_expr} AS date) AS business_date")
+    selected.append(f"CAST({updated_expr} AS date) AS updated_at")
+    select_cols = ",\n  ".join(selected)
 
     sql = f"""
 CREATE OR REPLACE VIEW curated_core.{policy.curated_raw} AS
 SELECT
-  {select_cols},
-  CAST({dt_expr} AS varchar) AS run_date,
-  CAST({business_expr} AS date) AS business_date,
-  CAST({updated_expr} AS date) AS updated_at
+  {select_cols}
 FROM {policy.raw_db}.{policy.raw_table}
 """.strip()
 
@@ -564,6 +572,19 @@ def process_entity(policy: EntityPolicy, runner: AthenaRunner) -> Dict[str, obje
         "guard": guard,
     }
 
+def parse_system_filter(event: Optional[dict]) -> Optional[Sequence[str]]:
+    if not event or not isinstance(event, dict):
+        return None
+    systems = event.get("systems") or event.get("system")
+    if systems is None:
+        return None
+    if isinstance(systems, str):
+        items = [s.strip().lower() for s in systems.split(",") if s.strip()]
+    elif isinstance(systems, (list, tuple)):
+        items = [str(s).strip().lower() for s in systems if str(s).strip()]
+    else:
+        return None
+    return items or None
 
 def lambda_handler(event, context):  # pragma: no cover - used in Lambda but also runnable locally
     runner = AthenaRunner()
@@ -573,6 +594,9 @@ def lambda_handler(event, context):  # pragma: no cover - used in Lambda but als
     rollup_create_qid = ensure_rollup_table(runner)
 
     systems = group_by_system(entity_policies())
+    system_filter = parse_system_filter(event)
+    if system_filter:
+        systems = {k: v for k, v in systems.items() if k in set(system_filter)}
     manifests: Dict[str, Dict[str, object]] = {}
     rollup_rows: List[Dict[str, object]] = []
 
@@ -614,13 +638,14 @@ def lambda_handler(event, context):  # pragma: no cover - used in Lambda but als
                     }
                 )
 
-        # write per-system manifest using the max run_date we saw for that system (or today)
+        # write per-system manifest under today's run_date to keep automation signals current
         run_dates = [
             str(v.get("run_date"))
             for v in system_manifest["entities"].values()
             if isinstance(v, dict) and v.get("run_date")
         ]
-        manifest_run_date = max(run_dates) if run_dates else DEFAULT_RUN_DATE
+        system_manifest["data_run_dates"] = sorted(set(run_dates))
+        manifest_run_date = DEFAULT_RUN_DATE
         system_manifest["run_date"] = manifest_run_date
         system_manifest["finished_at"] = datetime.now(timezone.utc).isoformat()
         system_manifest["qids"] = runner.qids

@@ -50,6 +50,16 @@
     "recrawl_policy": {"RecrawlBehavior": "CRAWL_EVERYTHING"}
   },
   {
+    "crawler_name": "intacct_ar_payments_json_crawler",
+    "s3_targets": ["s3://gwi-raw-us-east-2-pc/raw/intacct_json/ar_payments/"],
+    "database_name": "gwi_raw_intacct",
+    "table_prefix": "",
+    "schedule": "cron(19 2 * * ? *)",
+    "classifiers": ["json"],
+    "schema_change_policy": {"UpdateBehavior": "UPDATE_IN_DATABASE", "DeleteBehavior": "DEPRECATE_IN_DATABASE"},
+    "recrawl_policy": {"RecrawlBehavior": "CRAWL_EVERYTHING"}
+  },
+  {
     "crawler_name": "intacct_gl_entries_json_crawler",
     "s3_targets": ["s3://gwi-raw-us-east-2-pc/raw/intacct_json/gl_entries/"],
     "database_name": "gwi_raw",
@@ -86,6 +96,15 @@
     "table_prefix": "raw_vetro_exports",
     "schedule": "cron(26 2 * * ? *)",
     "classifiers": ["json"],
+    "schema_change_policy": {"UpdateBehavior": "UPDATE_IN_DATABASE", "DeleteBehavior": "DEPRECATE_IN_DATABASE"},
+    "recrawl_policy": {"RecrawlBehavior": "CRAWL_EVERYTHING"}
+  },
+  {
+    "crawler_name": "gaiia-graphql-raw-crawler",
+    "s3_targets": ["s3://gwi-raw-us-east-2-pc/raw/gaiia/graphql/"],
+    "database_name": "raw_gaiia",
+    "table_prefix": "raw_gaiia_graphql_",
+    "schedule": "cron(28 2 * * ? *)",
     "schema_change_policy": {"UpdateBehavior": "UPDATE_IN_DATABASE", "DeleteBehavior": "DEPRECATE_IN_DATABASE"},
     "recrawl_policy": {"RecrawlBehavior": "CRAWL_EVERYTHING"}
   }

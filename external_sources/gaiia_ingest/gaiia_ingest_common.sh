@@ -6,6 +6,8 @@ S3_BUCKET="s3://gwi-raw-us-east-2-pc"
 S3_RAW_PREFIX="raw/gaiia"
 S3_HEARTBEAT_PREFIX="${S3_RAW_PREFIX}/heartbeat"
 REQUIRED_ENV_VARS=(GAIIA_API_TOKEN GAIIA_BASE_URL)
+GAIIA_AUTH_HEADER="${GAIIA_AUTH_HEADER:-X-Gaiia-Api-Key}"
+GAIIA_AUTH_PREFIX="${GAIIA_AUTH_PREFIX:-}"
 REQUIRED_COMMANDS=(curl jq aws tee date)
 
 log() {
@@ -128,7 +130,7 @@ confirm_connectivity() {
   local url="${GAIIA_BASE_URL}/customers?limit=1"
   log "Confirming connectivity against ${url}"
   local http_code
-  http_code=$(curl -sS -H "Authorization: Bearer ${GAIIA_API_TOKEN}" -o "$connectivity_file" -w "%{http_code}" "$url")
+  http_code=$(curl -sS -H "${GAIIA_AUTH_HEADER}: ${GAIIA_AUTH_PREFIX}${GAIIA_API_TOKEN}" -o "$connectivity_file" -w "%{http_code}" "$url")
   if [[ "$http_code" != "200" ]]; then
     log "Connectivity check failed with HTTP ${http_code}"
     cat "$connectivity_file"

@@ -115,6 +115,23 @@ Resources:
         DeleteBehavior: DEPRECATE_IN_DATABASE
       RecrawlPolicy:
         RecrawlBehavior: CRAWL_EVERYTHING
+  IntacctARPaymentsCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: intacct_ar_payments_json_crawler
+      Role: !GetAtt GlueCrawlerRole.Arn
+      DatabaseName: gwi_raw_intacct
+      Targets:
+        S3Targets:
+          - Path: s3://gwi-raw-us-east-2-pc/raw/intacct_json/ar_payments/
+      Schedule: cron(19 2 * * ? *)
+      Classifiers: ['json']
+      TablePrefix: ""
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: DEPRECATE_IN_DATABASE
+      RecrawlPolicy:
+        RecrawlBehavior: CRAWL_EVERYTHING
   IntacctGLEntriesCrawler:
     Type: AWS::Glue::Crawler
     Properties:
@@ -178,6 +195,22 @@ Resources:
       Schedule: cron(26 2 * * ? *)
       Classifiers: ['json']
       TablePrefix: raw_vetro_exports
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: DEPRECATE_IN_DATABASE
+      RecrawlPolicy:
+        RecrawlBehavior: CRAWL_EVERYTHING
+  GaiiaGraphqlRawCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: gaiia-graphql-raw-crawler
+      Role: !GetAtt GlueCrawlerRole.Arn
+      DatabaseName: raw_gaiia
+      Targets:
+        S3Targets:
+          - Path: s3://gwi-raw-us-east-2-pc/raw/gaiia/graphql/
+      Schedule: cron(28 2 * * ? *)
+      TablePrefix: raw_gaiia_graphql_
       SchemaChangePolicy:
         UpdateBehavior: UPDATE_IN_DATABASE
         DeleteBehavior: DEPRECATE_IN_DATABASE

@@ -42,6 +42,7 @@ PY
 GL_ENTRIES_OBJECT="${GL_ENTRIES_OBJECT:-GLENTRY}"
 GL_ENTRIES_GENERAL_LEDGER="${GL_ENTRIES_GENERAL_LEDGER:-}"
 GL_ENTRIES_EXTRA_QUERY="${GL_ENTRIES_EXTRA_QUERY:-}"
+AR_PAYMENTS_OBJECT="${AR_PAYMENTS_OBJECT:-ARPAYMENT}"
 
 join_filters() {
   local joined=""
@@ -236,8 +237,11 @@ EOF
 
     xq -c '
       .response.operation.result.data
-      | .. | arrays | select(length > 0)
+      | to_entries
+      | map(select(.key | startswith("@") | not))
+      | map(.value)
       | .[]
+      | if type == "array" then .[] else . end
     ' "$RAW_XML" >> "$JSON_FILE"
 
     local page_summary
@@ -323,8 +327,11 @@ EOF
 
     xq -c '
       .response.operation.result.data
-      | .. | arrays | select(length > 0)
+      | to_entries
+      | map(select(.key | startswith("@") | not))
+      | map(.value)
       | .[]
+      | if type == "array" then .[] else . end
     ' "$RAW_XML" >> "$GL_JSON"
 
     local page_summary
@@ -551,6 +558,7 @@ pull_gl_accounts
 
 pull_object_paginated "APBILL" "ap_bills"
 pull_object_paginated "APPYMT" "ap_payments"
+pull_object_paginated "${AR_PAYMENTS_OBJECT}" "ar_payments"
 pull_paginated_gl_entries
 
 ############################################################
