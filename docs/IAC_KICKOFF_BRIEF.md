@@ -12,6 +12,9 @@ We have an operating AWS data lake with a raw-to-curated SSOT pattern and an app
 - **Orchestration**: scheduled scripts/jobs write manifests and SSOT guard artifacts under orchestration prefixes.
 - **SSOT**: raw → curated_core → curated_recon → curated_ssot, with evidence packs (Athena QIDs + S3 paths).
 - **MAC App**: a console that runs vetted queries (AWS-only mode) and stores evidence for reproducibility.
+  - UI: Amplify app `d102snx81qqbwt` (prod domain `mac-app.macmtn.com`, branch `stable`)
+  - API: API Gateway `0vyy63hwe5` (stage `prod`) → Lambda query broker
+  - Auth: Cognito Hosted UI + Google SSO for `@macmtn.com`
 
 ## Codify vs Redesign
 Codify now:
@@ -43,6 +46,7 @@ AWS:
 - Account: `702127848627`
 - Region: `us-east-2`
 - Athena workgroup: `primary`
+- Athena orchestration output: `s3://gwi-raw-us-east-2-pc/athena-results/orchestration/`
 
 S3 (key buckets):
 - `gwi-raw-us-east-2-pc` (raw landings, orchestration artifacts, Athena outputs)
@@ -75,6 +79,7 @@ Secrets Manager (names only; see `docs/access_prereqs.md`):
 - `platt/credentials`
 - `gaiia/api_keys`
 - `monday/prod`
+- `mac/cognito_google_oauth`
 
 Connectivity:
 - Platt native DB access may require VPN; validate connectivity before declaring mirror parity.

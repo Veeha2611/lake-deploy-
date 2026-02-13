@@ -23,10 +23,22 @@ Minimum required pipelines:
   - `terraform validate`
   - `terraform plan` against the appropriate environment
 
+Repo-specific required checks:
+- Run `./scripts/sanitize_scan.sh` (must PASS) before merging infra documentation and IaC changes.
+- If IaC is Terraform: run `terraform plan` in CI with OIDC credentials and store the plan output as an artifact (no secrets).
+
 Recommended AWS access model for CI:
 - GitHub Actions OIDC -> `sts:AssumeRoleWithWebIdentity`
 - No long-lived AWS access keys stored in GitHub
 - Separate roles per environment (dev/stage/prod), scoped to least privilege
+
+## Current Deploy Reality (MAC App UI)
+Today, the MAC App UI is deployed via AWS Amplify using manual artifact deployments for the `stable` branch (not Git-connected).
+
+Operational notes:
+- A deploy is a zipped `dist/` artifact produced by `apps/mac-mountain-insights-console` (`vite build`).
+- Amplify deployment uses `create-deployment` → upload zip → `start-deployment`.
+- Keep deploy steps reproducible and avoid logging secrets in build/deploy output.
 
 ## Terraform Remote State Backend
 Required characteristics:
@@ -59,9 +71,10 @@ Application and ingestion dependencies typically reference these secret names:
 - `intacct/credentials`
 - `platt/credentials`
 - `gaiia/api_keys`
+- `gaiia/session_context`
 - `monday/prod`
+- `mac/cognito_google_oauth`
 
 Notes:
 - Secret values must not be stored in Git, CI logs, or Terraform state.
 - IaC should reference secret *names* and enforce access via IAM policies.
-

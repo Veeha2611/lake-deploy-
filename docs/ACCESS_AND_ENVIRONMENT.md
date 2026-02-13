@@ -13,6 +13,25 @@ This document captures the infrastructure access and environment requirements ne
 - Primary Athena workgroup: `primary`
 - Primary raw bucket: `gwi-raw-us-east-2-pc`
 - Curated bucket (where applicable): `gwi-curated-us-east-2-pc`
+- Athena orchestration output prefix: `s3://gwi-raw-us-east-2-pc/athena-results/orchestration/`
+
+## MAC App (Console) Runtime (Current)
+The MAC App is a production UI + API surface that consumes SSOT-safe queries and produces evidence packs.
+
+UI hosting:
+- AWS Amplify app: `d102snx81qqbwt`
+- Production domain: `mac-app.macmtn.com` (Amplify branch: `stable`)
+
+API:
+- API Gateway REST API: `0vyy63hwe5` (stage: `prod`)
+- Lambda query broker: `MacAppV2Stack-MacAppQueryBroker59167735-07ni89eMP5AW`
+
+Auth:
+- Cognito Hosted UI with Google SSO for `@macmtn.com`.
+- Secret (names only): `mac/cognito_google_oauth`
+
+AWS-only mode:
+- The UI has an AWS-only posture flag (`MAC_AWS_ONLY`) that disables non-AWS integrations and/or write paths in some modules.
 
 ### Data Plane Services In Use (Non-Exhaustive)
 - S3 (raw landings, curated outputs, orchestration artifacts, Athena outputs)
@@ -68,6 +87,16 @@ Recommended minimum automation roles (least privilege):
 Secret names and prerequisites are documented in:
 - `docs/access_prereqs.md`
 
+Known source secrets in active use (names only):
+- `gaiia/api_keys` (GraphQL API keys + base URL; supports both legacy `*_key` and `GAIIA_*` key names)
+- `gaiia/session_context` (non-secret request context headers used by some tooling)
+
+## Integration Constraints (Monday, Webhooks)
+Some integrations are bi-directional (e.g., Monday ↔ S3). To keep this safe and stable:
+- Webhook endpoints must be protected (signature verification and/or auth).
+- Write endpoints must require authenticated users (Cognito) unless there is a compelling operational reason to allow unauthenticated access.
+- Secrets are referenced by name only in IaC and code; secret values must never land in Terraform state or Git.
+
 ## Connectivity Constraints (Native Systems)
 Some native sources are not reachable from the public internet. Example:
 - Platt native database access may require VPN and private DNS resolution.
@@ -82,8 +111,14 @@ Codification and migration should preserve production contracts:
 - Preserve evidence pack and orchestration output locations.
 - Preserve encryption requirements (KMS) and prevent secrets from entering state or version control.
 
+S3 contract examples (must remain stable):
+- Orchestration manifests: `s3://gwi-raw-us-east-2-pc/orchestration/<system>_daily/run_date=YYYY-MM-DD/manifest.json`
+- SSOT parquet-backed tables (current): `s3://gwi-raw-us-east-2-pc/curated_ssot/`
+- Source raw landings (examples):
+  - Gaiia GraphQL: `s3://gwi-raw-us-east-2-pc/raw/gaiia/graphql/<entity>/tenant=<tenant>/dt=YYYY-MM-DD/`
+  - Intacct JSON: `s3://gwi-raw-us-east-2-pc/raw/intacct_json/<object>/run_date=<RUN_DATE>/`
+
 Recommended migration approach:
 - Codify current resources in the source account first (as-is).
 - Prove parity and reproducibility via evidence packs.
 - Migrate to the target account in small, reversible increments (dual-run where possible).
-

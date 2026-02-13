@@ -8,12 +8,16 @@
 ## Required Secrets (names only)
 - `vetro/api_token` (Vetro API token)
 - `monday/prod` (Monday API key, workspace id, board id)
+- `mac/cognito_google_oauth` (Google OAuth client_id + client_secret for Cognito Hosted UI; no tokens)
 - `notion/prod` (Notion integration token, root page id)
 - `gaiia/api_keys` (Gaiia API token)
 - `salesforce/api_credentials` (Salesforce OAuth: refresh_token + client_id + client_secret; access_token optional)
 - `salesforce/sandbox/api_credentials` (optional sandbox OAuth)
 - `intacct/credentials` (Intacct sender/user credentials)
 - `platt/credentials` (Platt DB or file export access)
+
+Notes:
+- `monday/prod` should also include a `webhook_secret` (or equivalent) if Monday webhooks are enabled, so the webhook signature can be verified.
 
 ## Local Environment
 - AWS CLI configured (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`)

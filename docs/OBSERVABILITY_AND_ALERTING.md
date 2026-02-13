@@ -34,12 +34,28 @@ Minimum metrics to track:
 - Glue crawler outcomes (success/failure duration)
 - SSOT gate status (PASS/WARN/FAIL) and trend over time
 - Reconciliation variance for key KPIs (with tolerance thresholds)
+- MAC App API health (API Gateway 4xx/5xx, Lambda errors, p95 latency)
+- Monday integration signals (webhook ingestion count, Monday writeback failures, S3 landing volume)
 
 Recommended dashboards:
 - Daily ingestion health (all sources)
 - SSOT gate health (pass/fail counts and top failures)
 - Reconciliation variance (top KPI deltas, time series)
 - Freshness SLA compliance (per source and per SSOT entity)
+- MAC App health (UI + API error rate, auth errors, endpoint latency)
+
+## SSOT Freshness (Concrete Contract)
+SSOT automation is considered healthy only if it produces daily artifacts that prove freshness and completeness.
+
+Required artifacts (examples):
+- System manifests: `s3://gwi-raw-us-east-2-pc/orchestration/<system>_daily/run_date=YYYY-MM-DD/manifest.json`
+- SSOT rollup (optional but recommended): `curated_recon.ssot_daily_summary`
+
+Minimum alerts:
+- Missing manifest for any required system for the expected run window (per schedule).
+- Manifest present but any entity has `freshness_guard_ok=false` or `ssot_has_data=false`.
+- Gaiia GraphQL meta run indicates errors above threshold:
+  - `s3://gwi-raw-us-east-2-pc/raw/gaiia/graphql/_meta/dt=YYYY-MM-DD/run.json`
 
 ## Alerting
 Minimum alert types:
@@ -47,6 +63,7 @@ Minimum alert types:
 - Data quality breach (empty tables, stale partitions beyond SLA, schema drift)
 - Reconciliation variance beyond tolerance (per governance thresholds)
 - Sustained retry loops or stalled checkpoints (no progress for N intervals)
+- Public/unauthenticated write surfaces (unexpected traffic on write endpoints, webhook signature failures)
 
 Recommended delivery mechanisms:
 - SNS topics per environment (dev/stage/prod)
@@ -71,4 +88,3 @@ Operational procedures should reference:
 See:
 - `runbooks/native_reconciliation.md`
 - `docs/ssot/SSOT_RUNBOOK.md`
-
