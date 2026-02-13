@@ -69,33 +69,45 @@ normalized AS (
     TRY_CAST(TRIM(lock_arpu) AS double) AS arpu_value
   FROM base
 ),
-network_map AS (
-  SELECT
-    REGEXP_REPLACE(LOWER(COALESCE(network_norm, network)), '[^a-z0-9]', '') AS network_key,
-    TRIM(system_key) AS system_key
-  FROM curated_recon.vetro_network_system_plan_map
-  WHERE system_key IS NOT NULL AND TRIM(system_key) <> ''
-),
-bucket_map AS (
-  SELECT
-    UPPER(TRIM(system_key)) AS system_key,
-    bucket
-  FROM curated_core.dim_system_bucket
+mix_map(network_key, network_type, customer_type) AS (
+  VALUES
+    ('3rbenterprise', 'CLEC', 'Owned Customer'),
+    ('belmontmorril', 'Owned FTTP', 'Owned Customer'),
+    ('brunswicksystemidfttxcolumbia', 'Owned FTTP', 'Owned Customer'),
+    ('dvfiber', 'Contracted', 'Contracted Customer'),
+    ('ellsworthfttpsystemid', 'Owned FTTP', 'Owned Customer'),
+    ('fttxknightvillesystemidsouthportlandaddresses', 'Owned FTTP', 'Owned Customer'),
+    ('gwicopper', 'CLEC', 'Owned Customer'),
+    ('gwifttpsystemid', 'Owned FTTP', 'Owned Customer'),
+    ('gwimdumtu', 'Owned FTTP', 'Owned Customer'),
+    ('gwistandard', 'CLEC', 'Owned Customer'),
+    ('islesboromunicipalbroadband', 'Contracted', 'Contracted Customer'),
+    ('lymefiber', 'Contracted', 'Contracted Customer'),
+    ('mfc3ringbinder3rb', 'CLEC', 'Owned Customer'),
+    ('northport1', 'Owned FTTP', 'Owned Customer'),
+    ('northport2', 'Owned FTTP', 'Owned Customer'),
+    ('nwfx', 'Contracted', 'Contracted Customer'),
+    ('rockport', 'Contracted', 'Owned Customer'),
+    ('sacomill4mdu', 'Owned FTTP', 'Owned Customer'),
+    ('sanfordnetfttpsystemid', 'Contracted', 'Owned Customer'),
+    ('southportland', 'Owned FTTP', 'Owned Customer'),
+    ('sumner', 'Owned FTTP', 'Owned Customer'),
+    ('theelevenmdu', 'Owned FTTP', 'Owned Customer'),
+    ('thelincolnloftsmdu', 'Owned FTTP', 'Owned Customer'),
+    ('thorntonheightsmdu', 'Owned FTTP', 'Owned Customer')
 )
 SELECT
   n.network,
   n.network_norm,
-  CASE
-    WHEN b.bucket = 'owned_fttp' THEN 'Owned FTTP'
-    WHEN b.bucket = 'contracted_fttp' THEN 'Contracted'
-    WHEN b.bucket = 'clec_business' THEN 'CLEC'
-    ELSE 'Unknown'
-  END AS network_type,
-  CASE
-    WHEN b.bucket = 'contracted_fttp' THEN 'Contracted Customer'
-    WHEN b.bucket IN ('owned_fttp', 'clec_business') THEN 'Owned Customer'
-    ELSE 'Unknown'
-  END AS customer_type,
+  COALESCE(NULLIF(m.network_type, ''), 'Unknown') AS network_type,
+  COALESCE(
+    NULLIF(m.customer_type, ''),
+    CASE
+      WHEN m.network_type = 'Contracted' THEN 'Contracted Customer'
+      WHEN m.network_type IN ('Owned FTTP', 'CLEC') THEN 'Owned Customer'
+      ELSE 'Unknown'
+    END
+  ) AS customer_type,
   n.passings,
   n.subscriptions,
   n.arpu_value AS arpu,
@@ -107,7 +119,5 @@ SELECT
   END AS mrr,
   n.dt
 FROM normalized n
-LEFT JOIN network_map m
-  ON n.network_key = m.network_key
-LEFT JOIN bucket_map b
-  ON UPPER(TRIM(m.system_key)) = b.system_key;
+LEFT JOIN mix_map m
+  ON n.network_key = m.network_key;

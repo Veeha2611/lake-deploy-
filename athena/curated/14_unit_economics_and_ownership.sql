@@ -76,93 +76,35 @@ LEFT JOIN cci c
 LEFT JOIN tickets t
   ON t.customer_id = m.customer_id;
 
--- Ownership snapshot: latest-month MRR + Vetro FSA buckets.
+-- Ownership snapshot: investor workbook network mix (subscriptions + modeled MRR) joined to Vetro FSA buckets.
+-- This is the same conceptual grouping as the Network Mix dashboard (Owned FTTP / Contracted / CLEC).
 CREATE OR REPLACE VIEW curated_core.v_bucket_summary_latest AS
-WITH latest_month AS (
-  SELECT MAX(period_month) AS period_month
-  FROM curated_core.v_monthly_mrr_platt
+WITH latest_nh AS (
+  SELECT MAX(dt) AS dt
+  FROM curated_core.v_network_health
 ),
-base AS (
+mix_by_bucket AS (
   SELECT
-    CAST(customer_id AS varchar) AS customer_id,
-    SUM(mrr_total) AS mrr_total
-  FROM curated_core.v_monthly_mrr_platt
-  WHERE period_month = (SELECT period_month FROM latest_month)
-    AND mrr_total > 0
-  GROUP BY 1
-),
-platt_map AS (
-  SELECT
-    CAST(REGEXP_REPLACE(customer_id, '\\.0$', '') AS varchar) AS customer_id,
-    COALESCE(NULLIF(TRIM(gwi_system), ''), '') AS gwi_system,
-    trim(regexp_replace(
-      regexp_replace(
-        lower(coalesce(NULLIF(TRIM(gwi_system), ''), '')),
-        '\\\\([^\\\\)]*\\\\)',
-        ' '
-      ),
-      '[^a-z0-9]+',
-      ' '
-    )) AS gwi_system_norm
-  FROM curated_recon.platt_customer_system_map
-),
-gwi_map_norm AS (
-  SELECT
-    trim(regexp_replace(lower(gwi_system_norm), '\\\\s+', ' ')) AS gwi_system_norm,
-    network AS network_name,
-    LOWER(TRIM(REGEXP_REPLACE(REGEXP_REPLACE(network, '[^A-Za-z0-9]+', ' '), '\\\\s+', ' '))) AS network_norm_key
-  FROM curated_recon.gwi_system_network_map
-),
-network_map AS (
-  SELECT
-    network,
-    plan_id,
-    plan_name,
-    LOWER(TRIM(REGEXP_REPLACE(REGEXP_REPLACE(network, '[^A-Za-z0-9]+', ' '), '\\\\s+', ' '))) AS network_norm_key
-  FROM raw_sheets.vetro_network_plan_map_auto
-),
-as_built AS (
-  SELECT
-    CAST(plan_id AS varchar) AS plan_id,
-    LOWER(plan_label) AS plan_label
-  FROM raw_sheets.vetro_as_built_plan_ids
-),
-bucketed AS (
-  SELECT
-    b.customer_id,
-    b.mrr_total,
-    pm.gwi_system,
-    gm.network_name,
-    nm.plan_id,
-    nm.plan_name,
     CASE
-      WHEN nm.plan_id IS NOT NULL AND CAST(nm.plan_id AS varchar) IN (SELECT plan_id FROM as_built) THEN 'owned_fttp'
-      WHEN nm.plan_name IS NOT NULL AND LOWER(nm.plan_name) IN (SELECT plan_label FROM as_built) THEN 'owned_fttp'
-      WHEN LOWER(COALESCE(nm.network, gm.network_name, pm.gwi_system, '')) LIKE '%copper%' THEN 'clec_business'
-      WHEN gm.network_name IS NULL THEN 'unmapped'
-      ELSE 'contracted_fttp'
-    END AS bucket
-  FROM base b
-  LEFT JOIN platt_map pm
-    ON b.customer_id = pm.customer_id
-  LEFT JOIN gwi_map_norm gm
-    ON trim(regexp_replace(pm.gwi_system_norm, '\\\\s+', ' ')) = gm.gwi_system_norm
-  LEFT JOIN network_map nm
-    ON nm.network_norm_key = gm.network_norm_key
-),
-mrr_by_bucket AS (
-  SELECT
-    bucket,
-    COUNT(DISTINCT customer_id) AS customer_count,
-    SUM(mrr_total) AS total_mrr
-  FROM bucketed
-  GROUP BY bucket
+      WHEN network_type = 'Owned FTTP' THEN 'owned_fttp'
+      WHEN network_type = 'Contracted' THEN 'contracted_fttp'
+      WHEN network_type = 'CLEC' THEN 'clec_business'
+      ELSE 'unmapped'
+    END AS bucket,
+    CAST(SUM(COALESCE(subscriptions, 0)) AS bigint) AS customer_count,
+    SUM(COALESCE(mrr, 0)) AS total_mrr
+  FROM curated_core.v_network_health
+  WHERE dt = (SELECT dt FROM latest_nh)
+    AND network <> 'Unmapped'
+    AND network_type IN ('Owned FTTP', 'Contracted', 'CLEC')
+  GROUP BY 1
 ),
 fsa_by_bucket AS (
   SELECT
     bucket,
     COUNT(DISTINCT fsa_id) AS fsa_count
   FROM curated_core.v_vetro_fsa_tagged
+  WHERE bucket IN ('owned_fttp', 'contracted_fttp', 'clec_business')
   GROUP BY bucket
 )
 SELECT
@@ -174,7 +116,7 @@ SELECT
     WHEN m.customer_count > 0 THEN m.total_mrr / m.customer_count
     ELSE NULL
   END AS revenue_per_customer
-FROM mrr_by_bucket m
+FROM mix_by_bucket m
 LEFT JOIN fsa_by_bucket f
   ON m.bucket = f.bucket
 ORDER BY CASE m.bucket WHEN 'owned_fttp' THEN 1 WHEN 'contracted_fttp' THEN 2 ELSE 3 END;
