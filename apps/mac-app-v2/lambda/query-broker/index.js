@@ -1273,8 +1273,11 @@ function resolveDeterministicQuestion(questionText) {
 
   // Workbook-domain customer mix questions: deterministically answer from modeled lake SSOT,
   // and provide a drill-down list route. This is the "like-for-like" path for CLEC/Owned/Contracted.
-  if (wantsWorkbookDomain && wantsCustomers && wantsNetworks) {
-    const isList = isListQuestion && includesAny(['which', 'what networks', 'list']);
+  //
+  // Users often omit the word "networks" (e.g., "how many CLEC customers do we have?").
+  // If they ask for a list or "which networks", route to the list template; otherwise KPI totals.
+  if (wantsWorkbookDomain && (wantsCustomers || isCountQuestion) && (wantsOwned || wantsContracted || wantsClec)) {
+    const isList = (isListQuestion && includesAny(['which', 'list', 'show'])) || includesAny(['what networks', 'which networks', 'list networks']);
     let networkType = '';
     let customerType = '';
     let accessType = '';
