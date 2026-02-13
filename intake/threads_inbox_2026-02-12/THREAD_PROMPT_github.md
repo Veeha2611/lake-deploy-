@@ -74,3 +74,33 @@ If your thread includes GitHub documentation updates for infrastructure requirem
 
 Before committing:
 - Run `./scripts/sanitize_scan.sh` and confirm PASS.
+
+---
+
+## Additional Deliverables (MAC AI Console / Network Mix Domain)
+
+If your thread modifies the MAC AI Console routing, templates, or workbook-parity behavior (Network Mix / Customer Mix / Revenue Mix), include these deliverables in your output:
+
+1) `domain_registry.md`
+   - Finite domain registry + canonical metric definitions.
+   - Explicit grain (subscriptions vs billed customers vs passings).
+   - Explicit filters, source views, and known gaps.
+
+2) `question_matrix.csv` (or `.md`)
+   - Exhaustive question matrix for the domain:
+     - count / list / revenue / % mix / inclusion-exclusion / drill-down variants
+   - For each row: expected `question_id` + required params.
+
+3) `routing_rules.md`
+   - Deterministic normalization rules used for routing (no fuzzy guessing).
+   - Explicit fail-closed cases (ambiguous grain/segment).
+
+4) `tests_run.txt`
+   - Include the domain regression suite result (PASS/FAIL) and command used.
+
+Rules:
+- Do not require the user to type “workbook”.
+- If a question is ambiguous on grain (e.g., “customers”), fail closed with:
+  - `NOT SUPPORTED YET: ...`
+  - `NEXT STEP: ...`
+- Any mismatch to workbook logic must be recorded as a gap with an explicit next step (ingest/model/export fix).

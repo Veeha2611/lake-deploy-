@@ -64,6 +64,13 @@ Minimum alert types:
 - Reconciliation variance beyond tolerance (per governance thresholds)
 - Sustained retry loops or stalled checkpoints (no progress for N intervals)
 - Public/unauthenticated write surfaces (unexpected traffic on write endpoints, webhook signature failures)
+- MAC App auth regressions (sustained spike in 401/403 on read endpoints, indicating a misconfigured auth toggle or client routing).
+
+Intacct-specific operational alerts (recommended):
+- **Checkpoint stall** during long-running backfills:
+  - If `s3://gwi-raw-us-east-2-pc/raw/intacct_json/gl_entries/run_date=<RUN_DATE>/checkpoints/latest.json` does not advance for 2 checks, alert + stop task.
+- **Source-limited object detection** (do not page on-call by default; flag for SSOT review):
+  - If Intacct native `readByQuery(<object>)` returns `totalcount` far below expected and lake raw matches, classify as `SOURCE_LIMITED` and surface in SSOT evidence (avoid re-run loops).
 
 Recommended delivery mechanisms:
 - SNS topics per environment (dev/stage/prod)

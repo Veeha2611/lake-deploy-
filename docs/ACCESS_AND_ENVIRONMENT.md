@@ -29,6 +29,7 @@ API:
 Auth:
 - Cognito Hosted UI with Google SSO for `@macmtn.com`.
 - Secret (names only): `mac/cognito_google_oauth`
+- Breakglass toggle (deploy-time): `MAC_APP_AUTH_ENABLED=false` disables API Gateway auth on non-admin endpoints.
 
 AWS-only mode:
 - The UI has an AWS-only posture flag (`MAC_AWS_ONLY`) that disables non-AWS integrations and/or write paths in some modules.
@@ -90,6 +91,7 @@ Secret names and prerequisites are documented in:
 Known source secrets in active use (names only):
 - `gaiia/api_keys` (GraphQL API keys + base URL; supports both legacy `*_key` and `GAIIA_*` key names)
 - `gaiia/session_context` (non-secret request context headers used by some tooling)
+- `intacct/credentials` (Intacct Sender ID + Web Services user credentials; object-level RBQ permissions/scope may limit what the lake can mirror)
 
 ## Integration Constraints (Monday, Webhooks)
 Some integrations are bi-directional (e.g., Monday ↔ S3). To keep this safe and stable:
@@ -116,7 +118,11 @@ S3 contract examples (must remain stable):
 - SSOT parquet-backed tables (current): `s3://gwi-raw-us-east-2-pc/curated_ssot/`
 - Source raw landings (examples):
   - Gaiia GraphQL: `s3://gwi-raw-us-east-2-pc/raw/gaiia/graphql/<entity>/tenant=<tenant>/dt=YYYY-MM-DD/`
-  - Intacct JSON: `s3://gwi-raw-us-east-2-pc/raw/intacct_json/<object>/run_date=<RUN_DATE>/`
+  - Intacct JSON (most objects): `s3://gwi-raw-us-east-2-pc/raw/intacct_json/<object>/<RUN_DATE>/<object>.json`
+  - Intacct XML (most objects): `s3://gwi-raw-us-east-2-pc/raw/intacct_xml/<object>/<RUN_DATE>/<object>_page_N.xml`
+  - Intacct GL entries (special layout):
+    - Data: `s3://gwi-raw-us-east-2-pc/raw/intacct_json/gl_entries/data/run_date=<RUN_DATE>/gl_entries.json`
+    - Metadata: `s3://gwi-raw-us-east-2-pc/raw/intacct_json/gl_entries/_meta/run_date=<RUN_DATE>/metadata.json`
 
 Recommended migration approach:
 - Codify current resources in the source account first (as-is).

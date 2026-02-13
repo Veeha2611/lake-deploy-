@@ -18,6 +18,7 @@
 
 Notes:
 - `monday/prod` should also include a `webhook_secret` (or equivalent) if Monday webhooks are enabled, so the webhook signature can be verified.
+- Intacct: even with valid credentials, some objects can be **source-limited** if the Web Services user/role lacks object-level `readByQuery` permission or entity visibility (example symptom: `readByQuery(ARPAYMENT)` returns `totalcount=1`).
 
 ## Local Environment
 - AWS CLI configured (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`)

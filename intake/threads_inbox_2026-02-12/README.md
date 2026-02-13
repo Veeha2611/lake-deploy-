@@ -17,6 +17,7 @@ Example:
 intake/threads_inbox_2026-02-12/01_intacct_gl_backfill/
 intake/threads_inbox_2026-02-12/02_vetro_gis_ssot/
 intake/threads_inbox_2026-02-12/03_mac_app_ui_smoke/
+intake/threads_inbox_2026-02-12/04_intacct_ar_payments_source_probe/
 ```
 
 ## Required Files (per thread)
