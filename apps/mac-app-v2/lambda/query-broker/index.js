@@ -19,6 +19,7 @@ const lambda = new AWS.Lambda({ region: process.env.AWS_REGION || 'us-east-2' })
 
 const REGISTRY_PATH = process.env.QUERY_REGISTRY_PATH || path.join(__dirname, 'query-registry.json');
 const REGISTRY = JSON.parse(fs.readFileSync(REGISTRY_PATH, 'utf8'));
+const NETWORK_MIX_DOMAIN_PATH = process.env.NETWORK_MIX_DOMAIN_PATH || path.join(__dirname, 'network-mix-domain.yaml');
 
 const CACHE_TABLE = process.env.CACHE_TABLE;
 const CACHE_TTL_SECONDS = Number(process.env.CACHE_TTL_SECONDS || 120);
@@ -238,6 +239,204 @@ const METRIC_DEFINITIONS = loadJsonFile(resolveMetadataFile('metric_definitions.
 const SYSTEM_CROSSWALKS = loadJsonFile(resolveMetadataFile('system_crosswalks.json'), { version: 'unknown', crosswalks: [] });
 const QUERY_MANIFEST = loadJsonFile(resolveMetadataFile('query_manifest.json'), { version: 'unknown', queries: {} });
 const QUERY_PLAN_SCHEMA = loadJsonFile(resolveMetadataFile('query_plan_schema.json'), {});
+
+const NETWORK_MIX_DOMAIN = loadYamlFile(NETWORK_MIX_DOMAIN_PATH, null);
+
+function includesAnyNormalized(normalized, terms) {
+  const list = Array.isArray(terms) ? terms : [];
+  return list.some((term) => term && normalized.includes(String(term).toLowerCase()));
+}
+
+function resolveNetworkMixSegmentKey(normalized) {
+  const synonyms = NETWORK_MIX_DOMAIN?.synonyms || {};
+  const hits = [];
+  for (const [key, values] of Object.entries(synonyms)) {
+    const terms = Array.isArray(values) ? values : [];
+    if (terms.some((t) => t && normalized.includes(String(t).toLowerCase()))) {
+      hits.push(key);
+    }
+  }
+  if (!hits.length) return null;
+  const unique = Array.from(new Set(hits));
+  if (unique.length === 1) return unique[0];
+  return { ambiguous: true, candidates: unique };
+}
+
+function resolveNetworkMixDomainQuestion(questionText) {
+  if (!NETWORK_MIX_DOMAIN) return null;
+  const normalized = normalizeQuestionText(questionText);
+  if (!normalized) return null;
+
+  const intents = NETWORK_MIX_DOMAIN.intents || {};
+  const operations = NETWORK_MIX_DOMAIN.operations || {};
+  const segments = NETWORK_MIX_DOMAIN.segments || {};
+
+  const hasDomainSignal =
+    includesAnyNormalized(normalized, intents.customer_mix_terms) ||
+    includesAnyNormalized(normalized, intents.revenue_mix_terms) ||
+    includesAnyNormalized(normalized, intents.dvfiber_exclude_terms) ||
+    includesAnyNormalized(normalized, Object.values(NETWORK_MIX_DOMAIN.synonyms || {}).flat()) ||
+    includesAnyNormalized(normalized, ['network mix', 'customer mix', 'revenue mix']);
+
+  if (!hasDomainSignal) return null;
+
+  const wantsListNetworks = includesAnyNormalized(normalized, intents.list_networks_terms) ||
+    (includesAnyNormalized(normalized, ['list', 'show', 'which', 'what networks', 'which networks', 'networks']) &&
+     includesAnyNormalized(normalized, ['network', 'networks', 'system', 'systems']));
+  const wantsPercent = includesAnyNormalized(normalized, intents.percent_terms);
+  const wantsExcludeDVFiber = includesAnyNormalized(normalized, intents.dvfiber_exclude_terms);
+
+  const segmentKey = resolveNetworkMixSegmentKey(normalized);
+  if (segmentKey && segmentKey.ambiguous) {
+    return {
+      notSupportedPayload: buildNotSupportedPayload({
+        questionText,
+        reason: `ambiguous network mix segment: ${segmentKey.candidates.join(', ')}`,
+        nextStep: 'Ask for exactly one segment (Owned, Contracted, CLEC, or Resold) and specify customer mix (subscriptions) vs revenue mix (billed customers/revenue) if needed',
+        details: [
+          `Matched segments: ${segmentKey.candidates.join(', ')}`,
+          'This domain is finite and deterministic; ambiguous segment routing fails closed.'
+        ]
+      })
+    };
+  }
+
+  const segmentDef = segmentKey ? (segments[segmentKey] || null) : null;
+
+  const wantsRevenueMix =
+    includesAnyNormalized(normalized, intents.revenue_mix_terms) ||
+    normalized.includes('revenue mix') ||
+    (normalized.includes('billed') && normalized.includes('customer'));
+  const wantsCustomerMix =
+    includesAnyNormalized(normalized, intents.customer_mix_terms) ||
+    normalized.includes('customer mix') ||
+    normalized.includes('network mix');
+
+  // Deterministic tie-breaker:
+  // - If both are present, prefer revenue mix when question references billed/revenue/plat id/mrr.
+  // - Otherwise default to customer mix for "customers/subscriptions/passings/penetration".
+  const sheet = wantsRevenueMix ? 'revenue_mix' : 'customer_mix';
+
+  if (wantsExcludeDVFiber && sheet !== 'revenue_mix') {
+    return {
+      notSupportedPayload: buildNotSupportedPayload({
+        questionText,
+        reason: 'DVFiber exclusion is not defined for Customer Mix in the workbook domain',
+        nextStep: 'Ask for Revenue Mix totals excluding DVFiber, or add a governed DVFiber exclusion rule for Customer Mix and ingest/model it',
+        details: [
+          'Revenue Mix has a workbook-defined “Total excluding DVFiber Customers” row.',
+          'Customer Mix does not define an equivalent exclusion rule.'
+        ]
+      })
+    };
+  }
+
+  // Summary questions (no segment).
+  if (!segmentKey) {
+    if (sheet === 'revenue_mix') {
+      if (wantsExcludeDVFiber) {
+        return { questionId: operations.revenue_mix_totals_excluding_dvfiber.query_id, params: {} };
+      }
+      return { questionId: operations.revenue_mix_summary.query_id, params: {} };
+    }
+    return { questionId: operations.customer_mix_summary.query_id, params: {} };
+  }
+
+  // Segment-specific questions.
+  if (sheet === 'revenue_mix') {
+    const revenueMix = segmentDef?.revenue_mix || null;
+    if (!revenueMix || !revenueMix.network_type_like) {
+      return {
+        notSupportedPayload: buildNotSupportedPayload({
+          questionText,
+          reason: `segment \"${segmentKey}\" is not supported for Revenue Mix in the workbook domain`,
+          nextStep: 'Add the segment mapping in apps/mac-app-v2/lambda/query-broker/network-mix-domain.yaml',
+          details: [`segment_key=${segmentKey}`]
+        })
+      };
+    }
+
+    if (wantsExcludeDVFiber) {
+      return { questionId: operations.revenue_mix_totals_excluding_dvfiber.query_id, params: {} };
+    }
+
+    if (wantsListNetworks) {
+      return {
+        questionId: operations.revenue_mix_networks_list.query_id,
+        params: { network_type_like: revenueMix.network_type_like, network_like: '' }
+      };
+    }
+
+    if (wantsPercent) {
+      const measure = includesAnyNormalized(normalized, ['plat id', 'platid', 'billed customers', 'customer count'])
+        ? 'plat_id_count'
+        : 'revenue';
+      return {
+        questionId: operations.revenue_mix_segment_pct.query_id,
+        params: {
+          segment_label: segmentDef.label || segmentKey,
+          network_type_like: revenueMix.network_type_like,
+          network_like: '',
+          measure
+        }
+      };
+    }
+
+    return {
+      questionId: operations.revenue_mix_kpis.query_id,
+      params: {
+        segment_label: segmentDef.label || segmentKey,
+        network_type_like: revenueMix.network_type_like,
+        network_like: ''
+      }
+    };
+  }
+
+  const customerMix = segmentDef?.customer_mix || null;
+  if (!customerMix) {
+    return {
+      notSupportedPayload: buildNotSupportedPayload({
+        questionText,
+        reason: `segment \"${segmentKey}\" is not supported for Customer Mix in the workbook domain`,
+        nextStep: 'Ask for Owned, Contracted, or CLEC (as defined by the workbook), or add a new segment mapping and deterministic templates',
+        details: [`segment_key=${segmentKey}`]
+      })
+    };
+  }
+
+  if (wantsListNetworks) {
+    return {
+      questionId: operations.customer_mix_networks_list.query_id,
+      params: {
+        network_type: customerMix.network_type || '',
+        customer_type: customerMix.customer_type || '',
+        access_type: customerMix.access_type || ''
+      }
+    };
+  }
+
+  if (wantsPercent) {
+    const measure = includesAnyNormalized(normalized, ['passings', 'homes passed']) ? 'passings' : 'subscriptions';
+    return {
+      questionId: operations.customer_mix_segment_pct.query_id,
+      params: {
+        network_type: customerMix.network_type || '',
+        customer_type: customerMix.customer_type || '',
+        access_type: customerMix.access_type || '',
+        measure
+      }
+    };
+  }
+
+  return {
+    questionId: operations.customer_mix_kpis.query_id,
+    params: {
+      network_type: customerMix.network_type || '',
+      customer_type: customerMix.customer_type || '',
+      access_type: customerMix.access_type || ''
+    }
+  };
+}
 const ACTION_INTENT_SCHEMA = loadJsonFile(resolveMetadataFile('action_intent_schema.json'), {});
 const REPORT_SPEC_SCHEMA = loadJsonFile(resolveMetadataFile('report_spec_schema.json'), {});
 const GOLDEN_QUESTIONS = loadJsonFile(resolveMetadataFile('golden_questions.json'), { version: 'unknown', questions: [] });
@@ -1273,78 +1472,10 @@ function resolveDeterministicQuestion(questionText) {
     return { questionId: 'copper_customers_count', params: hasCopperScope ? copperParams : {} };
   }
 
-  // Workbook "mix" summaries (global): when the user asks for customer mix / revenue mix without a specific segment.
-  // These are deterministic and match the workbook grain (customer mix = subscriptions; revenue mix = PLAT ID COUNT + billed MRR).
-  if (wantsWorkbookDomain && wantsCustomerMix && !wantsOwned && !wantsContracted && !wantsClec) {
-    const isList = isListQuestion && includesAny(['which', 'list', 'show', 'networks', 'systems']);
-    if (isList) {
-      return { questionId: 'workbook_customer_mix_networks_list', params: buildCustomerMixParams({}) };
-    }
-    return { questionId: 'workbook_customer_mix_summary', params: {} };
-  }
-
-  if (wantsWorkbookDomain && wantsRevenueMix && !wantsOwned && !wantsContracted && !wantsClec) {
-    const isList = isListQuestion && includesAny(['which', 'list', 'show', 'networks', 'systems']);
-    if (includesAny(['exclude dvfiber', 'excluding dvfiber', 'without dvfiber'])) {
-      return { questionId: 'workbook_revenue_mix_totals_excluding_dvfiber', params: {} };
-    }
-    if (isList) {
-      return { questionId: 'workbook_revenue_mix_networks_list', params: { network_type_like: '', network_like: '' } };
-    }
-    return { questionId: 'workbook_revenue_mix_summary', params: {} };
-  }
-
-  // Workbook-domain customer mix questions: deterministically answer from modeled lake SSOT,
-  // and provide a drill-down list route. This is the "like-for-like" path for CLEC/Owned/Contracted.
-  //
-  // Users often omit the word "networks" (e.g., "how many CLEC customers do we have?").
-  // If they ask for a list or "which networks", route to the list template; otherwise KPI totals.
-  const wantsWorkbookMixSegment = (wantsContracted || wantsClec) || (wantsOwned && wantsWorkbookDomain);
-  if (wantsWorkbookMixSegment && (wantsCustomers || wantsNetworks || isCountQuestion || isListQuestion)) {
-    const isList = (isListQuestion && includesAny(['which', 'list', 'show'])) || includesAny(['what networks', 'which networks', 'list networks']);
-    let networkType = '';
-    let customerType = '';
-    let accessType = '';
-    let segmentLabel = '';
-    let networkTypeLike = '';
-
-    if (wantsOwned) {
-      networkType = 'Owned FTTP';
-      customerType = 'Owned Customer';
-      accessType = 'Fiber';
-      segmentLabel = 'Owned';
-      networkTypeLike = '%owned%fiber%';
-    } else if (wantsContracted) {
-      networkType = 'Contracted';
-      customerType = 'Contracted Customer';
-      accessType = 'Fiber';
-      segmentLabel = 'Contracted';
-      // Revenue Mix sheet uses "Resold; Fiber" to represent contracted/resold fiber billing.
-      networkTypeLike = '%resold%fiber%';
-    } else if (wantsClec) {
-      networkType = 'CLEC';
-      customerType = 'Owned Customer';
-      accessType = 'Copper';
-      segmentLabel = 'CLEC';
-      // Revenue Mix sheet uses Copper tagging (e.g., "Resold; Copper") for CLEC/copper billing.
-      networkTypeLike = '%copper%';
-    }
-
-    if (wantsRevenueMix) {
-      if (isList) {
-        return { questionId: 'workbook_revenue_mix_networks_list', params: { network_type_like: networkTypeLike, network_like: '' } };
-      }
-      return {
-        questionId: 'workbook_revenue_mix_kpis',
-        params: { segment_label: segmentLabel, network_type_like: networkTypeLike, network_like: '' }
-      };
-    }
-
-    if (isList) {
-      return { questionId: 'workbook_customer_mix_networks_list', params: buildCustomerMixParams({ networkType, customerType, accessType }) };
-    }
-    return { questionId: 'workbook_customer_mix_kpis', params: buildCustomerMixParams({ networkType, customerType, accessType }) };
-  }
+  // Network Mix workbook domain (finite + deterministic).
+  // If this detects a Network Mix question, it either returns a deterministic route OR fails-closed as NOT SUPPORTED.
+  const networkMix = resolveNetworkMixDomainQuestion(questionText);
+  if (networkMix) return networkMix;
 
   // Owned networks / owned customers (multi-scope). Users will not always say "investor workbook".
   // Return a reconciled view of "owned" counts across:
@@ -1698,6 +1829,7 @@ function buildMetricDrivenQuery(questionText) {
 function resolveDeterministicQuery(questionText) {
   const direct = resolveDeterministicQuestion(questionText);
   if (direct) {
+    if (direct.notSupportedPayload) return direct;
     return { ...direct, cacheKeySeed: `${direct.questionId}:${stableStringify(direct.params || {})}` };
   }
   const metricDriven = buildMetricDrivenQuery(questionText);
@@ -9517,6 +9649,9 @@ LIMIT 200000;`;
   if (!questionId && questionText) {
     resolved = resolveDeterministicQuery(questionText);
     if (resolved) {
+      if (resolved.notSupportedPayload) {
+        return response(200, resolved.notSupportedPayload);
+      }
       if (resolved.questionId) {
         questionId = resolved.questionId;
         params = { ...params, ...(resolved.params || {}) };

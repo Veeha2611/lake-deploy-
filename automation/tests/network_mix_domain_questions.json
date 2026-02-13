@@ -1,0 +1,52 @@
+{
+  "suite": "network_mix_domain",
+  "api_path": "/query",
+  "tests": [
+    {
+      "id": "customer_mix_summary",
+      "question": "What is the customer mix (network mix workbook)?",
+      "expect": { "mode": "supported", "question_id": "workbook_customer_mix_summary", "require_evidence_pack": true }
+    },
+    {
+      "id": "revenue_mix_summary",
+      "question": "What is the revenue mix (investor workbook)?",
+      "expect": { "mode": "supported", "question_id": "workbook_revenue_mix_summary", "require_evidence_pack": true }
+    },
+    {
+      "id": "owned_customer_mix_kpis",
+      "question": "How many owned network customers do we have (network mix)?",
+      "expect": { "mode": "supported", "question_id": "workbook_customer_mix_kpis", "require_evidence_pack": true }
+    },
+    {
+      "id": "owned_revenue_mix_kpis",
+      "question": "How many billed owned customers do we have (revenue mix)?",
+      "expect": { "mode": "supported", "question_id": "workbook_revenue_mix_kpis", "require_evidence_pack": true }
+    },
+    {
+      "id": "contracted_list_networks",
+      "question": "List networks classified as contracted (customer mix workbook).",
+      "expect": { "mode": "supported", "question_id": "workbook_customer_mix_networks_list", "require_evidence_pack": true }
+    },
+    {
+      "id": "clec_percent_customers",
+      "question": "What percent of customer mix subscriptions are CLEC (network mix)?",
+      "expect": { "mode": "supported", "question_id": "workbook_customer_mix_segment_pct", "require_evidence_pack": true }
+    },
+    {
+      "id": "owned_percent_billed_customers",
+      "question": "What percent of billed customers are owned (revenue mix workbook)?",
+      "expect": { "mode": "supported", "question_id": "workbook_revenue_mix_segment_pct", "require_evidence_pack": true }
+    },
+    {
+      "id": "exclude_dvfiber_totals",
+      "question": "Revenue mix totals excluding DVFiber customers (investor workbook).",
+      "expect": { "mode": "supported", "question_id": "workbook_revenue_mix_totals_excluding_dvfiber", "require_evidence_pack": true }
+    },
+    {
+      "id": "exclude_dvfiber_customer_mix_not_supported",
+      "question": "Customer mix totals excluding DVFiber customers.",
+      "expect": { "mode": "not_supported", "must_contain": ["NOT SUPPORTED YET:", "DVFiber exclusion", "NEXT STEP:"] }
+    }
+  ]
+}
+

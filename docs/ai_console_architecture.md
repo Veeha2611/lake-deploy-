@@ -21,6 +21,11 @@ This document describes the MAC AI Console runtime and how it produces governed,
   - row limits where required
 - KPI-class templates are wrapped with an Investigation Ladder (freshness + cross-check + sanity checks).
 
+### Domain Registries (Finite + Deterministic)
+Some business domains are closed as **finite registries** (not “infinite English”):
+- Network Mix workbook domain: `apps/mac-app-v2/lambda/query-broker/network-mix-domain.yaml`
+  - Registry spec + question matrix: `docs/network_mix_domain.md`
+
 ## Governed Planner (Fallback Path)
 - When a question does not match the registry, the runtime can invoke Bedrock to produce a QueryPlan JSON.
 - The planner never emits SQL. QueryPlan is compiled deterministically into SQL and then validated.

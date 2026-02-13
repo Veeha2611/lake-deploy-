@@ -889,6 +889,30 @@
     "sql": "SELECT\n  MAX(as_of_date) AS as_of_date,\n  SUM(COALESCE(plat_id_count, 0)) AS billed_customers,\n  SUM(COALESCE(revenue, 0)) AS billed_mrr,\n  CASE\n    WHEN SUM(COALESCE(plat_id_count, 0)) > 0 THEN SUM(COALESCE(revenue, 0)) / SUM(COALESCE(plat_id_count, 0))\n    ELSE NULL\n  END AS arpu_billed\nFROM curated_core.v_investor_revenue_mix_latest\nWHERE network IS NOT NULL\n  AND TRIM(network) <> ''\n  AND network <> 'Total'\n  AND LOWER(COALESCE(network_type, '')) NOT LIKE '%dvfiber%'\nLIMIT 1;",
     "params": []
   },
+  "workbook_customer_mix_segment_pct": {
+    "views_used": [
+      "curated_core.v_network_health"
+    ],
+    "sql": "WITH base AS (\n  SELECT\n    network_type,\n    customer_type,\n    CASE\n      WHEN LOWER(COALESCE(network_type, '')) = 'clec' THEN 'Copper'\n      ELSE 'Fiber'\n    END AS access_type,\n    SUM(COALESCE(passings, 0)) AS passings,\n    SUM(COALESCE(subscriptions, 0)) AS subscriptions\n  FROM curated_core.v_network_health\n  WHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n    AND network IS NOT NULL\n    AND TRIM(network) <> ''\n    AND network <> 'Unmapped'\n  GROUP BY 1, 2, 3\n), segment AS (\n  SELECT\n    SUM(\n      CASE\n        WHEN LOWER(${measure}) IN ('passings','passing') THEN passings\n        ELSE subscriptions\n      END\n    ) AS segment_value\n  FROM base\n  WHERE (\n      ${network_type} = '' OR LOWER(COALESCE(network_type, '')) = LOWER(${network_type})\n    )\n    AND (\n      ${customer_type} = '' OR LOWER(COALESCE(customer_type, '')) = LOWER(${customer_type})\n    )\n    AND (\n      ${access_type} = '' OR LOWER(COALESCE(access_type, '')) = LOWER(${access_type})\n    )\n), totals AS (\n  SELECT\n    SUM(\n      CASE\n        WHEN LOWER(${measure}) IN ('passings','passing') THEN passings\n        ELSE subscriptions\n      END\n    ) AS total_value\n  FROM base\n)\nSELECT\n  ${measure} AS measure,\n  ${network_type} AS network_type,\n  ${customer_type} AS customer_type,\n  ${access_type} AS access_type,\n  CAST((SELECT segment_value FROM segment) AS double) AS segment_value,\n  CAST((SELECT total_value FROM totals) AS double) AS total_value,\n  CASE\n    WHEN (SELECT total_value FROM totals) > 0 THEN ((SELECT segment_value FROM segment) / (SELECT total_value FROM totals)) * 100\n    ELSE NULL\n  END AS segment_pct\nLIMIT 1;",
+    "params": [
+      "network_type",
+      "customer_type",
+      "access_type",
+      "measure"
+    ]
+  },
+  "workbook_revenue_mix_segment_pct": {
+    "views_used": [
+      "curated_core.v_investor_revenue_mix_latest"
+    ],
+    "sql": "WITH segment AS (\n  SELECT\n    MAX(as_of_date) AS as_of_date,\n    SUM(\n      CASE\n        WHEN LOWER(${measure}) IN ('plat_id_count','platidcount','plat id count','billed_customers','billed customers') THEN COALESCE(plat_id_count, 0)\n        ELSE COALESCE(revenue, 0)\n      END\n    ) AS segment_value\n  FROM curated_core.v_investor_revenue_mix_latest\n  WHERE network IS NOT NULL\n    AND TRIM(network) <> ''\n    AND network <> 'Total'\n    AND (\n      ${network_type_like} = ''\n      OR LOWER(COALESCE(network_type, '')) LIKE LOWER(${network_type_like})\n    )\n    AND (\n      ${network_like} = ''\n      OR LOWER(COALESCE(network, '')) LIKE LOWER(${network_like})\n    )\n), totals AS (\n  SELECT\n    MAX(as_of_date) AS as_of_date,\n    SUM(\n      CASE\n        WHEN LOWER(${measure}) IN ('plat_id_count','platidcount','plat id count','billed_customers','billed customers') THEN COALESCE(plat_id_count, 0)\n        ELSE COALESCE(revenue, 0)\n      END\n    ) AS total_value\n  FROM curated_core.v_investor_revenue_mix_latest\n  WHERE network IS NOT NULL\n    AND TRIM(network) <> ''\n    AND network <> 'Total'\n)\nSELECT\n  ${segment_label} AS segment_label,\n  ${measure} AS measure,\n  CAST((SELECT as_of_date FROM totals) AS timestamp) AS as_of_date,\n  CAST((SELECT segment_value FROM segment) AS double) AS segment_value,\n  CAST((SELECT total_value FROM totals) AS double) AS total_value,\n  CASE\n    WHEN (SELECT total_value FROM totals) > 0 THEN ((SELECT segment_value FROM segment) / (SELECT total_value FROM totals)) * 100\n    ELSE NULL\n  END AS segment_pct\nLIMIT 1;",
+    "params": [
+      "segment_label",
+      "network_type_like",
+      "network_like",
+      "measure"
+    ]
+  },
   "platt_billing_customers_by_system_latest": {
     "views_used": [
       "curated_core.v_monthly_mrr_platt",
