@@ -65,7 +65,7 @@ amplify-artifacts.zip
 /metadata/
 
 # Keep intake inbox templates/protocols tracked, but ignore per-thread exports.
-intake/threads_inbox_*/
+intake/threads_inbox_*/**
 !intake/threads_inbox_*/
 !intake/threads_inbox_*/README.md
 !intake/threads_inbox_*/PROTOCOL.md
