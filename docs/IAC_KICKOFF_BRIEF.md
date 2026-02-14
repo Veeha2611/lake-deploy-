@@ -56,34 +56,6 @@ S3 (key buckets):
 Connectivity:
 - Platt native DB access may require VPN; validate connectivity before declaring mirror parity.
 
-## Access / Environment Checklist (Expanded)
-AWS:
-- Account: `702127848627`
-- Region: `us-east-2`
-- Athena workgroup: `primary`
-
-S3 (key buckets):
-- `gwi-raw-us-east-2-pc` (raw landings, orchestration artifacts, Athena outputs)
-- `gwi-curated-us-east-2-pc` (curated outputs where applicable)
-- `gwi-staging-pc` (staging/temporary where applicable)
-
-Glue / Athena logical databases (examples):
-- `raw_*` (source-native landings)
-- `curated_core` (query-ready normalized layer)
-- `curated_recon` (exceptions + reconciliation)
-- `curated_ssot` (daily SSOT guards / summaries)
-
-Secrets Manager (names only; see `docs/access_prereqs.md`):
-- `salesforce/api_credentials`
-- `intacct/credentials`
-- `platt/credentials`
-- `gaiia/api_keys`
-- `monday/prod`
-- `mac/cognito_google_oauth`
-
-Connectivity:
-- Platt native DB access may require VPN; validate connectivity before declaring mirror parity.
-
 ## Decisions Needed From IaC Team (Kickoff)
 - Framework: CDK vs Terraform (and where state will live).
 - Environment strategy: dev/stage/prod separation and naming/tagging conventions.

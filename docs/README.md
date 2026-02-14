@@ -3,10 +3,16 @@
 This documentation set is the authoritative, sanitized reference for rebuilding and operating the data lake.
 
 ## Contents
+- **IaC kickoff brief**: `docs/IAC_KICKOFF_BRIEF.md`
+- **Access & environment**: `docs/ACCESS_AND_ENVIRONMENT.md`
+- **CI/CD + Terraform backend**: `docs/CI_CD_AND_TERRAFORM_BACKEND.md`
+- **Observability & alerting**: `docs/OBSERVABILITY_AND_ALERTING.md`
+- **Governance**: `docs/GOVERNANCE.md`
+- **Known gaps & risk**: `docs/KNOWN_GAPS_AND_RISK.md`
 - **Architecture**: `docs/architecture/data_lake_architecture.md`
 - **S3 layout**: `docs/architecture/s3_layout.md`
 - **Schema inventory**: `docs/schema/table_inventory.md`
-- **SSOT policy**: `docs/ssot/ssot_policy.md`
+- **SSOT policy**: `docs/ssot/SSOT_POLICY.md`
 - **Orchestration & schedules**: `docs/orchestration/orchestration.md`
 - **Reconciliation & exceptions**: `docs/ssot/reconciliation.md`
 - **Proofs & evidence**: `docs/proofs/proofs.md`

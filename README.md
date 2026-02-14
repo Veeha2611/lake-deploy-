@@ -2,6 +2,9 @@
 
 ## IaC Kickoff (Docs)
 - `docs/IAC_KICKOFF_BRIEF.md`
+- `docs/ACCESS_AND_ENVIRONMENT.md`
+- `docs/CI_CD_AND_TERRAFORM_BACKEND.md`
+- `docs/OBSERVABILITY_AND_ALERTING.md`
 - `docs/GOVERNANCE.md`
 - `docs/KNOWN_GAPS_AND_RISK.md`
 - `docs/ai_console_architecture.md`
