@@ -59,6 +59,15 @@ function CustomerAnalyticsPanel() {
     return null;
   }, [data]);
 
+  // If the user starts filtering/searching, auto-expand the table so they see networks immediately.
+  React.useEffect(() => {
+    if (unavailableMessage) return;
+    if (!collapsed) return;
+    if (networkType || customerType || search) {
+      setCollapsed(false);
+    }
+  }, [networkType, customerType, search, collapsed, unavailableMessage]);
+
   const resolved = React.useMemo(() => {
     if (!data?.data_rows || !data?.columns) {
       return { rows: [], columns: {}, missing: [] };
