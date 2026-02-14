@@ -84,6 +84,12 @@ async function runMacApiQuery({ queryId, sql, label, params } = {}) {
       ok: true,
       columns,
       data_rows: dataRows,
+      answer_markdown: json.answer_markdown || '',
+      question_id: json.question_id || questionId || null,
+      cached: Boolean(json.cached),
+      stale: Boolean(json.stale),
+      evidence_pack: json.evidence_pack || null,
+      actions_available: json.actions_available || [],
       evidence: {
         athena_query_execution_id: json.query_execution_id || null,
         generated_sql: json.sql || sql || null,

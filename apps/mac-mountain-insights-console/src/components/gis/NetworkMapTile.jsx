@@ -21,15 +21,19 @@ export default function NetworkMapTile() {
   const [modalOpen, setModalOpen] = useState(false);
 
   // Fetch preview data (100 points)
-  const { data: previewData, isLoading } = useQuery({
+  const { data: previewResult, isLoading } = useQuery({
     queryKey: ['network-map-preview'],
     queryFn: async () => {
       const response = await runSSOTQuery({
         queryId: 'network_map_points',
         label: 'Network Map Preview Points'
       });
+      const payload = response?.data || {};
+      if (payload?.evidence_pack?.status === 'unavailable') {
+        return { points: [], unavailable: payload.answer_markdown || 'UNAVAILABLE' };
+      }
       const rows = response?.data?.data_rows || [];
-      return rows
+      const points = rows
         .map((row) => {
           const values = Array.isArray(row) ? row : Object.values(row);
           return {
@@ -42,6 +46,7 @@ export default function NetworkMapTile() {
           };
         })
         .filter((f) => Number.isFinite(f.latitude) && Number.isFinite(f.longitude));
+      return { points, unavailable: null };
     },
     refetchInterval: 300000,
   });
@@ -54,6 +59,10 @@ export default function NetworkMapTile() {
         queryId: 'network_map_counts',
         label: 'Network Map Counts'
       });
+      const payload = response?.data || {};
+      if (payload?.evidence_pack?.status === 'unavailable') {
+        return { plans: 0, serviceLocationsUnique: 0, buildYesUnique: 0, buildPct: 0, unavailable: payload.answer_markdown || 'UNAVAILABLE' };
+      }
       const row = response?.data?.data_rows?.[0] || [0, 0, 0];
       const values = Array.isArray(row) ? row : Object.values(row);
       const plans = Number(values[0] || 0);
@@ -63,11 +72,15 @@ export default function NetworkMapTile() {
         plans,
         serviceLocationsUnique,
         buildYesUnique,
-        buildPct: serviceLocationsUnique > 0 ? ((buildYesUnique / serviceLocationsUnique) * 100).toFixed(1) : 0
+        buildPct: serviceLocationsUnique > 0 ? ((buildYesUnique / serviceLocationsUnique) * 100).toFixed(1) : 0,
+        unavailable: null
       };
     },
     refetchInterval: 300000,
   });
+
+  const previewData = previewResult?.points || [];
+  const unavailableMessage = previewResult?.unavailable || counts?.unavailable || null;
 
   return (
     <>
@@ -97,6 +110,12 @@ export default function NetworkMapTile() {
               {isLoading ? (
                 <div className="flex items-center justify-center h-full bg-[var(--mac-ice)]">
                   <Loader2 className="w-8 h-8 animate-spin text-[var(--mac-forest)]" />
+                </div>
+              ) : unavailableMessage ? (
+                <div className="flex items-center justify-center h-full bg-[var(--mac-ice)] p-4">
+                  <p className="text-xs text-amber-800 whitespace-pre-wrap">
+                    {String(unavailableMessage).replace(/\*\*/g, '')}
+                  </p>
                 </div>
               ) : previewData && previewData.length > 0 ? (
                 <MapContainer

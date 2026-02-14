@@ -54,6 +54,11 @@ function CustomerAnalyticsPanel() {
     refetchInterval: 60000
   });
 
+  const unavailableMessage = React.useMemo(() => {
+    if (data?.evidence_pack?.status === 'unavailable') return data.answer_markdown || 'UNAVAILABLE';
+    return null;
+  }, [data]);
+
   const resolved = React.useMemo(() => {
     if (!data?.data_rows || !data?.columns) {
       return { rows: [], columns: {}, missing: [] };
@@ -242,8 +247,14 @@ function CustomerAnalyticsPanel() {
             <h2 className="font-display text-2xl text-foreground mt-2">Network Mix Dashboard</h2>
           </div>
         </div>
-        <div className="text-xs text-muted-foreground">Lake source: curated_recon.v_network_mix_billing_aligned_latest</div>
+      <div className="text-xs text-muted-foreground">Lake source: curated_recon.v_network_mix_billing_aligned_latest</div>
       </div>
+
+      {unavailableMessage && (
+        <div className="mt-6 p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-900 text-sm whitespace-pre-wrap">
+          {String(unavailableMessage).replace(/\*\*/g, '')}
+        </div>
+      )}
 
       {resolved.missing.length > 0 && (
         <div className="mt-4 p-3 rounded-lg bg-[var(--mac-badge-bg)] border border-[var(--mac-badge-border)] text-xs text-[var(--mac-badge-text)]">
@@ -251,52 +262,55 @@ function CustomerAnalyticsPanel() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 mt-6">
-        <div className="mac-kpi-card">
-          <div className="mac-kpi-label">Total Subscriptions</div>
-          <div className="mac-kpi-value">{metrics.totalSubs.toLocaleString()}</div>
-          <div className="text-xs text-muted-foreground mt-1">Active services</div>
-        </div>
-        <div className="mac-kpi-card">
-          <div className="mac-kpi-label">Total Passings</div>
-          <div className="mac-kpi-value">{metrics.totalPassings.toLocaleString()}</div>
-          <div className="text-xs text-muted-foreground mt-1">Homes / businesses</div>
-        </div>
-        <div className="mac-kpi-card">
-          <div className="mac-kpi-label">Penetration</div>
-          <div className="mac-kpi-value">{metrics.penetration.toFixed(1)}%</div>
-          <div className="text-xs text-muted-foreground mt-1">Subs / passings</div>
-        </div>
-        <div className="mac-kpi-card">
-          <div className="mac-kpi-label">Avg ARPU</div>
-          <div className="mac-kpi-value">${metrics.avgArpu.toFixed(0)}</div>
-          <div className="text-xs text-muted-foreground mt-1">
-            Per customer / month{metrics.mixedArpuCount > 0 ? ' (excludes mixed ARPU)' : ''}
+      {!unavailableMessage && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 mt-6">
+          <div className="mac-kpi-card">
+            <div className="mac-kpi-label">Total Subscriptions</div>
+            <div className="mac-kpi-value">{metrics.totalSubs.toLocaleString()}</div>
+            <div className="text-xs text-muted-foreground mt-1">Active services</div>
+          </div>
+          <div className="mac-kpi-card">
+            <div className="mac-kpi-label">Total Passings</div>
+            <div className="mac-kpi-value">{metrics.totalPassings.toLocaleString()}</div>
+            <div className="text-xs text-muted-foreground mt-1">Homes / businesses</div>
+          </div>
+          <div className="mac-kpi-card">
+            <div className="mac-kpi-label">Penetration</div>
+            <div className="mac-kpi-value">{metrics.penetration.toFixed(1)}%</div>
+            <div className="text-xs text-muted-foreground mt-1">Subs / passings</div>
+          </div>
+          <div className="mac-kpi-card">
+            <div className="mac-kpi-label">Avg ARPU</div>
+            <div className="mac-kpi-value">${metrics.avgArpu.toFixed(0)}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Per customer / month{metrics.mixedArpuCount > 0 ? ' (excludes mixed ARPU)' : ''}
+            </div>
+          </div>
+          <div className="mac-kpi-card">
+            <div className="mac-kpi-label">Total MRR</div>
+            <div className="mac-kpi-value">${(metrics.totalMrr / 1000).toFixed(1)}K</div>
+            <div className="text-xs text-muted-foreground mt-1">Recurring revenue</div>
           </div>
         </div>
-        <div className="mac-kpi-card">
-          <div className="mac-kpi-label">Total MRR</div>
-          <div className="mac-kpi-value">${(metrics.totalMrr / 1000).toFixed(1)}K</div>
-          <div className="text-xs text-muted-foreground mt-1">Recurring revenue</div>
-        </div>
-      </div>
+      )}
 
-      <div className="mac-panel-strong rounded-2xl p-4 mt-6 flex flex-wrap gap-3 items-end">
-        <div className="flex flex-col gap-2">
-          <label className="text-xs text-muted-foreground">Network Type</label>
-          <select
-            value={networkType}
-            onChange={(event) => setNetworkType(event.target.value)}
-            className="mac-input text-sm rounded-lg px-3 py-2"
-          >
-            <option value="">All Types</option>
-            {networkTypeOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </div>
+      {!unavailableMessage && (
+        <div className="mac-panel-strong rounded-2xl p-4 mt-6 flex flex-wrap gap-3 items-end">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs text-muted-foreground">Network Type</label>
+            <select
+              value={networkType}
+              onChange={(event) => setNetworkType(event.target.value)}
+              className="mac-input text-sm rounded-lg px-3 py-2"
+            >
+              <option value="">All Types</option>
+              {networkTypeOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
         <div className="flex flex-col gap-2">
           <label className="text-xs text-muted-foreground">Customer Type</label>
           <select
@@ -327,7 +341,8 @@ function CustomerAnalyticsPanel() {
         >
           Export CSV
         </button>
-      </div>
+        </div>
+      )}
 
       <div className="mac-panel-strong rounded-2xl mt-6 overflow-hidden">
         {isLoading && (
@@ -336,7 +351,12 @@ function CustomerAnalyticsPanel() {
         {error && (
           <div className="p-8 text-center text-sm text-destructive">Failed to load network mix: {error.message}</div>
         )}
-        {!isLoading && !error && (
+        {unavailableMessage && !isLoading && !error && (
+          <div className="p-8 text-center text-sm text-amber-800 whitespace-pre-wrap">
+            {String(unavailableMessage).replace(/\*\*/g, '')}
+          </div>
+        )}
+        {!isLoading && !error && !unavailableMessage && (
           <div className="overflow-x-auto">
             <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-xs text-muted-foreground border-b border-white/10">
               <div>
@@ -436,6 +456,11 @@ function UnmappedNetworkPanel() {
     staleTime: 60000,
     refetchInterval: 60000
   });
+
+  const unavailableMessage = React.useMemo(() => {
+    if (data?.evidence_pack?.status === 'unavailable') return data.answer_markdown || 'UNAVAILABLE';
+    return null;
+  }, [data]);
 
   const resolved = React.useMemo(() => {
     if (!data?.data_rows || !data?.columns) {
@@ -556,11 +581,17 @@ function UnmappedNetworkPanel() {
         </div>
       )}
 
-      {!isLoading && !error && totalServices === 0 && (
+      {unavailableMessage && !isLoading && !error && (
+        <div className="mt-4 p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-900 text-sm whitespace-pre-wrap">
+          {String(unavailableMessage).replace(/\*\*/g, '')}
+        </div>
+      )}
+
+      {!isLoading && !error && !unavailableMessage && totalServices === 0 && (
         <div className="mt-4 text-sm text-muted-foreground">All active services are mapped to a network.</div>
       )}
 
-      {!isLoading && !error && totalServices > 0 && (
+      {!isLoading && !error && !unavailableMessage && totalServices > 0 && (
         <>
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="mac-kpi-card">

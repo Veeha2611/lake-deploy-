@@ -66,6 +66,7 @@ export default function DashboardTile({ title, sql, icon: Icon, renderValue, ren
     staleTime: 0,
     enabled: !isPaused || !isModalOpen
   });
+  const isUnavailable = data?.evidence_pack?.status === 'unavailable';
 
   // Auto-refresh based on global trigger
   useEffect(() => {
@@ -120,6 +121,39 @@ export default function DashboardTile({ title, sql, icon: Icon, renderValue, ren
             <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
               <div className="font-semibold text-xs text-destructive mb-1">Query Failed</div>
               <div className="text-xs text-destructive/90">{data?.error || error?.message || 'Unknown error'}</div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
+  if (isUnavailable) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Card className="mac-panel border border-amber-500/30">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div className="flex items-center gap-2">
+              {Icon && <Icon className="w-5 h-5 text-amber-600" />}
+              <CardTitle className="text-base font-semibold text-card-foreground">{title}</CardTitle>
+            </div>
+            <div className="opacity-0 group-hover:opacity-100">
+              <EvidenceDrawer
+                evidence={data?.evidence}
+                title={`${title} - Evidence`}
+              />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+              <div className="font-semibold text-xs text-amber-700 mb-1">Freshness Check Failed</div>
+              <div className="text-xs text-amber-800 whitespace-pre-wrap">
+                {String(data?.answer_markdown || '').replace(/\*\*/g, '')}
+              </div>
             </div>
           </CardContent>
         </Card>
