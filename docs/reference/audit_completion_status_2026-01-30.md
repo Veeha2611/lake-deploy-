@@ -9,7 +9,7 @@
 - Investor Questions workbook digested
 - Vetro plan reconciliation + manual batch plan-name parsing
 - Fuzzy candidate lists for investor crosswalk and missing plan IDs
-- Intake threads inventory captured
+- Intake sessions inventory captured
 - Secret scrub executed; post-scrub scan report generated
 - Reference scan (no matches)
 - MAC app repo integrated into lake_deploy (apps/mac-mountain-insights-console) with inventory + secret scan
@@ -25,7 +25,7 @@
 - Stale move skipped review generated (non-intake + missing)
 - Skipped-stale assessment completed; no outside-root items flagged
 
-- Intake manifest regenerated from actual workstream files (104 files) and path existence check is clean (missing: 0).
+- Intake manifest regenerated from actual delivery stream files (104 files) and path existence check is clean (missing: 0).
 
 - Manual batch 1 + batch 2 exports ingested into source_exports and indexed.
 

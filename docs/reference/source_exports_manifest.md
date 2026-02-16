@@ -20,8 +20,8 @@ Root: /Users/patch/vetro/lake_deploy_intake/source_exports
 - /Users/patch/vetro/lake_deploy_intake/source_exports/coverage_map.json
 - /Users/patch/vetro/lake_deploy_intake/source_exports/deploy.sh
 - /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/2025-11 – Lake-mapped export.csv
-- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Data Lake Project new chat 11252025.docx
-- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Data Lake Project new chat 12032025.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Data Lake Project new session 11252025.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Data Lake Project new session 12032025.docx
 - /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Data Lake Project.pdf
 - /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/FWQ! runbook SOW.pdf
 - /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/FWQ1 – Financial Model Schema.pdf

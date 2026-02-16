@@ -421,7 +421,7 @@ Deno.serve(async (req) => {
             'Fill form: entity=TestEntity, project_name=AuditTest, project_type=Fiber, state=Active, stage=Signed, priority=High, owner=Admin',
             'Click "Create Project"',
             'Verify success toast',
-            'Verify prompt "Generate a model now?"',
+            'Verify confirmation "Generate a model now?"',
             'Click "View Update History"',
             'Verify new CSV file appears',
             'Download CSV and verify contents'

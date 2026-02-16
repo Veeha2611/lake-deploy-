@@ -38,7 +38,7 @@
 
 - Wrote raw/curated prefix inventory: docs/reference/s3_inventory_raw_curated_2026-01-30.md
 
-- Wrote intake workstreams inventory: docs/reference/intake_workstream_inventory.md
+- Wrote intake delivery streams inventory: docs/reference/intake_delivery_stream_inventory.md
 
 - Built Vetro plan reconciliation outputs and manual batch index.
 
@@ -73,7 +73,7 @@
 - Generated skipped-stale review for non-intake and missing items.
 - Completed skipped-stale assessment; no off-root artifacts flagged.
 
-- Intake manifest regenerated from actual workstream files; path existence check shows 0 missing paths.
+- Intake manifest regenerated from actual delivery stream files; path existence check shows 0 missing paths.
 - Manual batch 1 and batch 2 exports are stored under source_exports/vetro_manual_batch*_2026-01-30 and indexed.
 - Completed AWS S3 sweep (raw/curated/orchestration/knowledge/vetro_ui/vetro_ui_manual) with inventory summaries under docs/reference/aws_s3_*.
 - Only remaining gap: complete Vetro plan exports + reconciliation against authoritative plan list.

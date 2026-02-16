@@ -33,7 +33,7 @@ Key details:
 
 ## B) Prior Logic That Produced “348” (billing-customer semantics)
 
-The earlier path (captured in `Downloads/owned workstream resolve.txt`) bucketed from billed customer IDs:
+The earlier path (captured in `Downloads/owned delivery stream resolve.txt`) bucketed from billed customer IDs:
 - Start from latest-month billing customers (`mrr_total > 0`) and count `COUNT(DISTINCT customer_id)`.
 - Crosswalk customer → network → plan → as-built:
   - `curated_recon.platt_customer_system_map` (customer → `gwi_system`)
@@ -53,8 +53,8 @@ This is why the meeting surfaced “912 vs 348” as a mismatch: different defin
   - Request for urgent Vetro cleanup email + daily progress updates
   - Request for change log and MRR movement breakdown
 
-### 2) “owned workstream resolve” notes (definition breakdown)
-- `/Users/patch/Downloads/owned workstream resolve.txt`
+### 2) “owned delivery stream resolve” notes (definition breakdown)
+- `/Users/patch/Downloads/owned delivery stream resolve.txt`
 
 ### 3) Quick sanity queries (Athena)
 **Subscriptions by network_type:**

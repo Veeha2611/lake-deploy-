@@ -97,8 +97,8 @@ Total matches: 18577
 - /Users/patch/Downloads/Batch 2 vetro/yarmouth-large-scale-hood-plan-cujEk7LI8h6LBnNK9wvkV.zip
 - /Users/patch/Downloads/Batch 2 vetro/york-large-scale-hood-plan-h8o04_-3Qkf_FKYy4PHAk.zip
 - /Users/patch/Downloads/CCI/cci_margin_bands_from_lake.csv
-- /Users/patch/Downloads/Data Lake Project new chat 11252025.docx
-- /Users/patch/Downloads/Data Lake Project new chat 12032025.docx
+- /Users/patch/Downloads/Data Lake Project new session 11252025.docx
+- /Users/patch/Downloads/Data Lake Project new session 12032025.docx
 - /Users/patch/Downloads/Data Lake Project – Sanity Check & Feature Dashboard.pdf
 - /Users/patch/Downloads/Data Lake Project.pdf
 - /Users/patch/Downloads/E8_Towers_FTTH_Lakeside_Polygon_fixed6578.cpg
@@ -820,7 +820,7 @@ Total matches: 18577
 - /Users/patch/lake_deploy/docs/reference/intacct_file_inventory_2026-01-30.tsv
 - /Users/patch/lake_deploy/docs/reference/intacct_file_inventory_latest_2026-01-30.md
 - /Users/patch/lake_deploy/docs/reference/intake_manifest.md
-- /Users/patch/lake_deploy/docs/reference/intake_workstream_inventory.md
+- /Users/patch/lake_deploy/docs/reference/intake_delivery_stream_inventory.md
 - /Users/patch/lake_deploy/docs/reference/investor_questions_crosswalk_2026-01-30.md
 - /Users/patch/lake_deploy/docs/reference/investor_questions_fuzzy_matching_2026-01-30.md
 - /Users/patch/lake_deploy/docs/reference/investor_questions_to_vetro_crosswalk_2026-01-30.csv
@@ -18267,8 +18267,8 @@ Total matches: 18577
 - /Users/patch/vetro/lake_deploy_intake/source_exports/coverage_map.json
 - /Users/patch/vetro/lake_deploy_intake/source_exports/deploy.sh
 - /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/2025-11 – Lake-mapped export.csv
-- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Data Lake Project new chat 11252025.docx
-- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Data Lake Project new chat 12032025.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Data Lake Project new session 11252025.docx
+- /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Data Lake Project new session 12032025.docx
 - /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/Data Lake Project.pdf
 - /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/FWQ! runbook SOW.pdf
 - /Users/patch/vetro/lake_deploy_intake/source_exports/downloads_scan_2026-01-30/FWQ1 – Financial Model Schema.pdf

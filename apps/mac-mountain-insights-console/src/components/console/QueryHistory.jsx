@@ -104,7 +104,7 @@ export default function QueryHistory({ onSelectQuery }) {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-[var(--mac-forest)]" />
-              <CardTitle className="text-base">Example Prompts</CardTitle>
+              <CardTitle className="text-base">Example Questions</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="space-y-2">

@@ -1,4 +1,4 @@
-# Workstream Intake Manifest
+# Delivery Stream Intake Manifest
 
 Source folder: `/Users/patch/vetro/lake_deploy_intake/exports_inbox`
 

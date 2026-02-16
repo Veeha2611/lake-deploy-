@@ -46,7 +46,7 @@ Source: /Users/patch/lake_deploy_intake/source_exports/notion_s3_snapshot_2026-0
 - ### Canonical reference pages
 - ### Non-negotiable operating rules
 - ### What to do next (the real critical path)
-- ### Link: Start-from-zero master prompt
+- ### Link: Start-from-zero master instruction
 - ### Sage Intacct / Intacct
 - ### System → Bucket Crosswalk (Pioneer One blocker)
 - # data lake history 12052025
@@ -128,13 +128,13 @@ Source: /Users/patch/lake_deploy_intake/source_exports/notion_s3_snapshot_2026-0
 - ### 5.4 Partition add (copy/paste)
 - ## 6) Definition of Done (finance + diligence)
 - ## 7) References
-- # Chat workstream Digest Runbook — Data Lake (Reusable Template)
+- # Chat delivery stream Digest Runbook — Data Lake (Reusable Template)
 - ### 0) Inputs (copy/paste at top of every run)
 - ### 1) Standard “Chat-History Page” format (copy into the new page)
-- ### 2) “Query prompt” to run inside any chat workstream (paste this as-is)
-- ### 3) Reconciliation playbook (merge multiple chat threads on the same topic)
+- ### 2) “Query instruction” to run inside any chat delivery stream (paste this as-is)
+- ### 3) Reconciliation playbook (merge multiple chat sessions on the same topic)
 - ### 4) Reference-page update rules (to avoid thrash)
-- ### 5) Checklist: “Done” criteria for a digested workstream
+- ### 5) Checklist: “Done” criteria for a digested delivery stream
 - # project data lake chat
 - # query Athena notes
 - # MASTER_Investor FAQs

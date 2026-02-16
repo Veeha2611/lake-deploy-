@@ -1,4 +1,4 @@
-# Intake Threads Inventory (2026-01-30)
+# Intake Sessions Inventory (2026-01-30)
 
 Primary intake root used:
 - `/Users/patch/vetro/lake_deploy_intake/exports_inbox/`

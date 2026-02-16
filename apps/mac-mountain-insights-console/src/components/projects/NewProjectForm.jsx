@@ -76,7 +76,7 @@ export default function NewProjectForm({ isOpen, onClose, onSuccess, onOpenModel
           notes: ''
         });
         
-        // Prompt to generate model
+        // Offer to generate model
         setTimeout(() => {
           const shouldGenerate = window.confirm('Project created successfully!\n\nWould you like to generate a financial model now?');
           if (shouldGenerate && onOpenModel) {

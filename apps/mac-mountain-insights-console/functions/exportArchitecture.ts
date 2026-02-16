@@ -234,7 +234,7 @@ Frontend calls: base44.functions.invoke('saveProject', {project: formData})
     ↓
 Backend writes CSV to S3: raw/projects_pipeline/input/projects_input__[timestamp].csv
     ↓
-Success → Modal prompt: "Generate a model now?"
+Success → Modal confirmation: "Generate a model now?"
     ↓
 If YES: → Store projectId + projectName in localStorage → Open ScenarioModelDrawer
 If NOT NOW: → Close modal → "Scenario Modeling" button appears in header
@@ -492,7 +492,7 @@ date,month_number,subscribers,penetration_pct,arpu,revenue,opex,ebitda,capex,fcf
 ### Test Suite: Project Creation
 - [ ] Click "New Project" → Modal opens
 - [ ] Fill required fields → Submit → Success toast
-- [ ] Prompt "Generate model now?" appears
+- [ ] Confirmation "Generate model now?" appears
 - [ ] View Update History → New CSV appears
 - [ ] Download CSV → Verify all fields
 
@@ -537,7 +537,7 @@ date,month_number,subscribers,penetration_pct,arpu,revenue,opex,ebitda,capex,fcf
         version: 'v2.0-beta',
         sections: {
           ux_flow: {
-            create_project: "Projects Page → New Project → Fill fields → Save → Prompt for model",
+            create_project: "Projects Page → New Project → Fill fields → Save → Confirmation for model",
             run_model: "ScenarioModelDrawer → Enter inputs → Save Scenario → Backend writes to S3",
             save_scenarios: "Save Scenario (overwrite) or Save as New Scenario → Registry updates"
           },

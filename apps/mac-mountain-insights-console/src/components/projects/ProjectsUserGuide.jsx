@@ -155,7 +155,7 @@ export default function ProjectsUserGuide() {
                 <div className="border-l-4 border-blue-500 pl-4 py-2">
                   <p className="font-semibold">2. Generate Financial Report (Quick-Run)</p>
                   <p className="text-muted-foreground">
-                    Prompts for minimal inputs (just passings and build months), runs the model with defaults, 
+                    Requests minimal inputs (just passings and build months), runs the model with defaults, 
                     and lands you directly into the Scenario viewer where outputs are immediately visible.
                   </p>
                 </div>

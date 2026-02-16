@@ -54,12 +54,12 @@ When a question cannot be supported (missing capability, flag, or dataset), the 
   - `NEXT STEP: ...`
 - No numeric values are returned without an `evidence_pack`.
 
-## Case Runtime (Stateful Threads)
+## Case Runtime (Stateful Sessions)
 - Each `/query` response may be persisted as a Case record in DynamoDB:
   - `case_id`, `question_original`, `question_id`, `metric_key`
   - executed query IDs + SQL + views used
   - `evidence_pack`, verification results, artifacts
-- Threads can re-use the last Case as context for follow-up questions.
+- Sessions can re-use the last Case as context for follow-up questions.
 
 ## Actions (Follow-Ups Without Re-Running The Base Question)
 - Actions are invoked via `POST /cases/action` using a `case_id`.

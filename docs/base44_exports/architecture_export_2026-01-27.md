@@ -219,7 +219,7 @@ Frontend calls: base44.functions.invoke('saveProject', {project: formData})
     ↓
 Backend writes CSV to S3: raw/projects_pipeline/input/projects_input__[timestamp].csv
     ↓
-Success → Modal prompt: "Generate a model now?"
+Success → Modal instruction: "Generate a model now?"
     ↓
 If YES: → Store projectId + projectName in localStorage → Open ScenarioModelDrawer
 If NOT NOW: → Close modal → "Scenario Modeling" button appears in header
@@ -477,7 +477,7 @@ date,month_number,subscribers,penetration_pct,arpu,revenue,opex,ebitda,capex,fcf
 ### Test Suite: Project Creation
 - [ ] Click "New Project" → Modal opens
 - [ ] Fill required fields → Submit → Success toast
-- [ ] Prompt "Generate model now?" appears
+- [ ] Instruction "Generate model now?" appears
 - [ ] View Update History → New CSV appears
 - [ ] Download CSV → Verify all fields
 
