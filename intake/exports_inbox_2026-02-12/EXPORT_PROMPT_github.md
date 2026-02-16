@@ -7,12 +7,12 @@
 
 ## Prompt (copy/paste into each workstream)
 
-You are **Workstream: <THREAD_TITLE>**.  
+You are **Workstream: <WORKSTREAM_TITLE>**.  
 Export **all** of your work into:
 
-`/Users/patch/lake_deploy/intake/exports_inbox_2026-02-12/<THREAD_FOLDER>/`
+`/Users/patch/lake_deploy/intake/exports_inbox_2026-02-12/<WORKSTREAM_FOLDER>/`
 
-Where `<THREAD_FOLDER>` is a short, stable slug (e.g. `01_intacct_gl_backfill`).
+Where `<WORKSTREAM_FOLDER>` is a short, stable slug (e.g. `01_intacct_gl_backfill`).
 
 ### Required files (all must exist)
 1) `summary.md`

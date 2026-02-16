@@ -18,7 +18,7 @@ Run a lightweight scan against your workstream folder and the files you touched.
 
 Recommended command (fast, strict):
 ```
-rg -n -i "AKIA|SECRET|TOKEN|PASSWORD|PRIVATE KEY|BEGIN RSA|BEGIN PRIVATE" <thread_folder>
+rg -n -i "AKIA|SECRET|TOKEN|PASSWORD|PRIVATE KEY|BEGIN RSA|BEGIN PRIVATE" <workstream_folder>
 ```
 
 If anything matches, redact before proceeding.
