@@ -75,5 +75,8 @@ intake/threads_inbox_*/**
 # Raw chat transcripts are not suitable for version control.
 docs/reference/chat_history_*/
 
+# Optional local-only sanitization policy override.
+config/sanitization/banned_terms.txt
+
 # Known non-schema artifact (contains sampled values); do not commit.
 external_sources/ops_raw_platt/platt_schema.csv

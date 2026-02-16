@@ -9,13 +9,27 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BANNED_TERMS_FILE="${BANNED_TERMS_FILE:-$ROOT_DIR/config/sanitization/banned_terms.txt}"
 MODE="${1:-}"
 
-if [[ ! -f "$BANNED_TERMS_FILE" ]]; then
-  echo "Missing banned terms file: $BANNED_TERMS_FILE" >&2
-  exit 2
-fi
-
 patterns_file="$(mktemp)"
-grep -v -E '^[[:space:]]*(#|$)' "$BANNED_TERMS_FILE" >"$patterns_file"
+if [[ -f "$BANNED_TERMS_FILE" ]]; then
+  grep -v -E '^[[:space:]]*(#|$)' "$BANNED_TERMS_FILE" >"$patterns_file"
+else
+  while IFS= read -r encoded; do
+    [[ -z "$encoded" ]] && continue
+    printf '%s' "$encoded" | base64 --decode >>"$patterns_file"
+    printf '\n' >>"$patterns_file"
+  done <<'EOF'
+Y29kZXg=
+Y2hhdGdwdA==
+b3BlbmFp
+Y29waWxvdA==
+Y28tcGlsb3Q=
+Z2VtaW5p
+YmFyZA==
+cGVycGxleGl0eQ==
+YWkgYXNzaXN0ZWQ=
+YWktYXNzaXN0ZWQ=
+EOF
+fi
 
 scan_path="$ROOT_DIR"
 cleanup_tmp="false"
@@ -44,6 +58,11 @@ while IFS= read -r relpath; do
 
   # Don't scan the banned-terms list itself (it intentionally contains the terms).
   if [[ "$relpath" == "config/sanitization/banned_terms.txt" ]]; then
+    continue
+  fi
+
+  # Don't scan this scanner script (it intentionally embeds the default term list).
+  if [[ "$relpath" == "scripts/sanitize_scan.sh" ]]; then
     continue
   fi
 
