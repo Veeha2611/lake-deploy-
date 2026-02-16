@@ -6,6 +6,8 @@ Repository: `lake_deploy`
 ## TL;DR
 We have an operating AWS data lake with a raw-to-curated SSOT pattern and an application (MAC App) consuming curated queries. The immediate IaC goal is to **codify the current system** (S3/Glue/Athena/orchestration/secrets/permissions/CI) without redesigning business logic, then add drift detection and repeatable environments.
 
+Current SSOT posture summary is tracked in `docs/SSOT_READINESS_STATUS.md`.
+
 ## Current State (What Exists Today)
 - **Storage**: S3 is the system of record (raw landings + curated outputs).
 - **Catalog/Query**: Glue Data Catalog + Athena workgroups for lake queries and validation.

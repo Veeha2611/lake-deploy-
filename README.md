@@ -7,6 +7,7 @@
 - `docs/OBSERVABILITY_AND_ALERTING.md`
 - `docs/GOVERNANCE.md`
 - `docs/KNOWN_GAPS_AND_RISK.md`
+- `docs/SSOT_READINESS_STATUS.md`
 - `docs/ai_console_architecture.md`
 
 ## Lake Overview (Raw → Curated → SSOT → App)
