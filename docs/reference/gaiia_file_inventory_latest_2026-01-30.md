@@ -1,7 +1,7 @@
 # gaiia file inventory (latest 10 by mtime)
 - 2026-01-30 07:25:03 | 875 bytes | /Users/patch/lake_deploy/docs/integrations/gaiia.md
-- 2026-01-29 23:04:42 | 2990 bytes | /Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/11_gaiia_invoices.sql
-- 2026-01-29 23:04:42 | 2886 bytes | /Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/10_gaiia_customers.sql
+- 2026-01-29 23:04:42 | 2990 bytes | /Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/11_gaiia_invoices.sql
+- 2026-01-29 23:04:42 | 2886 bytes | /Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/10_gaiia_customers.sql
 - 2026-01-29 23:04:17 | 2990 bytes | /Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/sql_ssot/11_gaiia_invoices.sql
 - 2026-01-29 23:04:17 | 2886 bytes | /Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/sql_ssot/10_gaiia_customers.sql
 - 2026-01-29 23:04:17 | 3390 bytes | /Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/gaiia_query_registry.json

@@ -1,12 +1,12 @@
 # Intake Inbox — 2026-02-12
 
-This folder is the **single landing zone** for all thread outputs before we stage anything into the GitHub `lake_deploy` repo. Each thread must export its work **here first** so we can validate SSOT evidence, avoid loops, and run a clean secret scan.
+This folder is the **single landing zone** for all workstream outputs before we stage anything into the GitHub `lake_deploy` repo. Each workstream must export its work **here first** so we can validate SSOT evidence, avoid loops, and run a clean secret scan.
 
-## Folder Structure (per thread)
-Create one subfolder per thread using a short, stable name:
+## Folder Structure (per workstream)
+Create one subfolder per workstream using a short, stable name:
 
 ```
-intake/threads_inbox_2026-02-12/
+intake/exports_inbox_2026-02-12/
   01_<thread_short_name>/
   02_<thread_short_name>/
   ...
@@ -14,14 +14,14 @@ intake/threads_inbox_2026-02-12/
 
 Example:
 ```
-intake/threads_inbox_2026-02-12/01_intacct_gl_backfill/
-intake/threads_inbox_2026-02-12/02_vetro_gis_ssot/
-intake/threads_inbox_2026-02-12/03_mac_app_ui_smoke/
-intake/threads_inbox_2026-02-12/04_intacct_ar_payments_source_probe/
+intake/exports_inbox_2026-02-12/01_intacct_gl_backfill/
+intake/exports_inbox_2026-02-12/02_vetro_gis_ssot/
+intake/exports_inbox_2026-02-12/03_mac_app_ui_smoke/
+intake/exports_inbox_2026-02-12/04_intacct_ar_payments_source_probe/
 ```
 
-## Required Files (per thread)
-Every thread must produce **all** of the following:
+## Required Files (per workstream)
+Every workstream must produce **all** of the following:
 
 1) `summary.md`
    - What was done, what is still blocked, and what to do next.
@@ -62,4 +62,4 @@ Before pushing anything to GitHub:
 3) Commit in logical chunks with clear messages.
 4) Push to `MM-Patch/lake_deploy` only when evidence is complete.
 
-Use `THREAD_PROMPT.md` to instruct each thread exactly what to export.
+Use `EXPORT_PROMPT.md` to instruct each workstream exactly what to export.

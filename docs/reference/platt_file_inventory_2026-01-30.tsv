@@ -1,10 +1,10 @@
 1769775915	1039	/Users/patch/lake_deploy/docs/integrations/platt.md
 1769775690	303	/Users/patch/lake_deploy/athena/curated/legacy_ctas/curated_platt_customer.sql
 1769775690	472	/Users/patch/lake_deploy/athena/raw/legacy_ddls/raw_platt_customer.sql
-1769745882	328	/Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/curated/22_curated_platt_billing_summary.sql
-1769745882	627	/Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/curated/21_platt_reconciliation.sql
-1769745882	1177	/Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/curated/20_curated_platt.sql
-1769745882	11014	/Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/raw/03_raw_platt_tables.sql
+1769745882	328	/Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/curated/22_curated_platt_billing_summary.sql
+1769745882	627	/Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/curated/21_platt_reconciliation.sql
+1769745882	1177	/Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/curated/20_curated_platt.sql
+1769745882	11014	/Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/raw/03_raw_platt_tables.sql
 1769745857	14944	/Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/platt_schema.csv
 1769745857	1307	/Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/platt_mapping.md
 1769745857	1177	/Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/athena/curated/20_curated_platt.sql

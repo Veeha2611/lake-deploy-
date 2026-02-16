@@ -2,7 +2,7 @@
 
 ## Scope
 - Repo: `lake_deploy`
-- Intake: `vetro/lake_deploy_intake/threads_inbox` and `vetro/lake_deploy_intake/source_exports`
+- Intake: `vetro/lake_deploy_intake/exports_inbox` and `vetro/lake_deploy_intake/source_exports`
 - Local sources imported into `external_sources/` (code/config only)
 - Downloads were ingested via sanitized intake exports (downloads_scan_2026-01-30) with sensitive items excluded.
 
@@ -21,7 +21,7 @@
 - Legacy scripts: `external_sources/`
 
 ## Gaps / Follow-Ups
-- Any missing source content should be placed in `vetro/lake_deploy_intake/threads_inbox/` and added to the intake manifests.
+- Any missing source content should be placed in `vetro/lake_deploy_intake/exports_inbox/` and added to the intake manifests.
 - Base44 exports were imported on 2026-01-30 (see `docs/architecture/base44_app_architecture.md` and `docs/reference/source_exports_manifest.md`).
 - Notion S3 snapshot was pulled locally; curated summary generated from S3 snapshot (no raw dumps in repo).
 - If any vetted artifacts exist in Downloads/Desktop, move them into intake first (sanitized).
@@ -34,11 +34,11 @@
 - Wrote S3 inventory snapshot: docs/reference/s3_inventory_2026-01-30.md
 - Wrote Vetro export audit: docs/reference/vetro_exports_audit.md
 
-- Digested Investor Questions workbook: threads_inbox/investor_questions_2026-01-30/README.md
+- Digested Investor Questions workbook: exports_inbox/investor_questions_2026-01-30/README.md
 
 - Wrote raw/curated prefix inventory: docs/reference/s3_inventory_raw_curated_2026-01-30.md
 
-- Wrote intake threads inventory: docs/reference/intake_threads_inventory.md
+- Wrote intake workstreams inventory: docs/reference/intake_workstream_inventory.md
 
 - Built Vetro plan reconciliation outputs and manual batch index.
 
@@ -73,7 +73,7 @@
 - Generated skipped-stale review for non-intake and missing items.
 - Completed skipped-stale assessment; no off-root artifacts flagged.
 
-- Intake manifest regenerated from actual thread files; path existence check shows 0 missing paths.
+- Intake manifest regenerated from actual workstream files; path existence check shows 0 missing paths.
 - Manual batch 1 and batch 2 exports are stored under source_exports/vetro_manual_batch*_2026-01-30 and indexed.
 - Completed AWS S3 sweep (raw/curated/orchestration/knowledge/vetro_ui/vetro_ui_manual) with inventory summaries under docs/reference/aws_s3_*.
 - Only remaining gap: complete Vetro plan exports + reconciliation against authoritative plan list.

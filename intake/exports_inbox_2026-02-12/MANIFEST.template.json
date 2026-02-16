@@ -12,7 +12,7 @@
     "<if any>"
   ],
   "evidence": {
-    "local_path": "/Users/patch/lake_deploy/intake/threads_inbox_2026-02-12/<THREAD_FOLDER>/",
+    "local_path": "/Users/patch/lake_deploy/intake/exports_inbox_2026-02-12/<THREAD_FOLDER>/",
     "s3_paths": [
       "s3://.../dt=YYYY-MM-DD/"
     ],

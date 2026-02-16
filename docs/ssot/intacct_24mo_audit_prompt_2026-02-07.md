@@ -3,7 +3,7 @@
 Date: 2026-02-07
 Purpose: Provide a standalone prompt for an independent verifier to confirm 24-month completeness in AWS.
 
-## Prompt (copy into a new thread)
+## Prompt (copy into a new workstream)
 
 You are auditing the Intacct 24-month backfill in AWS. Do not use any local files or local machine state. Validate completeness using only AWS artifacts and Athena.
 

@@ -1,6 +1,6 @@
 1769775903	875	/Users/patch/lake_deploy/docs/integrations/gaiia.md
-1769745882	2990	/Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/11_gaiia_invoices.sql
-1769745882	2886	/Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/10_gaiia_customers.sql
+1769745882	2990	/Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/11_gaiia_invoices.sql
+1769745882	2886	/Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/10_gaiia_customers.sql
 1769745857	2990	/Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/sql_ssot/11_gaiia_invoices.sql
 1769745857	2886	/Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/sql_ssot/10_gaiia_customers.sql
 1769745857	3390	/Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/gaiia_query_registry.json

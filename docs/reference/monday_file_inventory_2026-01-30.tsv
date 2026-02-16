@@ -40,9 +40,9 @@
 1769790725	1956	/Users/patch/lake_deploy/apps/mac-mountain-insights-console/functions/debugBoardQuery.ts
 1769790725	1747	/Users/patch/lake_deploy/apps/mac-mountain-insights-console/functions/inspectMondayColumns.ts
 1769750373	1307	/Users/patch/lake_deploy/docs/integrations/base44_monday.md
-1769745882	1123	/Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/03_deliverables_insert.sql
-1769745882	927	/Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/02_deliverables_schema.sql
-1769745882	804	/Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/01_deliverables.sql
+1769745882	1123	/Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/03_deliverables_insert.sql
+1769745882	927	/Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/02_deliverables_schema.sql
+1769745882	804	/Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/01_deliverables.sql
 1769745857	3549	/Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/deliverables_config.json
 1769745857	1123	/Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/sql_ssot/03_deliverables_insert.sql
 1769745857	804	/Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/sql_ssot/01_deliverables.sql

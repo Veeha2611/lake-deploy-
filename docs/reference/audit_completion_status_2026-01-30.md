@@ -25,7 +25,7 @@
 - Stale move skipped review generated (non-intake + missing)
 - Skipped-stale assessment completed; no outside-root items flagged
 
-- Intake manifest regenerated from actual thread files (104 files) and path existence check is clean (missing: 0).
+- Intake manifest regenerated from actual workstream files (104 files) and path existence check is clean (missing: 0).
 
 - Manual batch 1 + batch 2 exports ingested into source_exports and indexed.
 

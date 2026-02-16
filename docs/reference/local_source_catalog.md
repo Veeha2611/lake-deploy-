@@ -3,7 +3,7 @@
 This catalog is limited to repository contents and the intake folders already mirrored into the repo.
 
 - Repo file count: 95
-- Intake file count (threads_inbox + source_exports): 396
+- Intake file count (exports_inbox + source_exports): 396
 
 See intake manifests for file-level listings:
 

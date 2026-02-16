@@ -128,13 +128,13 @@ Source: /Users/patch/lake_deploy_intake/source_exports/notion_s3_snapshot_2026-0
 - ### 5.4 Partition add (copy/paste)
 - ## 6) Definition of Done (finance + diligence)
 - ## 7) References
-- # Chat Thread Digest Runbook — Data Lake (Reusable Template)
+- # Chat workstream Digest Runbook — Data Lake (Reusable Template)
 - ### 0) Inputs (copy/paste at top of every run)
 - ### 1) Standard “Chat-History Page” format (copy into the new page)
-- ### 2) “Query prompt” to run inside any chat thread (paste this as-is)
+- ### 2) “Query prompt” to run inside any chat workstream (paste this as-is)
 - ### 3) Reconciliation playbook (merge multiple chat threads on the same topic)
 - ### 4) Reference-page update rules (to avoid thrash)
-- ### 5) Checklist: “Done” criteria for a digested thread
+- ### 5) Checklist: “Done” criteria for a digested workstream
 - # project data lake chat
 - # query Athena notes
 - # MASTER_Investor FAQs

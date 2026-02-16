@@ -29,8 +29,8 @@
 1769750028	399	/Users/patch/lake_deploy/runbooks/intacct_env_from_file.sh
 1769749975	5542	/Users/patch/lake_deploy/runbooks/intacct_runbook.md
 1769749968	1574	/Users/patch/lake_deploy/intacct_ingest_handoff.md
-1769746063	997	/Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/runbooks/intacct_runbook.md
-1769745882	23130	/Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/scripts/intacct_ingest_no_tee.sh
+1769746063	997	/Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/runbooks/intacct_runbook.md
+1769745882	23130	/Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/scripts/intacct_ingest_no_tee.sh
 1769745857	23130	/Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/intacct_ingest_no_tee.sh
 1769745857	3476	/Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/runbooks/intacct_runbook.md
 1769744647	3476	/Users/patch/vetro/lake_deploy_intake/source_exports/runbooks/intacct_runbook.md
@@ -40,8 +40,8 @@
 1769743999	19003	/Users/patch/vetro/lake_deploy_intake/source_exports/intacct_ingest_no_tee.sh.bak.20260124T031634Z
 1769743999	19003	/Users/patch/vetro/lake_deploy_intake/source_exports/intacct_ingest_no_tee.sh.bak.20260124T025643Z
 1769743999	23130	/Users/patch/vetro/lake_deploy_intake/source_exports/intacct_ingest_no_tee.sh
-1769743671	2746	/Users/patch/vetro/lake_deploy_intake/threads_inbox/intacct_glentry_rebuild_2026-01-30/schema_inventory.md
-1769743640	2560	/Users/patch/vetro/lake_deploy_intake/threads_inbox/intacct_glentry_rebuild_2026-01-30/architecture_summary.md
+1769743671	2746	/Users/patch/vetro/lake_deploy_intake/exports_inbox/intacct_glentry_rebuild_2026-01-30/schema_inventory.md
+1769743640	2560	/Users/patch/vetro/lake_deploy_intake/exports_inbox/intacct_glentry_rebuild_2026-01-30/architecture_summary.md
 1769575921	506	/Users/patch/lake_deploy/athena/curated/ssot/40_ssot_intacct_gl_entries.sql
 1769141157	9488	/Users/patch/lake_deploy/runbooks/intacct_to_s3_glentry.py
 1769141157	9145	/Users/patch/lake_deploy/runbooks/intacct_to_s3_glentry.bak_1769009963.py

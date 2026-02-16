@@ -25,7 +25,7 @@ Created views to enforce **100% join integrity**:
   - QID: `62bbe6a5-7bf4-441d-8cde-107f28e65d92`
 
 ## Independent audit script
-Use this in another thread to verify SSOT integrity:
+Use this in another workstream to verify SSOT integrity:
 - `lake_deploy/ssot_audit/platt_full_ssot_audit.sh`
 
 ## Notes

@@ -31,10 +31,10 @@
 - 2026-01-30 07:25:15 | 1039 bytes | /Users/patch/lake_deploy/docs/integrations/platt.md
 - 2026-01-30 07:21:30 | 303 bytes | /Users/patch/lake_deploy/athena/curated/legacy_ctas/curated_platt_customer.sql
 - 2026-01-30 07:21:30 | 472 bytes | /Users/patch/lake_deploy/athena/raw/legacy_ddls/raw_platt_customer.sql
-- 2026-01-29 23:04:42 | 328 bytes | /Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/curated/22_curated_platt_billing_summary.sql
-- 2026-01-29 23:04:42 | 627 bytes | /Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/curated/21_platt_reconciliation.sql
-- 2026-01-29 23:04:42 | 1177 bytes | /Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/curated/20_curated_platt.sql
-- 2026-01-29 23:04:42 | 11014 bytes | /Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/raw/03_raw_platt_tables.sql
+- 2026-01-29 23:04:42 | 328 bytes | /Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/curated/22_curated_platt_billing_summary.sql
+- 2026-01-29 23:04:42 | 627 bytes | /Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/curated/21_platt_reconciliation.sql
+- 2026-01-29 23:04:42 | 1177 bytes | /Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/curated/20_curated_platt.sql
+- 2026-01-29 23:04:42 | 11014 bytes | /Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/raw/03_raw_platt_tables.sql
 - 2026-01-29 23:04:17 | 14944 bytes | /Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/platt_schema.csv
 - 2026-01-29 23:04:17 | 1307 bytes | /Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/platt_mapping.md
 - 2026-01-29 23:04:17 | 1177 bytes | /Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/athena/curated/20_curated_platt.sql
@@ -42,8 +42,8 @@
 ## gaiia
 # gaiia file inventory (latest 10 by mtime)
 - 2026-01-30 07:25:03 | 875 bytes | /Users/patch/lake_deploy/docs/integrations/gaiia.md
-- 2026-01-29 23:04:42 | 2990 bytes | /Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/11_gaiia_invoices.sql
-- 2026-01-29 23:04:42 | 2886 bytes | /Users/patch/vetro/lake_deploy_intake/threads_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/10_gaiia_customers.sql
+- 2026-01-29 23:04:42 | 2990 bytes | /Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/11_gaiia_invoices.sql
+- 2026-01-29 23:04:42 | 2886 bytes | /Users/patch/vetro/lake_deploy_intake/exports_inbox/lake_deploy_rebuild_intake_2026-01-30_v7/sql/ssot/10_gaiia_customers.sql
 - 2026-01-29 23:04:17 | 2990 bytes | /Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/sql_ssot/11_gaiia_invoices.sql
 - 2026-01-29 23:04:17 | 2886 bytes | /Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/sql_ssot/10_gaiia_customers.sql
 - 2026-01-29 23:04:17 | 3390 bytes | /Users/patch/vetro/lake_deploy_intake/source_exports/lake_deploy_rebuild_intake_2026-01-30_v7/gaiia_query_registry.json
@@ -84,7 +84,7 @@
 - 2026-01-30 11:32:05 | 125546 bytes | /Users/patch/lake_deploy/apps/mac-mountain-insights-console/src/pages/MACAppEngine.jsx
 - 2026-01-30 11:32:05 | 311 bytes | /Users/patch/lake_deploy/apps/mac-mountain-insights-console/src/api/base44Client.js
 - 2026-01-30 08:26:17 | 1232 bytes | /Users/patch/lake_deploy/docs/architecture/base44_rebuild_guide.md
-- 2026-01-30 08:23:15 | 573 bytes | /Users/patch/vetro/lake_deploy_intake/threads_inbox/base44_exports_2026-01-30/README.md
+- 2026-01-30 08:23:15 | 573 bytes | /Users/patch/vetro/lake_deploy_intake/exports_inbox/base44_exports_2026-01-30/README.md
 - 2026-01-30 00:21:09 | 15029 bytes | /Users/patch/lake_deploy/docs/reference/base44_architecture_export_2026-01-27.md
 - 2026-01-30 00:21:03 | 6376 bytes | /Users/patch/lake_deploy/docs/reference/vetro_base44_runbook.md
 - 2026-01-30 00:20:58 | 1324 bytes | /Users/patch/lake_deploy/docs/reference/base44_structured_response.md

@@ -1,7 +1,7 @@
 # Intake Threads Inventory (2026-01-30)
 
 Primary intake root used:
-- `/Users/patch/vetro/lake_deploy_intake/threads_inbox/`
+- `/Users/patch/vetro/lake_deploy_intake/exports_inbox/`
 
 Observed folders:
 - `2026-01-30_lake-deploy-rebuild-intake/`
@@ -23,7 +23,7 @@ Observed folders:
 - `vetro_manual_batch2_2026-01-30/`
 
 Secondary intake root detected:
-- `/Users/patch/lake_deploy_intake/threads_inbox/`
+- `/Users/patch/lake_deploy_intake/exports_inbox/`
   - `investor_questions_2026-01-30/`
   - `vetro_state_2026-01-30/`
 
