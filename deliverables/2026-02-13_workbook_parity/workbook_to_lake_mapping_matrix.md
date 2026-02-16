@@ -7,7 +7,7 @@ This workbook has 2 sheets:
 - `Customer Mix` (modeled network mix: passings + subscriptions/services; workbook-defined network/customer/access classification)
 - `Revenue Mix` (billed snapshot: Revenue, PLAT ID COUNT, Monthly ARPU)
 
-The MAC AI Console parity contract is:
+The MAC Console parity contract is:
 - Every workbook-domain question routes deterministically to the matching *definition* (no mixing).
 - Every numeric claim is derived from governed lake sources with evidence and freshness.
 - If the lake cannot reproduce a workbook metric exactly, the system returns **UNAVAILABLE** with the specific missing dataset/row(s).
@@ -44,7 +44,7 @@ Lake mapping:
 - `Modeled MRR` (available in lake) → `SUM(mrr)` from `curated_core.v_network_health`
 - `Modeled ARPU` (derived) → `SUM(mrr) / SUM(subscriptions)`
 
-Deterministic query templates (MAC AI Console):
+Deterministic query templates (MAC Console):
 - `workbook_customer_mix_kpis` (segment totals; parameterized by `network_type`, `customer_type`, `access_type`)
 - `workbook_customer_mix_networks_list` (drill-down networks for a segment)
 - `workbook_customer_mix_summary` (all segments summary table)
@@ -67,7 +67,7 @@ Lake mapping:
 - `PLAT ID COUNT` → `SUM(plat_id_count)` from `curated_core.v_investor_revenue_mix_latest`
 - `Monthly ARPU` → `monthly_arpu` from `curated_core.v_investor_revenue_mix_latest`
 
-Deterministic query templates (MAC AI Console):
+Deterministic query templates (MAC Console):
 - `workbook_revenue_mix_kpis` (segment totals; parameterized by `network_type_like` + optional `network_like`)
 - `workbook_revenue_mix_networks_list` (drill-down networks for a segment)
 - `workbook_revenue_mix_summary` (all segment summary table)

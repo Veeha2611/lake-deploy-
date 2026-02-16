@@ -1,6 +1,6 @@
-# MAC AI Console SSOT Audit Prompt (2026-02-12)
+# MAC Console SSOT Audit Prompt (2026-02-12)
 
-**Purpose**: Validate the MAC AI Console deterministic engine, cross-system investigation path, and evidence-pack behavior after the latest AI build. This audit is **read-only** and must not run any DDL/DML or Base44 calls.
+**Purpose**: Validate the MAC Console deterministic engine, cross-system investigation path, and evidence-pack behavior after the latest runtime build. This audit is **read-only** and must not run any DDL/DML or Base44 calls.
 
 ## Inputs (fill in)
 - `RUN_DATE`: 2026-02-12

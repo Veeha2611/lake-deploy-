@@ -26,7 +26,7 @@ Query does **not** generate or alter metrics, queries, or joins.
 
 **Runtime options:**
 - Bedrock (preferred for private governance)
-- External LLM for routing/explanations only
+- External planner runtime for routing/explanations only
 
 ## 4) Request Flow
 ```

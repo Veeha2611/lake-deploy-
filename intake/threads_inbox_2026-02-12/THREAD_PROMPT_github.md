@@ -77,9 +77,9 @@ Before committing:
 
 ---
 
-## Additional Deliverables (MAC AI Console / Network Mix Domain)
+## Additional Deliverables (MAC Console / Network Mix Domain)
 
-If your thread modifies the MAC AI Console routing, templates, or workbook-parity behavior (Network Mix / Customer Mix / Revenue Mix), include these deliverables in your output:
+If your thread modifies the MAC Console routing, templates, or workbook-parity behavior (Network Mix / Customer Mix / Revenue Mix), include these deliverables in your output:
 
 1) `domain_registry.md`
    - Finite domain registry + canonical metric definitions.

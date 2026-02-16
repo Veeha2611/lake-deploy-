@@ -1,6 +1,6 @@
-# Report Generator (MAC AI Console)
+# Report Generator (MAC Console)
 
-This folder contains developer utilities for generating and exporting reports from the MAC AI Console runtime.
+This folder contains developer utilities for generating and exporting reports from the MAC Console runtime.
 
 ## export_case_report.py
 

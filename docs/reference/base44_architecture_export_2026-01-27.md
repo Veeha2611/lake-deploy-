@@ -141,16 +141,16 @@ LIMIT 200
 - projects_enriched
 
 **Query Flow:**
-1. LLM analyzes natural language question
-2. LLM runs `SHOW COLUMNS FROM curated_core.view_name` for schema discovery
-3. LLM generates SQL (single statement, no semicolons)
+1. planner runtime analyzes natural language question
+2. planner runtime runs `SHOW COLUMNS FROM curated_core.view_name` for schema discovery
+3. planner runtime generates SQL (single statement, no semicolons)
 4. SQL executed via aiLayerQuery
-5. LLM formats markdown response + evidence
+5. planner runtime formats markdown response + evidence
 
 **Limit Policy:**
 - Default: 200 rows
 - Max: 2000 rows
-- LLM determines appropriate LIMIT based on question
+- planner runtime determines appropriate LIMIT based on question
 
 **Evidence Fields:**
 ✅ athena_query_execution_ids[] (array, multi-query support)

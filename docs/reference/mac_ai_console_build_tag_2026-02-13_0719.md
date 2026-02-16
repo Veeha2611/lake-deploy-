@@ -1,6 +1,6 @@
-# MAC AI Console Build Tag — 2026-02-13_0719
+# MAC Console Build Tag — 2026-02-13_0719
 
-Purpose: capture a known-good MAC AI Console + API state for fast rollback while continuing upgrades.
+Purpose: capture a known-good MAC Console + API state for fast rollback while continuing upgrades.
 
 ## Audit
 - Prompt: `docs/ssot/mac_ai_console_audit_prompt_2026-02-12.md`

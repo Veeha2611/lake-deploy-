@@ -1,6 +1,6 @@
-# MAC AI Console Runtime (Architecture)
+# MAC Console Runtime (Architecture)
 
-This document describes the MAC AI Console runtime and how it produces governed, evidence-backed outputs over SSOT views.
+This document describes the MAC Console runtime and how it produces governed, evidence-backed outputs over SSOT views.
 
 ## High-Level Flow
 1. UI submits a request to the API (`POST /query`) with either `question` (plain language) or `question_id` (registry key).
@@ -31,13 +31,13 @@ Some business domains are closed as **finite registries** (not “infinite Engli
 - The planner never emits SQL. QueryPlan is compiled deterministically into SQL and then validated.
 - Structured output mode uses Bedrock structured outputs with the QueryPlan JSON schema.
 - Planner instructions are maintained at:
-  - `config/ai/planner_system_prompt.txt` (canonical)
+  - canonical planner system prompt file (metadata bundle)
   - `apps/mac-app-v2/lambda/query-broker/metadata/planner_system_prompt.txt` (runtime bundle)
 
 ## Capability Router (Optional, Feature-Flagged)
 - Capability routing is only enabled when `CAPABILITY_ROUTER_ENABLED=true`.
 - The router is driven by a registry file:
-  - `apps/mac-app-v2/lambda/query-broker/config/ai/capabilities.yaml`
+  - capability registry file in `apps/mac-app-v2/lambda/query-broker/config/`
 - Routing order:
   1. Deterministic registry match (always first).
   2. If no match and capability routing is enabled: pick a capability by keyword match.

@@ -1,4 +1,4 @@
-# MAC AI Console Build Tag — 2026-02-13_0653
+# MAC Console Build Tag — 2026-02-13_0653
 
 ## Audit
 - Prompt: `docs/ssot/mac_ai_console_audit_prompt_2026-02-12.md`

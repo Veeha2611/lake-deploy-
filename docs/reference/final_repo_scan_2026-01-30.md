@@ -5,7 +5,7 @@
 - Remotes: MM-Patch/lake_deploy, Mac-Mountain/lake_deploy
 
 ## Sanitization Scan
-- Policy: repository content must not reference development assistants or external tooling brands.
+- Policy: repository content must not reference external tooling brands.
 - Result: no matches found (repo-wide at the time of this report)
 
 ## Secrets Scan (Lightweight)
