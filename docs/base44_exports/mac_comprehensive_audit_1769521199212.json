@@ -163,7 +163,7 @@
           "athena_execution_id": "e963eb09-54a4-43d3-8e36-704171be96eb",
           "test_query_successful": true
         },
-        "note": "Query Layer connection verified. Full NL query requires LLM which is tested in production."
+        "note": "Query Layer connection verified. Full NL query requires the runtime planner which is tested in production."
       },
       {
         "test_id": "CONS-HISTORY-001",
