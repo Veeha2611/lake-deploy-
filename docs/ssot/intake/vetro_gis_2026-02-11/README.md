@@ -31,7 +31,7 @@ See `status.md` for live state and next steps.
   - `v_vetro_map_polygons_tbl`
   - `v_vetro_network_map_counts_cache`
 - Views re‑applied from `athena/curated/12_curated_vetro_gis.sql`
-- Audit PASS using `docs/ssot/vetro_gis_ssot_audit_prompt_2026-02-11.md`
+- Audit PASS using `docs/ssot/vetro_gis_ssot_audit_template_2026-02-11.md`
 - Evidence pack in:
   - Local: `lake_deploy/ssot_audit/vetro_gis_2026-02-11/`
   - S3: `s3://gwi-raw-us-east-2-pc/curated_recon/vetro_gis_self_audit/dt=2026-02-11/`

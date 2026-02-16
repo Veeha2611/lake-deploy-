@@ -1,4 +1,4 @@
-# Intacct Block SSOT Audit Prompt (Template)
+# Intacct Block SSOT Audit Template
 
 **Purpose**: Validate any Intacct block run is SSOT‑worthy (curated + reconciled + evidence) and publish a proof pack. This runs after each ingestion block finishes and JSON lands.
 
@@ -77,4 +77,3 @@ FAIL if any required object is missing or if count/date range is null.
 If possible, call:
 - `runbooks/intacct_reconcile_on_arrival.sh ${RUN_DATE}`
 This script already generates the evidence pack and writes to the S3 path above.
-

@@ -1,7 +1,7 @@
 # MAC Console Build Tag — 2026-02-13_0653
 
 ## Audit
-- Prompt: `docs/ssot/mac_ai_console_audit_prompt_2026-02-12.md`
+- Template: `docs/ssot/mac_console_audit_template_2026-02-12.md`
 - Result: **PASS**
 - Audit timestamp: `2026-02-13T06:35:54Z`
 - Evidence (local): `lake_deploy/ssot_audit/mac_ai_console_2026-02-12/`
@@ -26,4 +26,3 @@
 ## Smoke
 - `scripts/golden_questions_runner.py`: **PASS 28 golden questions**
 - Smoke timestamp: `2026-02-13T07:02:06Z`
-

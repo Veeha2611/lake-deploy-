@@ -1,9 +1,9 @@
-# Independent Audit Prompt - Intacct 24-Month Completeness
+# Independent Audit Template - Intacct 24-Month Completeness
 
 Date: 2026-02-07
-Purpose: Provide a standalone prompt for an independent verifier to confirm 24-month completeness in AWS.
+Purpose: Provide a standalone template for an independent verifier to confirm 24-month completeness in AWS.
 
-## Prompt (copy into a new workstream)
+## Execution Template
 
 You are auditing the Intacct 24-month backfill in AWS. Do not use any local files or local machine state. Validate completeness using only AWS artifacts and Athena.
 

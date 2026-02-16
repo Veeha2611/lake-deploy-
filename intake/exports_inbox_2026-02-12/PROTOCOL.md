@@ -3,7 +3,7 @@
 This is the **required protocol** before any GitHub staging or commit.
 
 ## 1) Evidence First
-- Do not commit until the workstream evidence pack exists:
+- Do not commit until the export batch evidence pack exists:
   - `summary.md`
   - `evidence/index.md`
   - `qids.tsv`
@@ -14,11 +14,11 @@ This is the **required protocol** before any GitHub staging or commit.
   - `s3_paths.txt`
 
 ## 2) Secret Hygiene (mandatory)
-Run a lightweight scan against your workstream folder and the files you touched.
+Run a lightweight scan against your export batch folder and the files you touched.
 
 Recommended command (fast, strict):
 ```
-rg -n -i "AKIA|SECRET|TOKEN|PASSWORD|PRIVATE KEY|BEGIN RSA|BEGIN PRIVATE" <workstream_folder>
+rg -n -i "AKIA|SECRET|TOKEN|PASSWORD|PRIVATE KEY|BEGIN RSA|BEGIN PRIVATE" <batch_folder>
 ```
 
 If anything matches, redact before proceeding.

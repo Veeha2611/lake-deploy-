@@ -1,4 +1,4 @@
-# MAC App Pipeline Runner Audit Prompt (Investor Grade)
+# MAC App Pipeline Runner Audit Template (Investor Grade)
 
 **Purpose**: Verify pipeline runner completeness (inputs, gating, scenarios, exports, evidence pack) for investor‑grade reporting.
 
@@ -149,4 +149,3 @@ Verify in UI:
 - Missing inputs can be bypassed without explicit defaults.
 - Any evidence artifacts missing.
 - Export does not generate a report URL.
-

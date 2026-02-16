@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# --- Inputs (prompts; passwords hidden) ---
+# --- Inputs (interactive; passwords hidden) ---
 read -r -p "ENV_NAME (e.g., prod | sandbox | dev): " ENV_NAME
 
 read -r -p "INTACCT_ENDPOINT_URL [https://api.intacct.com/ia/xml/xmlgw.phtml]: " INTACCT_ENDPOINT_URL

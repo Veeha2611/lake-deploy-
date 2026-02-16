@@ -1,4 +1,4 @@
-# MAC Console SSOT Audit Prompt (2026-02-12)
+# MAC Console SSOT Audit Template (2026-02-12)
 
 **Purpose**: Validate the MAC Console deterministic engine, cross-system investigation path, and evidence-pack behavior after the latest runtime build. This audit is **read-only** and must not run any DDL/DML or Base44 calls.
 

@@ -31,8 +31,8 @@ Some business domains are closed as **finite registries** (not “infinite Engli
 - The planner never emits SQL. QueryPlan is compiled deterministically into SQL and then validated.
 - Structured output mode uses Bedrock structured outputs with the QueryPlan JSON schema.
 - Planner instructions are maintained at:
-  - canonical planner system prompt file (metadata bundle)
-  - `apps/mac-app-v2/lambda/query-broker/metadata/planner_system_prompt.txt` (runtime bundle)
+  - canonical planner system instructions file (metadata bundle)
+  - `apps/mac-app-v2/lambda/query-broker/metadata/planner_system_instructions.txt` (runtime bundle)
 
 ## Capability Router (Optional, Feature-Flagged)
 - Capability routing is only enabled when `CAPABILITY_ROUTER_ENABLED=true`.

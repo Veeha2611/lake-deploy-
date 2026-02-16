@@ -1,14 +1,14 @@
 # Intake Inbox — 2026-02-12
 
-This folder is the **single landing zone** for all workstream outputs before we stage anything into the GitHub `lake_deploy` repo. Each workstream must export its work **here first** so we can validate SSOT evidence, avoid loops, and run a clean secret scan.
+This folder is the **single landing zone** for all export batch outputs before we stage anything into the GitHub `lake_deploy` repo. Each batch must export its work **here first** so we can validate SSOT evidence, avoid loops, and run a clean secret scan.
 
-## Folder Structure (per workstream)
-Create one subfolder per workstream using a short, stable name:
+## Folder Structure (per export batch)
+Create one subfolder per batch using a short, stable name:
 
 ```
 intake/exports_inbox_2026-02-12/
-  01_<thread_short_name>/
-  02_<thread_short_name>/
+  01_<batch_short_name>/
+  02_<batch_short_name>/
   ...
 ```
 
@@ -20,8 +20,8 @@ intake/exports_inbox_2026-02-12/03_mac_app_ui_smoke/
 intake/exports_inbox_2026-02-12/04_intacct_ar_payments_source_probe/
 ```
 
-## Required Files (per workstream)
-Every workstream must produce **all** of the following:
+## Required Files (per export batch)
+Every batch must produce **all** of the following:
 
 1) `summary.md`
    - What was done, what is still blocked, and what to do next.
@@ -62,4 +62,4 @@ Before pushing anything to GitHub:
 3) Commit in logical chunks with clear messages.
 4) Push to `MM-Patch/lake_deploy` only when evidence is complete.
 
-Use `EXPORT_PROMPT.md` to instruct each workstream exactly what to export.
+Use `EXPORT_TEMPLATE_github.md` to instruct each batch exactly what to export.

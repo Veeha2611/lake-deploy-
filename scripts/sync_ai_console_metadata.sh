@@ -20,7 +20,6 @@ cp -f "$SRC_QUERY_ENGINE/action_intent_schema.json" "$DEST_META/action_intent_sc
 cp -f "$SRC_QUERY_ENGINE/report_spec_schema.json" "$DEST_META/report_spec_schema.json"
 cp -f "$SRC_QUERY_ENGINE/metric_definitions.json" "$DEST_META/metric_definitions.json"
 
-cp -f "$SRC_AI/planner_system_prompt.txt" "$DEST_META/planner_system_prompt.txt"
+cp -f "$SRC_AI/planner_system_instructions.txt" "$DEST_META/planner_system_instructions.txt"
 
 echo "Synced metadata to: $DEST_META"
-

@@ -20,7 +20,7 @@ Produce definitive, reconciled SSOT answers with audit proofs.
 - 24-month backfill: `docs/ssot/intacct_aws_backfill_24mo_runbook_2026-02-07.md`
 - Full-history ingestion: `docs/ssot/intacct_aws_full_history_runbook_2026-02-07.md`
 - Evidence artifact: `docs/ssot/EA_1005_COMPLETENESS_2026-02-07.md`
-- Independent audit prompt: `docs/ssot/intacct_24mo_audit_prompt_2026-02-07.md`
+- Independent audit template: `docs/ssot/intacct_24mo_audit_template_2026-02-07.md`
 
 ## Standing Order: Intacct Reconcile-on-Arrival
 Any landed Intacct run_date must be reconciled, crawled, and made SSOT-usable automatically.

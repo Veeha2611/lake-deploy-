@@ -67,4 +67,4 @@ Prove that the 24-month Intacct backfill in S3 is complete, reconciled, and SSOT
 ## Signoff
 - Data Engineering:
 - SSOT Steward:
-- Independent Audit (see separate prompt):
+- Independent Audit (see separate template):

@@ -3,7 +3,7 @@
 Purpose: capture a known-good MAC Console + API state for fast rollback while continuing upgrades.
 
 ## Audit
-- Prompt: `docs/ssot/mac_ai_console_audit_prompt_2026-02-12.md`
+- Template: `docs/ssot/mac_console_audit_template_2026-02-12.md`
 - Result: **PASS**
 - Audit timestamp: `2026-02-13T06:35:54Z`
 - Evidence (local): `lake_deploy/ssot_audit/mac_ai_console_2026-02-12/`
@@ -36,4 +36,3 @@ Switch back to main:
 cd /Users/patch/lake_deploy
 ./scripts/mac_release_switch.sh main
 ```
-

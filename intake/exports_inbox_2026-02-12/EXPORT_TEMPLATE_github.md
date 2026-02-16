@@ -1,18 +1,18 @@
-# Workstream Export Prompt (Use in Each Workstream)
+# Export Template (Use in Each Delivery Batch)
 
-**Goal**: Export your full workstream history and evidence into the intake folder for SSOT validation and GitHub staging.  
+**Goal**: Export your full delivery history and evidence into the intake folder for SSOT validation and GitHub staging.  
 **Do not include secrets. Do not include Base44 endpoints.**
 
 ---
 
-## Prompt (copy/paste into each workstream)
+## Execution Template
 
-You are **Workstream: <WORKSTREAM_TITLE>**.  
+You are **Delivery Batch: <BATCH_TITLE>**.  
 Export **all** of your work into:
 
-`/Users/patch/lake_deploy/intake/exports_inbox_2026-02-12/<WORKSTREAM_FOLDER>/`
+`/Users/patch/lake_deploy/intake/exports_inbox_2026-02-12/<BATCH_FOLDER>/`
 
-Where `<WORKSTREAM_FOLDER>` is a short, stable slug (e.g. `01_intacct_gl_backfill`).
+Where `<BATCH_FOLDER>` is a short, stable slug (e.g. `01_intacct_gl_backfill`).
 
 ### Required files (all must exist)
 1) `summary.md`
@@ -49,7 +49,7 @@ Confirm the folder is complete and ready for SSOT review.
 
 ## Additional Deliverables (Infrastructure Requirements)
 
-If your workstream includes GitHub documentation updates for infrastructure requirements, include these deliverables in your output (and commit them only after sanitization passes):
+If your delivery batch includes GitHub documentation updates for infrastructure requirements, include these deliverables in your output (and commit them only after sanitization passes):
 
 - Create `docs/ACCESS_AND_ENVIRONMENT.md`:
   - AWS account access, role model, MFA
@@ -79,7 +79,7 @@ Before committing:
 
 ## Additional Deliverables (MAC Console / Network Mix Domain)
 
-If your workstream modifies the MAC Console routing, templates, or workbook-parity behavior (Network Mix / Customer Mix / Revenue Mix), include these deliverables in your output:
+If your delivery batch modifies the MAC Console routing, templates, or workbook-parity behavior (Network Mix / Customer Mix / Revenue Mix), include these deliverables in your output:
 
 1) `domain_registry.md`
    - Finite domain registry + canonical metric definitions.

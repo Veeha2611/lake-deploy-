@@ -1,4 +1,4 @@
-# Vetro GIS SSOT Re‑Validation Prompt (No‑Mutation)
+# Vetro GIS SSOT Re‑Validation Template (No‑Mutation)
 
 **Purpose**: Independently validate that the Vetro GIS SSOT rebuild is **still** correct after the last remediation. This is a **read‑only** audit. It must produce a fresh evidence pack without re‑running CTAS or altering data.
 

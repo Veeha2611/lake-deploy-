@@ -1,4 +1,4 @@
-# Vetro GIS SSOT Audit Prompt (Template)
+# Vetro GIS SSOT Audit Template
 
 **Purpose**: Verify that Vetro GIS layers + plan↔network mapping are SSOT‑ready, geojson is queryable, and MAC App can consume the views without cast errors.
 

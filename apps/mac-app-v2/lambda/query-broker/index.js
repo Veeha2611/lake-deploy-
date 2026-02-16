@@ -481,10 +481,10 @@ const ACTION_INTENT_SCHEMA = loadJsonFile(resolveMetadataFile('action_intent_sch
 const REPORT_SPEC_SCHEMA = loadJsonFile(resolveMetadataFile('report_spec_schema.json'), {});
 const GOLDEN_QUESTIONS = loadJsonFile(resolveMetadataFile('golden_questions.json'), { version: 'unknown', questions: [] });
 const REVENUE_REPORT_LABEL_MAP = loadJsonFile(resolveMetadataFile('revenue_report_label_map.json'), { company_map: {}, customer_type_map: {} });
-const PLANNER_SYSTEM_PROMPT = (
-  loadTextFile(resolveMetadataFile('planner_system_prompt.txt'), '').trim() ||
+const PLANNER_SYSTEM_INSTRUCTIONS = (
+  loadTextFile(resolveMetadataFile('planner_system_instructions.txt'), '').trim() ||
   // Backwards compatibility with older lambda bundles.
-  loadTextFile(resolveMetadataFile('claude_planner_prompt.txt'), '').trim()
+  loadTextFile(resolveMetadataFile('claude_planner_instructions.txt'), '').trim()
 );
 const GOVERNANCE_TEXT = loadTextFile(resolveMetadataFile('GOVERNANCE.md'), '').trim();
 const KNOWN_GAPS_TEXT = loadTextFile(resolveMetadataFile('KNOWN_GAPS_AND_RISK.md'), '').trim();
@@ -926,13 +926,13 @@ function extractJsonFromBedrock(text) {
   return null;
 }
 
-function buildBedrockPlanPrompt(question, validationErrors = []) {
+function buildBedrockPlanRequest(question, validationErrors = []) {
   const allowedSources = (ALLOWED_SOURCES_CATALOG.sources || [])
     .map((s) => s.name)
     .slice(0, 30)
     .join(', ');
   const metricKeys = Object.keys(METRIC_DEFS || {}).slice(0, 40).join(', ');
-  const header = PLANNER_SYSTEM_PROMPT && !BEDROCK_TOOL_USE_ENABLED ? `${PLANNER_SYSTEM_PROMPT}\n\n` : '';
+  const header = PLANNER_SYSTEM_INSTRUCTIONS && !BEDROCK_TOOL_USE_ENABLED ? `${PLANNER_SYSTEM_INSTRUCTIONS}\n\n` : '';
   const errorBlock = validationErrors.length
     ? `Validation errors: ${validationErrors.join('; ')}\nPlease correct the JSON plan to resolve these errors.\n\n`
     : '';
@@ -1939,7 +1939,7 @@ async function invokeBedrockPlanToolUse(modelId, prompt) {
   }
   const res = await bedrock.converse({
     modelId,
-    system: PLANNER_SYSTEM_PROMPT ? [{ text: PLANNER_SYSTEM_PROMPT }] : undefined,
+    system: PLANNER_SYSTEM_INSTRUCTIONS ? [{ text: PLANNER_SYSTEM_INSTRUCTIONS }] : undefined,
     inferenceConfig: {
       maxTokens: BEDROCK_MAX_TOKENS,
       temperature: 0
@@ -1973,7 +1973,7 @@ async function generatePlanWithBedrock(question, validationErrors = []) {
   if (!BEDROCK_ENABLED || !BEDROCK_MODEL_ID || !BEDROCK_TOOL_USE_ENABLED) {
     throw new Error('Bedrock planner not enabled');
   }
-  const prompt = buildBedrockPlanPrompt(question, validationErrors);
+  const prompt = buildBedrockPlanRequest(question, validationErrors);
   const modelIds = [
     BEDROCK_INFERENCE_PROFILE_ID,
     BEDROCK_MODEL_ID,

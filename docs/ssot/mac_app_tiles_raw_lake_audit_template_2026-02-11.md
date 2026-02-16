@@ -1,4 +1,4 @@
-# MAC App Tiles Raw‑Lake SSOT Audit Prompt (No Views)
+# MAC App Tiles Raw‑Lake SSOT Audit Template (No Views)
 
 **Purpose**: Validate Finance KPI, Unit Economics, Operations, and Ownership tiles using **raw lake tables only**. Do **not** use curated views or workbooks. This audit proves the tiles can be derived from raw lake data with deterministic joins and evidence.
 

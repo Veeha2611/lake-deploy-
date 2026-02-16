@@ -1,4 +1,4 @@
-# MAC App SSOT Audit Prompt (Template)
+# MAC App SSOT Audit Template
 
 **Purpose**: Validate MAC App SSOT readiness for Network Mix + Finance KPI alignment + Unmapped reporting + Close Pack + FY2025 MRR. Confirms lake‑derived outputs, consistent KPI definitions, and AWS‑only wiring (no Base44 calls).
 

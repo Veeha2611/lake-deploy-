@@ -1,7 +1,7 @@
 # Vetro Investor Workbook Reconciliation (2026-02-06)
 
 ## Purpose
-Provide a single, auditable reference for proving Vetro layer ingestion + as‑built filtering + network mapping were sufficient to reconstruct the **GWI Investor Questions workbook** (test harness) and to document exactly where the evidence lives for the Base44→AWS rebuild workstream.
+Provide a single, auditable reference for proving Vetro layer ingestion + as‑built filtering + network mapping were sufficient to reconstruct the **GWI Investor Questions workbook** (test harness) and to document exactly where the evidence lives for the Base44→AWS rebuild execution.
 
 ## Canonical rule (authoritative)
 All Vetro operational/BSL/passings analytics must use **plans tagged "As Built"** only.
@@ -44,7 +44,7 @@ All Vetro operational/BSL/passings analytics must use **plans tagged "As Built"*
     - 16 GWI FTTX via nearest‑neighbor to plan centroids
 - **Belmont/Morril class rule**: count records where class is not null OR (class null AND drop_type='Underground')
 
-## Quick proof checklist (for new workstream)
+## Quick proof checklist (for a new execution)
 1. Confirm layer exports exist (S3 paths above).
 2. Confirm as‑built plan list exists:
    - `raw_vetro.vetro_as_built_plan_ids`
@@ -60,5 +60,5 @@ All Vetro operational/BSL/passings analytics must use **plans tagged "As Built"*
 - `docs/reference/vetro_reconciliation_with_manual_2026-01-30.csv`
 - `docs/reference/vetro_remaining_work_2026-01-30.md`
 
-## Notes for the Base44 → AWS rebuild workstream
+## Notes for the Base44 → AWS rebuild execution
 Use the **curated_core** views for dashboard tiles; all Vetro metrics must be filtered through **As‑Built** plan IDs. The mapping + reconciliation artifacts above are the authoritative evidence for plan coverage and workbook alignment.

@@ -16,7 +16,7 @@
    - Run `athena/curated/12_curated_vetro_gis.sql` to point all GIS views to the parquet tables.
 
 4. **Audit**
-   - Run `docs/ssot/vetro_gis_ssot_audit_prompt_2026-02-11.md`
+   - Run `docs/ssot/vetro_gis_ssot_audit_template_2026-02-11.md`
    - Save evidence pack locally + S3.
 
 5. **MAC App validation**

@@ -64,12 +64,12 @@ amplify-artifacts.zip
 /source_exports/
 /metadata/
 
-# Keep intake inbox templates/protocols tracked, but ignore per-workstream exports.
+# Keep intake inbox templates/protocols tracked, but ignore per-export-batch outputs.
 intake/exports_inbox_*/**
 !intake/exports_inbox_*/
 !intake/exports_inbox_*/README.md
 !intake/exports_inbox_*/PROTOCOL.md
-!intake/exports_inbox_*/EXPORT_PROMPT_github.md
+!intake/exports_inbox_*/EXPORT_TEMPLATE_github.md
 !intake/exports_inbox_*/MANIFEST.template.json
 
 # Raw chat transcripts are not suitable for version control.
