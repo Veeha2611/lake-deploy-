@@ -25,6 +25,12 @@ FROM curated_core.projects_enriched_live
 WHERE project_id IS NOT NULL
   AND TRIM(CAST(project_id AS varchar)) <> ''
   AND LOWER(TRIM(CAST(project_id AS varchar))) <> 'nan'
+  -- De-duplicate/ignore legacy placeholder projects that were used during early manual operation.
+  AND NOT regexp_like(lower(COALESCE(project_name, '')), '^legacy\\s*\\(')
+  -- Exclude dead deals from pipeline execution/rollups (unless explicitly reintroduced upstream).
+  AND lower(COALESCE(NULLIF(stage, ''), 'unknown')) NOT IN (
+    'dead', 'declined', 'decline', 'declined / dead', 'closed lost', 'lost', 'inactive'
+  )
 ORDER BY entity, project_name
 LIMIT 500
 `;
@@ -46,38 +52,93 @@ WHERE passings > 0
 
 const FALLBACK_DEFAULTS = {
   passings: 1000,
-  build_months: 24,
-  arpu_start: 63,
+  // Defaults aligned to Blueprint example model (2026-02-15).
+  build_months: 3,
+  arpu_start: 65,
   total_capex: null,
-  capex_per_passing: 1200,
+  capex_per_passing: 1000,
   install_cost_per_subscriber: 0,
-  opex_per_sub: 25,
+  opex_per_sub: 8,
+  opex_per_passing: 2,
+  min_monthly_opex: 5000,
+  cogs_pct_revenue: 0.15,
+  ebitda_multiple: 10,
+  discount_rate_pct: 10,
   subscription_rate: 0.4,
   subscription_months: 36
 };
 
 const PROFILE_DEFAULT_OVERRIDES = {
-  standard: {},
+  // Profiles are assumption presets. All profiles default to Blueprint-aligned assumptions unless overridden.
+  standard: {
+    build_months: 3,
+    arpu_start: 65,
+    capex_per_passing: 1000,
+    install_cost_per_subscriber: 0,
+    opex_per_sub: 8,
+    opex_per_passing: 2,
+    min_monthly_opex: 5000,
+    cogs_pct_revenue: 0.15,
+    ebitda_multiple: 10,
+    discount_rate_pct: 10,
+    subscription_rate: 0.4,
+    subscription_months: 36
+  },
+  blueprint_2026_02_15: {
+    build_months: 3,
+    arpu_start: 65,
+    capex_per_passing: 1000,
+    install_cost_per_subscriber: 0,
+    opex_per_sub: 8,
+    opex_per_passing: 2,
+    min_monthly_opex: 5000,
+    cogs_pct_revenue: 0.15,
+    ebitda_multiple: 10,
+    discount_rate_pct: 10,
+    subscription_rate: 0.4,
+    subscription_months: 36
+  },
   developer_template_2_9_26: {
+    build_months: 3,
+    arpu_start: 65,
     subscription_rate: 0.4,
     subscription_months: 36,
-    capex_per_passing: 1200,
+    capex_per_passing: 1000,
     install_cost_per_subscriber: 0,
-    opex_per_sub: 25
+    opex_per_sub: 8,
+    opex_per_passing: 2,
+    min_monthly_opex: 5000,
+    cogs_pct_revenue: 0.15,
+    ebitda_multiple: 10,
+    discount_rate_pct: 10
   },
   horton: {
+    build_months: 3,
+    arpu_start: 65,
     subscription_rate: 0.4,
     subscription_months: 36,
-    capex_per_passing: 1200,
+    capex_per_passing: 1000,
     install_cost_per_subscriber: 0,
-    opex_per_sub: 25
+    opex_per_sub: 8,
+    opex_per_passing: 2,
+    min_monthly_opex: 5000,
+    cogs_pct_revenue: 0.15,
+    ebitda_multiple: 10,
+    discount_rate_pct: 10
   },
   acme: {
+    build_months: 3,
+    arpu_start: 65,
     subscription_rate: 0.4,
     subscription_months: 36,
-    capex_per_passing: 1200,
+    capex_per_passing: 1000,
     install_cost_per_subscriber: 0,
-    opex_per_sub: 25
+    opex_per_sub: 8,
+    opex_per_passing: 2,
+    min_monthly_opex: 5000,
+    cogs_pct_revenue: 0.15,
+    ebitda_multiple: 10,
+    discount_rate_pct: 10
   }
 };
 
@@ -94,6 +155,7 @@ const REQUIRED_INPUTS = [
 const MODEL_PROFILE_OPTIONS = [
   { value: 'all', label: 'All model profiles' },
   { value: 'standard', label: 'Standard Pipeline Model' },
+  { value: 'blueprint_2026_02_15', label: 'Blueprint Example Model 2026-02-15' },
   { value: 'developer_template_2_9_26', label: 'Developer Template 2-9-26 (Exec Dashboard)' },
   { value: 'horton', label: 'Horton Developer Profile' },
   { value: 'acme', label: 'Acme Developer Profile' }
@@ -103,6 +165,9 @@ const inferModelProfileForProject = (project) => {
   const entity = String(project?.entity || '').toLowerCase();
   const projectType = String(project?.project_type || '').toLowerCase();
   const name = String(project?.project_name || '').toLowerCase();
+  if (entity.includes('blueprint') || projectType.includes('blueprint') || name.includes('blueprint')) {
+    return 'blueprint_2026_02_15';
+  }
   if (entity.includes('horton') || projectType.includes('horton') || name.includes('horton')) {
     return 'horton';
   }
@@ -119,6 +184,7 @@ export default function PipelineRunner({ isOpen, onClose }) {
   const [enrichedScenarios, setEnrichedScenarios] = useState([]);
   const [selectedScenarios, setSelectedScenarios] = useState({});
   const [loading, setLoading] = useState(false);
+  const [reloadNonce, setReloadNonce] = useState(0);
   const [running, setRunning] = useState(false);
   const [pipelineResults, setPipelineResults] = useState(null);
   const [missingData, setMissingData] = useState([]);
@@ -132,6 +198,8 @@ export default function PipelineRunner({ isOpen, onClose }) {
   const [loadingRuns, setLoadingRuns] = useState(false);
   const [baselineDefaults, setBaselineDefaults] = useState(FALLBACK_DEFAULTS);
   const [defaultsQid, setDefaultsQid] = useState(null);
+  const [defaultsMeta, setDefaultsMeta] = useState(null);
+  const [projectsMeta, setProjectsMeta] = useState(null);
   const [lastReportUrl, setLastReportUrl] = useState('');
   const [lastRunArtifacts, setLastRunArtifacts] = useState(null);
   const [lastRunRecord, setLastRunRecord] = useState(null);
@@ -180,15 +248,36 @@ export default function PipelineRunner({ isOpen, onClose }) {
             label: 'Projects Pipeline Defaults'
           });
           const defaultsRow = defaultsResponse.data?.data_rows?.[0];
+          const defaultsLoadedAt = new Date().toISOString();
           if (defaultsRow) {
             setBaselineDefaults(normalizeDefaults(defaultsRow));
-            setDefaultsQid(defaultsResponse.data?.athena_query_execution_id || null);
+            const qid = defaultsResponse.data?.evidence?.athena_query_execution_id || null;
+            setDefaultsQid(qid);
+            setDefaultsMeta({
+              loaded_at: defaultsLoadedAt,
+              qid,
+              cached: Boolean(defaultsResponse.data?.cached),
+              stale: Boolean(defaultsResponse.data?.stale),
+              views_used: defaultsResponse.data?.evidence?.views_used || [],
+              freshness: defaultsResponse.data?.evidence_pack?.freshness || null
+            });
           } else {
             setBaselineDefaults(FALLBACK_DEFAULTS);
+            setDefaultsQid(null);
+            setDefaultsMeta({
+              loaded_at: defaultsLoadedAt,
+              qid: null,
+              cached: Boolean(defaultsResponse.data?.cached),
+              stale: Boolean(defaultsResponse.data?.stale),
+              views_used: defaultsResponse.data?.evidence?.views_used || [],
+              freshness: defaultsResponse.data?.evidence_pack?.freshness || null
+            });
           }
         } catch (err) {
           console.error('Failed to load pipeline defaults:', err);
           setBaselineDefaults(FALLBACK_DEFAULTS);
+          setDefaultsQid(null);
+          setDefaultsMeta(null);
         }
 
         // 1. Load all projects from Athena with full metadata
@@ -196,6 +285,14 @@ export default function PipelineRunner({ isOpen, onClose }) {
           queryId: 'projects_pipeline',
           sql: PROJECTS_PIPELINE_SQL,
           label: 'Projects Pipeline'
+        });
+        setProjectsMeta({
+          loaded_at: new Date().toISOString(),
+          qid: projectsResponse.data?.evidence?.athena_query_execution_id || null,
+          cached: Boolean(projectsResponse.data?.cached),
+          stale: Boolean(projectsResponse.data?.stale),
+          views_used: projectsResponse.data?.evidence?.views_used || [],
+          freshness: projectsResponse.data?.evidence_pack?.freshness || null
         });
 
         const projectsMap = new Map();
@@ -314,7 +411,7 @@ export default function PipelineRunner({ isOpen, onClose }) {
 
     fetchEnrichedScenarios();
     fetchSavedRuns();
-  }, [isOpen]);
+  }, [isOpen, reloadNonce]);
 
   const parseNumber = (value) => {
     const num = Number(String(value || '').replace(/,/g, ''));
@@ -343,6 +440,7 @@ export default function PipelineRunner({ isOpen, onClose }) {
   const normalizeProfile = (profile) => {
     const normalized = String(profile || '').trim().toLowerCase();
     if (!normalized) return 'standard';
+    if (normalized.includes('blueprint')) return 'blueprint_2026_02_15';
     if (normalized.includes('horton')) return 'horton';
     if (normalized.includes('acme')) return 'acme';
     if (normalized.includes('developer_template') || normalized.includes('exec_dashboard')) {
@@ -409,7 +507,24 @@ export default function PipelineRunner({ isOpen, onClose }) {
     const resolvedOpexPerSub = opex_per_sub || defaults.opex_per_sub;
     if (!opex_per_sub && defaults.opex_per_sub) defaultsUsed.opex_per_sub = defaults.opex_per_sub;
 
-    const effectiveSubscriptionRate = subscription_rate ?? penetration_target_pct ?? 0.4;
+    const resolvedOpexPerPassing = opex_per_passing ?? defaults.opex_per_passing;
+    if (opex_per_passing == null && defaults.opex_per_passing != null) defaultsUsed.opex_per_passing = defaults.opex_per_passing;
+
+    const resolvedMinMonthlyOpex = min_monthly_opex ?? defaults.min_monthly_opex;
+    if (min_monthly_opex == null && defaults.min_monthly_opex != null) defaultsUsed.min_monthly_opex = defaults.min_monthly_opex;
+
+    const resolvedCogsPctRevenue = cogs_pct_revenue ?? defaults.cogs_pct_revenue;
+    if (cogs_pct_revenue == null && defaults.cogs_pct_revenue != null) defaultsUsed.cogs_pct_revenue = defaults.cogs_pct_revenue;
+
+    const resolvedEbitdaMultiple = ebitda_multiple ?? defaults.ebitda_multiple;
+    if (ebitda_multiple == null && defaults.ebitda_multiple != null) defaultsUsed.ebitda_multiple = defaults.ebitda_multiple;
+
+    const resolvedDiscountRatePct = discount_rate_pct ?? defaults.discount_rate_pct ?? FALLBACK_DEFAULTS.discount_rate_pct;
+    if (discount_rate_pct == null && (defaults.discount_rate_pct != null || FALLBACK_DEFAULTS.discount_rate_pct != null)) {
+      defaultsUsed.discount_rate_pct = resolvedDiscountRatePct;
+    }
+
+    const effectiveSubscriptionRate = subscription_rate ?? penetration_target_pct ?? defaults.subscription_rate ?? FALLBACK_DEFAULTS.subscription_rate;
     const normalizedCapexPerPassing = resolvedCapexPerPassing ?? 1200;
     const totalCapexDerived = total_capex || (
       (normalizedCapexPerPassing && resolvedPassings ? normalizedCapexPerPassing * resolvedPassings : 0) +
@@ -423,21 +538,21 @@ export default function PipelineRunner({ isOpen, onClose }) {
       total_capex: totalCapexDerived || null,
       arpu_start: resolvedArpu,
       penetration_start_pct: penetration_start_pct ?? 0.1,
-      penetration_target_pct: penetration_target_pct ?? 0.4,
+      penetration_target_pct: penetration_target_pct ?? effectiveSubscriptionRate ?? defaults.subscription_rate ?? FALLBACK_DEFAULTS.subscription_rate,
       ramp_months: ramp_months ?? 36,
       capex_per_passing: normalizedCapexPerPassing ?? 1200,
       install_cost_per_subscriber: resolvedInstallCostPerSub ?? 0,
-      opex_per_sub: resolvedOpexPerSub ?? 25,
-      opex_per_passing: opex_per_passing ?? 0,
-      min_monthly_opex: min_monthly_opex ?? 0,
-      cogs_pct_revenue: cogs_pct_revenue ?? 0,
+      opex_per_sub: resolvedOpexPerSub ?? defaults.opex_per_sub ?? FALLBACK_DEFAULTS.opex_per_sub,
+      opex_per_passing: resolvedOpexPerPassing ?? defaults.opex_per_passing ?? FALLBACK_DEFAULTS.opex_per_passing,
+      min_monthly_opex: resolvedMinMonthlyOpex ?? defaults.min_monthly_opex ?? FALLBACK_DEFAULTS.min_monthly_opex,
+      cogs_pct_revenue: resolvedCogsPctRevenue ?? defaults.cogs_pct_revenue ?? FALLBACK_DEFAULTS.cogs_pct_revenue,
       min_non_circuit_cogs: min_non_circuit_cogs ?? 0,
-      subscription_months: subscription_months ?? ramp_months ?? 36,
-      subscription_rate: effectiveSubscriptionRate ?? 0.4,
+      subscription_months: subscription_months ?? ramp_months ?? defaults.subscription_months ?? FALLBACK_DEFAULTS.subscription_months,
+      subscription_rate: effectiveSubscriptionRate ?? defaults.subscription_rate ?? FALLBACK_DEFAULTS.subscription_rate,
       circuit: circuit ?? null,
       circuit_type: circuit_type ?? null,
-      ebitda_multiple: ebitda_multiple ?? null,
-      discount_rate_pct: discount_rate_pct ?? 10,
+      ebitda_multiple: resolvedEbitdaMultiple ?? defaults.ebitda_multiple ?? FALLBACK_DEFAULTS.ebitda_multiple,
+      discount_rate_pct: resolvedDiscountRatePct,
       analysis_months: 120,
       start_date: new Date().toISOString().split('T')[0],
       start_month_offset: 0
@@ -1150,6 +1265,12 @@ export default function PipelineRunner({ isOpen, onClose }) {
     setSelectedScenarios({ ...selectedScenarios, [key]: !selectedScenarios[key] });
   };
 
+  const formatLoadedAt = (iso) => {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? String(iso) : d.toLocaleString();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
@@ -1160,6 +1281,26 @@ export default function PipelineRunner({ isOpen, onClose }) {
           <p className="text-sm text-muted-foreground mt-2">
             Select saved scenarios to model the entire pipeline
           </p>
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span>
+                SSOT snapshot: {formatLoadedAt(projectsMeta?.loaded_at)}
+              </span>
+              {projectsMeta?.qid ? (
+                <span className="font-mono">QID {projectsMeta.qid}</span>
+              ) : null}
+              {projectsMeta?.cached ? <Badge variant="outline">cached</Badge> : null}
+              {projectsMeta?.stale ? <Badge variant="outline" className="border-amber-300 text-amber-700">stale</Badge> : null}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setReloadNonce((n) => n + 1)}
+              disabled={loading}
+            >
+              Refresh SSOT Snapshot
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
@@ -1214,6 +1355,9 @@ export default function PipelineRunner({ isOpen, onClose }) {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Profiles are assumption presets. Run like-for-like (single profile) for comparable portfolio outputs.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Defaults snapshot: {formatLoadedAt(defaultsMeta?.loaded_at)}{defaultsMeta?.qid ? ` (QID ${defaultsMeta.qid})` : ''}
                 </p>
                 <Button
                   onClick={handleGenerateBaselines}
@@ -1681,7 +1825,7 @@ export default function PipelineRunner({ isOpen, onClose }) {
                             {(pipelineResults.monthly || []).map((row) => (
                               <tr key={row.month} className="border-b">
                                 <td className="p-2">{row.month}</td>
-                                <td className="text-right p-2">{Number(row.subscribers || 0).toLocaleString()}</td>
+                                <td className="text-right p-2">{Math.round(Number(row.subscribers || 0)).toLocaleString()}</td>
                                 <td className="text-right p-2">${Number(row.revenue || 0).toLocaleString()}</td>
                                 <td className="text-right p-2">${Number(row.ebitda || 0).toLocaleString()}</td>
                                 <td className="text-right p-2">${Number(row.capex_book || 0).toLocaleString()}</td>

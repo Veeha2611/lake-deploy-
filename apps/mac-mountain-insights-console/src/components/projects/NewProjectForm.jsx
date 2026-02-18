@@ -15,7 +15,8 @@ const STAGES = [
   'Project Discussion',
   'Contract Discussion',
   'Final Documents Negotiation',
-  'Signed'
+  'Signed',
+  'Declined / Dead'
 ];
 
 const PRIORITIES = [

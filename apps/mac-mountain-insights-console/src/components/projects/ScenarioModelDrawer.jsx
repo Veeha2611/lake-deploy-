@@ -38,28 +38,31 @@ const financePolicy = {
 };
 
 const DEFAULT_ASSUMPTIONS = {
-  arpu_start: 63,
+  // Default assumption set aligned to the Blueprint example model (2026-02-15).
+  // These are only defaults; project/scenario inputs still override.
+  arpu_start: 65,
   penetration_start_pct: 10,
   penetration_target_pct: 40,
   ramp_months: 36,
-  capex_per_passing: 1200,
-  opex_per_sub: 25,
+  capex_per_passing: 1000,
+  opex_per_sub: 8,
   discount_rate_pct: 10,
   analysis_months: 120,
   subscription_months: 36,
   subscription_rate: 40,
   install_cost_per_subscriber: 0,
-  opex_per_passing: 0,
-  min_monthly_opex: 0,
-  cogs_pct_revenue: 0,
+  opex_per_passing: 2,
+  min_monthly_opex: 5000,
+  cogs_pct_revenue: 0.15,
   min_non_circuit_cogs: 0,
   circuit: false,
   circuit_type: 1,
-  ebitda_multiple: 15
+  ebitda_multiple: 10
 };
 
 const MODEL_PROFILES = [
   { value: 'standard', label: 'Standard Pipeline Model' },
+  { value: 'blueprint_2026_02_15', label: 'Blueprint Example Model 2026-02-15' },
   { value: 'developer_template_2_9_26', label: 'Developer Template 2-9-26 (Exec Dashboard)' },
   { value: 'horton', label: 'Horton Developer Profile' },
   { value: 'acme', label: 'Acme Developer Profile' }
@@ -457,7 +460,7 @@ const runFinancialModel = (assumptions) => {
 
   const normalizedProfile = String(model_profile || '').trim().toLowerCase();
   const profileKey = normalizedProfile || 'standard';
-  const isDeveloperTemplate = ['developer_template_2_9_26', 'developer_template', 'exec_dashboard', 'horton', 'acme'].includes(profileKey);
+  const isDeveloperTemplate = ['developer_template_2_9_26', 'developer_template', 'exec_dashboard', 'horton', 'acme', 'blueprint_2026_02_15'].includes(profileKey);
   if (isDeveloperTemplate) {
     return runDeveloperTemplateModel({ ...assumptions, model_profile: profileKey });
   }
@@ -2258,7 +2261,7 @@ export default function ScenarioModelDrawer({
                           {results.monthly.slice(0, 24).map((row) => (
                             <tr key={row.month} className="border-b">
                               <td className="p-2">{row.month}</td>
-                              <td className="text-right p-2">{row.subscribers}</td>
+                              <td className="text-right p-2">{Math.round(Number(row.subscribers || 0))}</td>
                               <td className="text-right p-2">${Number(row.revenue).toLocaleString()}</td>
                               <td className="text-right p-2">${Number(row.ebitda).toLocaleString()}</td>
                               <td className="text-right p-2">${Number(row.capex_book).toLocaleString()}</td>

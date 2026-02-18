@@ -237,6 +237,7 @@ export default function ProjectsUserGuide() {
                 <p className="text-xs font-semibold mb-2">Profiles (what to pick)</p>
                 <ul className="list-disc pl-5 text-xs text-muted-foreground space-y-1">
                   <li><strong>Standard Pipeline Model:</strong> general-purpose baseline for most projects.</li>
+                  <li><strong>Blueprint Example Model 2026-02-15:</strong> matches the Blueprint example assumptions (ARPU/COGS/OPEX/CAPEX) used in the 2/15 model workbook.</li>
                   <li><strong>Developer Template 2-9-26 (Exec Dashboard):</strong> uses the developer-template engine to match Exec Dashboard / Prospect modeling assumptions.</li>
                   <li><strong>Horton / Acme Developer Profile:</strong> developer-specific profile. Uses the developer-template engine; defaults may be tuned for that developer if configured.</li>
                 </ul>
