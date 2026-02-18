@@ -42,3 +42,18 @@ Copy/paste for each release:
   2. <step>
 ```
 
+## 2026-02-18 (Docs + OnPoint Task Order)
+
+**Commit:** ff0601f743577645199c7240df34d7b29d973bf4
+**Environment:** N/A (documentation only)
+
+### Change Summary
+- Added an OnPoint task-order doc for AWS resource validation sequencing.
+- Added OnPoint working-session prep notes derived from the 2026-02-16 transcripts.
+- Documented the Intacct forensic native-vs-lake audit (all S3 buckets) and linked the latest evidence pack.
+- Updated SSOT readiness status to explicitly separate Intacct 24-month mirror vs full-history native parity status.
+
+### SSOT / Data Quality Evidence
+- Intacct forensic evidence pack:
+  - Local: `ssot_audit/intacct_forensic_native_full_20260218T180000Z_allbuckets_v3/`
+  - S3: `s3://gwi-raw-us-east-2-pc/curated_recon/intacct_self_audit/forensic_native_full/dt=20260218T180000Z_allbuckets_v3/`
