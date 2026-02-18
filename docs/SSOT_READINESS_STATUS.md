@@ -10,7 +10,8 @@ This page is the current operational status of SSOT readiness across core source
 | Domain | Status | Latest Evidence | Notes |
 |---|---|---|---|
 | Platt mirror | PASS | `ssot_audit/platt_full_mirror_2026-02-13/` | Raw mirror validated with `billing_summary` treated as a derived dataset from base billing tables. |
-| Intacct mirror (24-month) | PASS | `ssot_audit/intacct_full_mirror_2026-02-12/` | 24-month mirror is validated; full-history backfill remains scope-driven. |
+| Intacct mirror (24-month) | PASS | `ssot_audit/intacct_full_mirror_2026-02-12/` | 24-month mirror is validated. |
+| Intacct mirror (full-history, native parity) | FAIL | `ssot_audit/intacct_forensic_native_full_20260218T180000Z_allbuckets_v3/` | Native-vs-lake forensic audit (all S3 buckets) shows major GLENTRY coverage gaps and small mismatches in APBILL/OTHERRECEIPTS; not yet a like-for-like mirror. |
 | Salesforce crosswalk | CONDITIONAL | `ssot_audit/ssot_crosswalk_status_2026-02-13/` | Crosswalk exists but is not strictly 1:1 due to migrations/duplicates; mapped vs unmapped handling is required in downstream KPIs. |
 | Vetro ingestion + GIS | DEGRADED / RECOVERING | `ssot_audit/vetro_gis_2026-02-11/` and live orchestration state | Plan list refresh is healthy. Export/feature ingestion is now throttling-aware; progress depends on Vetro API rate windows. |
 | Gaiia integration | CONDITIONAL | `docs/integrations/gaiia.md` and crosswalk evidence packs | Available for operational enrichment; not used as sole deterministic identity key for SSOT joins. |

@@ -42,6 +42,7 @@ Use these documents as the authoritative checklist for access and environment se
 - `docs/CI_CD_AND_TERRAFORM_BACKEND.md`
 - `docs/OBSERVABILITY_AND_ALERTING.md`
 - `docs/access_prereqs.md` (secret names and prerequisites)
+- OnPoint execution sequence: `docs/reference/onpoint_task_order_aws_resources_2026-02-18.md`
 
 Quick reference (current environment):
 AWS:
