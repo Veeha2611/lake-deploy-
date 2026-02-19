@@ -11,3 +11,5 @@ Primary operational runbooks live under `runbooks/` in the repo. This index summ
 - `runbooks/validate_vetro_export.sh`
 - `runbooks/intacct_s3_regression_check.sh`
 
+## MAC App Project Modeling
+- `docs/runbooks/mac_projects_pipeline_runner_user_guide.md` — end-user overview for Projects, Pipeline Runner, and Portfolio Runner
