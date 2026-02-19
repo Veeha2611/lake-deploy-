@@ -1,12 +1,23 @@
 -- Gaiia accounts current (gwi tenant), parsed from GraphQL JSON snapshot to avoid schema drift.
 CREATE OR REPLACE VIEW curated_core.gaiia_accounts_current AS
-WITH source AS (
+WITH latest AS (
   SELECT
-    json_parse(data) AS payload,
     COALESCE(tenant, 'gwi') AS tenant,
-    dt
+    max(dt) AS dt
   FROM raw_gaiia.raw_gaiia_graphql_accounts_json
   WHERE data IS NOT NULL
+  GROUP BY 1
+),
+source AS (
+  SELECT
+    json_parse(a.data) AS payload,
+    COALESCE(a.tenant, 'gwi') AS tenant,
+    a.dt
+  FROM raw_gaiia.raw_gaiia_graphql_accounts_json a
+  JOIN latest l
+    ON COALESCE(a.tenant, 'gwi') = l.tenant
+   AND a.dt = l.dt
+  WHERE a.data IS NOT NULL
 ),
 exploded AS (
   SELECT

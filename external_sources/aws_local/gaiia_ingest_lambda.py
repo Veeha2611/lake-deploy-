@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from datetime import datetime, timezone
 from urllib.parse import urljoin
 
@@ -11,6 +12,7 @@ secrets = boto3.client("secretsmanager")
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "gwi-raw-us-east-2-pc")
 S3_PREFIX = os.environ.get("S3_PREFIX", "raw/gaiia")
+S3_CHECKPOINT_PREFIX = os.environ.get("S3_CHECKPOINT_PREFIX", "raw/gaiia/graphql/_checkpoints").rstrip("/")
 SECRET_NAME = os.environ.get("GAIIA_SECRET_NAME", "gaiia/api_keys")
 BASE_URL_OVERRIDE = os.environ.get("GAIIA_BASE_URL", "")
 API_URL_OVERRIDE = os.environ.get("GAIIA_API_URL", "")
@@ -20,6 +22,10 @@ ENDPOINTS = [e.strip() for e in os.environ.get("GAIIA_ENDPOINTS", "").split(",")
 AUTH_HEADER = os.environ.get("GAIIA_AUTH_HEADER", "X-Gaiia-Api-Key")
 AUTH_PREFIX = os.environ.get("GAIIA_AUTH_PREFIX", "")
 REQUEST_TIMEOUT = int(os.environ.get("REQUEST_TIMEOUT", "30"))
+PAGE_DELAY_S = float(os.environ.get("GAIIA_PAGE_DELAY_S", "0.15"))
+RATE_LIMIT_MAX_RETRIES = int(os.environ.get("GAIIA_RATE_LIMIT_MAX_RETRIES", "8"))
+RATE_LIMIT_BACKOFF_S = float(os.environ.get("GAIIA_RATE_LIMIT_BACKOFF_S", "2.0"))
+SAFE_STOP_REMAINING_MS = int(os.environ.get("GAIIA_SAFE_STOP_REMAINING_MS", "30000"))
 
 
 def utc_now():
@@ -90,6 +96,50 @@ def extract_page_info(data, root_field):
     }
 
 
+def is_rate_limit_error(payload) -> bool:
+    # Gaiia rate limit shows up as GraphQL errors (often with HTTP 200).
+    errs = (payload or {}).get("errors") or []
+    for e in errs:
+        if not isinstance(e, dict):
+            continue
+        msg = (e.get("message") or "").lower()
+        if "rate limit" in msg:
+            return True
+    return False
+
+
+def checkpoint_key(tenant: str, entity: str, dt: str) -> str:
+    return f"{S3_CHECKPOINT_PREFIX}/tenant={tenant}/entity={entity}/dt={dt}/checkpoint.json"
+
+
+def load_checkpoint(tenant: str, entity: str, dt: str):
+    key = checkpoint_key(tenant, entity, dt)
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key=key)
+        return json.loads(obj["Body"].read().decode("utf-8"))
+    except Exception:
+        return None
+
+
+def save_checkpoint(tenant: str, entity: str, dt: str, after: str, part: int) -> str:
+    key = checkpoint_key(tenant, entity, dt)
+    s3.put_object(
+        Bucket=S3_BUCKET,
+        Key=key,
+        Body=json.dumps({"tenant": tenant, "entity": entity, "dt": dt, "after": after, "part": part}).encode("utf-8"),
+        ContentType="application/json",
+    )
+    return key
+
+
+def delete_checkpoint(tenant: str, entity: str, dt: str):
+    key = checkpoint_key(tenant, entity, dt)
+    try:
+        s3.delete_object(Bucket=S3_BUCKET, Key=key)
+    except Exception:
+        pass
+
+
 def lambda_handler(event, context):
     secret = load_secret()
     base_url = (API_URL_OVERRIDE or BASE_URL_OVERRIDE or secret.get("base_url") or "").rstrip("/")
@@ -123,7 +173,28 @@ def lambda_handler(event, context):
                 try:
                     part = 1
                     after = None
+                    ck = load_checkpoint(tenant, entity, dt)
+                    if isinstance(ck, dict):
+                        after = ck.get("after") or None
+                        try:
+                            part = int(ck.get("part") or part)
+                        except Exception:
+                            part = part
                     while True:
+                        if context and getattr(context, "get_remaining_time_in_millis", None):
+                            if context.get_remaining_time_in_millis() < SAFE_STOP_REMAINING_MS:
+                                ck_key = save_checkpoint(tenant, entity, dt, after, part)
+                                results.append(
+                                    {
+                                        "tenant": tenant,
+                                        "entity": entity,
+                                        "status": "paused",
+                                        "reason": "approaching_timeout",
+                                        "checkpoint_key": ck_key,
+                                    }
+                                )
+                                break
+
                         variables = dict(base_vars)
                         if "first" not in variables:
                             variables["first"] = page_size
@@ -131,11 +202,47 @@ def lambda_handler(event, context):
                             variables["after"] = after
                         else:
                             variables.pop("after", None)
-                        resp = post_graphql(base_url, token, query, variables)
+                        retry = 0
+                        while True:
+                            resp = post_graphql(base_url, token, query, variables)
+                            try:
+                                payload = resp.json()
+                            except Exception:
+                                payload = None
+
+                            if payload and payload.get("errors") and is_rate_limit_error(payload):
+                                retry += 1
+                                if retry > RATE_LIMIT_MAX_RETRIES:
+                                    ck_key = save_checkpoint(tenant, entity, dt, after, part)
+                                    results.append(
+                                        {
+                                            "tenant": tenant,
+                                            "entity": entity,
+                                            "status": "paused",
+                                            "reason": "rate_limited",
+                                            "status_code": resp.status_code,
+                                            "checkpoint_key": ck_key,
+                                        }
+                                    )
+                                    payload = None
+                                    break
+                                time.sleep(RATE_LIMIT_BACKOFF_S * retry)
+                                continue
+                            break
+
+                        # Count nodes for this page (for mirror verification). This is derived from the same
+                        # native response we land to S3, so it avoids time-drift when comparing later.
+                        nodes_count = None
                         try:
-                            payload = resp.json()
+                            if payload and not payload.get("errors"):
+                                data = payload.get("data") or {}
+                                conn = (data or {}).get(root_field) or {}
+                                nodes = conn.get("nodes") or []
+                                if isinstance(nodes, list):
+                                    nodes_count = len(nodes)
                         except Exception:
-                            payload = None
+                            nodes_count = None
+
                         key = f"{S3_PREFIX}/{entity}/tenant={tenant}/dt={dt}/part-{part:04d}.json"
                         s3.put_object(
                             Bucket=S3_BUCKET,
@@ -153,15 +260,25 @@ def lambda_handler(event, context):
                                 "errors": payload.get("errors"),
                             })
                             break
-                        results.append({"tenant": tenant, "entity": entity, "status_code": resp.status_code, "s3_key": key})
+                        results.append(
+                            {
+                                "tenant": tenant,
+                                "entity": entity,
+                                "status_code": resp.status_code,
+                                "s3_key": key,
+                                "nodes_count": nodes_count,
+                            }
+                        )
 
                         if not paginate:
+                            delete_checkpoint(tenant, entity, dt)
                             break
                         if not payload:
                             break
                         data = payload.get("data")
                         page = extract_page_info(data, root_field)
                         if not page.get("hasNextPage"):
+                            delete_checkpoint(tenant, entity, dt)
                             break
                         after = page.get("endCursor")
                         part += 1
@@ -173,6 +290,7 @@ def lambda_handler(event, context):
                                 "error": "max_pages_exceeded",
                             })
                             break
+                        time.sleep(PAGE_DELAY_S)
                 except Exception as e:
                     results.append({"tenant": tenant, "entity": entity, "status": "error", "error": str(e)})
         else:
@@ -193,11 +311,23 @@ def lambda_handler(event, context):
                 except Exception as e:
                     results.append({"tenant": tenant, "endpoint": ep, "status": "error", "error": str(e)})
 
+    # Summarize landed pages and node counts to support deterministic mirror verification.
+    summary = {}
+    for r in results:
+        tenant = r.get("tenant")
+        entity = r.get("entity")
+        if not tenant or not entity:
+            continue
+        if r.get("status_code") == 200 and isinstance(r.get("nodes_count"), int):
+            ent = summary.setdefault(tenant, {}).setdefault(entity, {"pages": 0, "nodes": 0})
+            ent["pages"] += 1
+            ent["nodes"] += int(r["nodes_count"])
+
     meta_key = f"{S3_PREFIX}/_meta/dt={dt}/run.json"
     s3.put_object(
         Bucket=S3_BUCKET,
         Key=meta_key,
-        Body=json.dumps({"ts": utc_now(), "results": results}).encode("utf-8"),
+        Body=json.dumps({"ts": utc_now(), "dt": dt, "results": results, "summary": summary}).encode("utf-8"),
         ContentType="application/json",
     )
 

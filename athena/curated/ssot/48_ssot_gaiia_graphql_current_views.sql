@@ -277,13 +277,22 @@ FROM ranked
 WHERE rn = 1;
 
 CREATE OR REPLACE VIEW curated_core.gaiia_units_current AS
-WITH base AS (
-  SELECT
-    tenant,
-    dt,
-    data.units.nodes AS nodes
+WITH latest AS (
+  SELECT tenant, max(dt) AS dt
   FROM raw_gaiia.raw_gaiia_graphql_units
   WHERE data IS NOT NULL
+  GROUP BY tenant
+),
+base AS (
+  SELECT
+    u.tenant,
+    u.dt,
+    u.data.units.nodes AS nodes
+  FROM raw_gaiia.raw_gaiia_graphql_units u
+  JOIN latest l
+    ON u.tenant = l.tenant
+   AND u.dt = l.dt
+  WHERE u.data IS NOT NULL
 ),
 exploded AS (
   SELECT
@@ -322,13 +331,22 @@ FROM ranked
 WHERE rn = 1;
 
 CREATE OR REPLACE VIEW curated_core.gaiia_tickets_current AS
-WITH base AS (
-  SELECT
-    tenant,
-    dt,
-    data.tickets.nodes AS nodes
+WITH latest AS (
+  SELECT tenant, max(dt) AS dt
   FROM raw_gaiia.raw_gaiia_graphql_tickets
   WHERE data IS NOT NULL
+  GROUP BY tenant
+),
+base AS (
+  SELECT
+    t.tenant,
+    t.dt,
+    t.data.tickets.nodes AS nodes
+  FROM raw_gaiia.raw_gaiia_graphql_tickets t
+  JOIN latest l
+    ON t.tenant = l.tenant
+   AND t.dt = l.dt
+  WHERE t.data IS NOT NULL
 ),
 exploded AS (
   SELECT
@@ -385,13 +403,22 @@ FROM ranked
 WHERE rn = 1;
 
 CREATE OR REPLACE VIEW curated_core.gaiia_work_orders_current AS
-WITH base AS (
-  SELECT
-    tenant,
-    dt,
-    data.workorders.nodes AS nodes
+WITH latest AS (
+  SELECT tenant, max(dt) AS dt
   FROM raw_gaiia.raw_gaiia_graphql_workorders
   WHERE data IS NOT NULL
+  GROUP BY tenant
+),
+base AS (
+  SELECT
+    w.tenant,
+    w.dt,
+    w.data.workorders.nodes AS nodes
+  FROM raw_gaiia.raw_gaiia_graphql_workorders w
+  JOIN latest l
+    ON w.tenant = l.tenant
+   AND w.dt = l.dt
+  WHERE w.data IS NOT NULL
 ),
 exploded AS (
   SELECT
