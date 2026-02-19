@@ -13,36 +13,33 @@ export default function MainChartCard() {
   const { data: chartData, isLoading, error } = useQuery({
     queryKey: ['main-chart'],
     queryFn: async () => {
-      try {
-        const response = await runSSOTQuery({
-          queryId: 'platt_billing_mrr_trend_12m',
-          label: 'MRR Trend (12 Months)'
+      const response = await runSSOTQuery({
+        queryId: 'network_mix_billed_mrr_trend_12m',
+        label: 'Network Mix Billed MRR Trend (12 Months)'
+      });
+
+      if (response?.data?.data_rows && Array.isArray(response.data.data_rows) && response.data.data_rows.length > 0) {
+        return response.data.data_rows.map((row) => {
+          const values = Array.isArray(row) ? row : Object.values(row);
+          const rawDate = values[0];
+          const date = rawDate ? new Date(rawDate) : null;
+          const label = date ? date.toLocaleDateString(undefined, { month: 'short', year: '2-digit' }) : String(rawDate || '');
+          return {
+            month: label,
+            mrr: Number(values[1]) || 0,
+            customers: Number(values[2]) || 0
+          };
         });
-        
-        if (response?.data?.data_rows && Array.isArray(response.data.data_rows) && response.data.data_rows.length > 0) {
-          return response.data.data_rows.map((row) => {
-            const values = Array.isArray(row) ? row : Object.values(row);
-            const rawDate = values[0];
-            const date = rawDate ? new Date(rawDate) : null;
-            const label = date ? date.toLocaleDateString(undefined, { month: 'short', year: '2-digit' }) : String(rawDate || '');
-            return {
-              month: label,
-              mrr: Number(values[1]) || 0,
-              customers: Number(values[2]) || 0
-            };
-          });
-        }
-        return [];
-      } catch (error) {
-        console.error('Main chart error:', error);
-        return [];
       }
+      return [];
     },
     refetchInterval: 60000,
     staleTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    retry: false,
+    keepPreviousData: true,
+    retry: 3,
+    retryDelay: 1500,
   });
 
   const renderChart = () => {
@@ -99,7 +96,7 @@ export default function MainChartCard() {
               </div>
               <div>
                 <CardTitle className="text-xl">MRR Trend (12 Months)</CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">Platt billing MRR, latest 12 months</p>
+                <p className="text-sm text-muted-foreground mt-1">Billed MRR (Owned/Contracted/CLEC), latest 12 months</p>
               </div>
             </div>
             
