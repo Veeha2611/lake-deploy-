@@ -51,93 +51,111 @@ WHERE passings > 0
 `;
 
 const FALLBACK_DEFAULTS = {
-  passings: 1000,
-  // Defaults aligned to Blueprint example model (2026-02-15).
-  build_months: 3,
-  arpu_start: 65,
+  // Reverted to the original Developer Template 2-9-26 VF baseline.
+  passings: 2500,
+  build_months: 36,
+  arpu_start: 75,
   total_capex: null,
-  capex_per_passing: 1000,
-  install_cost_per_subscriber: 0,
-  opex_per_sub: 8,
+  capex_per_passing: 1400,
+  install_cost_per_subscriber: 800,
+  opex_per_sub: 14,
   opex_per_passing: 2,
-  min_monthly_opex: 5000,
+  min_monthly_opex: 50000,
   cogs_pct_revenue: 0.15,
-  ebitda_multiple: 10,
+  min_non_circuit_cogs: 7500,
+  circuit: true,
+  circuit_type: 10,
+  ebitda_multiple: 15,
   discount_rate_pct: 10,
-  subscription_rate: 0.4,
-  subscription_months: 36
+  subscription_rate: 1,
+  subscription_months: 48
 };
 
 const PROFILE_DEFAULT_OVERRIDES = {
-  // Profiles are assumption presets. All profiles default to Blueprint-aligned assumptions unless overridden.
+  // Profiles are assumption presets. Blueprint now uses the original 2-9-26 VF defaults.
   standard: {
-    build_months: 3,
-    arpu_start: 65,
-    capex_per_passing: 1000,
-    install_cost_per_subscriber: 0,
-    opex_per_sub: 8,
+    build_months: 36,
+    arpu_start: 75,
+    capex_per_passing: 1400,
+    install_cost_per_subscriber: 800,
+    opex_per_sub: 14,
     opex_per_passing: 2,
-    min_monthly_opex: 5000,
+    min_monthly_opex: 50000,
     cogs_pct_revenue: 0.15,
-    ebitda_multiple: 10,
+    min_non_circuit_cogs: 7500,
+    circuit: true,
+    circuit_type: 10,
+    ebitda_multiple: 15,
     discount_rate_pct: 10,
-    subscription_rate: 0.4,
-    subscription_months: 36
+    subscription_rate: 1,
+    subscription_months: 48
   },
   blueprint_2026_02_15: {
-    build_months: 3,
-    arpu_start: 65,
-    capex_per_passing: 1000,
-    install_cost_per_subscriber: 0,
-    opex_per_sub: 8,
+    build_months: 36,
+    arpu_start: 75,
+    capex_per_passing: 1400,
+    install_cost_per_subscriber: 800,
+    opex_per_sub: 14,
     opex_per_passing: 2,
-    min_monthly_opex: 5000,
+    min_monthly_opex: 50000,
     cogs_pct_revenue: 0.15,
-    ebitda_multiple: 10,
+    min_non_circuit_cogs: 7500,
+    circuit: true,
+    circuit_type: 10,
+    ebitda_multiple: 15,
     discount_rate_pct: 10,
-    subscription_rate: 0.4,
-    subscription_months: 36
+    subscription_rate: 1,
+    subscription_months: 48
   },
   developer_template_2_9_26: {
-    build_months: 3,
-    arpu_start: 65,
-    subscription_rate: 0.4,
-    subscription_months: 36,
-    capex_per_passing: 1000,
-    install_cost_per_subscriber: 0,
-    opex_per_sub: 8,
+    build_months: 36,
+    arpu_start: 75,
+    subscription_rate: 1,
+    subscription_months: 48,
+    capex_per_passing: 1400,
+    install_cost_per_subscriber: 800,
+    opex_per_sub: 14,
     opex_per_passing: 2,
-    min_monthly_opex: 5000,
+    min_monthly_opex: 50000,
     cogs_pct_revenue: 0.15,
-    ebitda_multiple: 10,
+    min_non_circuit_cogs: 7500,
+    circuit: true,
+    circuit_type: 10,
+    ebitda_multiple: 15,
     discount_rate_pct: 10
   },
   horton: {
-    build_months: 3,
-    arpu_start: 65,
-    subscription_rate: 0.4,
-    subscription_months: 36,
-    capex_per_passing: 1000,
-    install_cost_per_subscriber: 0,
-    opex_per_sub: 8,
+    build_months: 36,
+    arpu_start: 75,
+    subscription_rate: 1,
+    subscription_months: 48,
+    capex_per_passing: 1400,
+    install_cost_per_subscriber: 800,
+    opex_per_sub: 14,
     opex_per_passing: 2,
-    min_monthly_opex: 5000,
+    min_monthly_opex: 50000,
     cogs_pct_revenue: 0.15,
-    ebitda_multiple: 10,
+    min_non_circuit_cogs: 7500,
+    circuit: true,
+    circuit_type: 10,
+    ebitda_multiple: 15,
     discount_rate_pct: 10
   },
   acme: {
-    build_months: 3,
-    arpu_start: 65,
-    subscription_rate: 0.4,
-    subscription_months: 36,
-    capex_per_passing: 1000,
-    install_cost_per_subscriber: 0,
-    opex_per_sub: 8,
+    build_months: 36,
+    arpu_start: 75,
+    subscription_rate: 1,
+    subscription_months: 48,
+    capex_per_passing: 1400,
+    install_cost_per_subscriber: 800,
+    opex_per_sub: 14,
     opex_per_passing: 2,
-    min_monthly_opex: 5000,
+    min_monthly_opex: 50000,
     cogs_pct_revenue: 0.15,
-    ebitda_multiple: 10,
+    min_non_circuit_cogs: 7500,
+    circuit: true,
+    circuit_type: 10,
+    ebitda_multiple: 15,
     discount_rate_pct: 10
   }
 };
@@ -155,7 +173,7 @@ const REQUIRED_INPUTS = [
 const MODEL_PROFILE_OPTIONS = [
   { value: 'all', label: 'All model profiles' },
   { value: 'standard', label: 'Standard Pipeline Model' },
-  { value: 'blueprint_2026_02_15', label: 'Blueprint Example Model 2026-02-15' },
+  { value: 'blueprint_2026_02_15', label: 'Blueprint Baseline (2-9-26 VF)' },
   { value: 'developer_template_2_9_26', label: 'Developer Template 2-9-26 (Exec Dashboard)' },
   { value: 'horton', label: 'Horton Developer Profile' },
   { value: 'acme', label: 'Acme Developer Profile' }
@@ -166,7 +184,7 @@ const inferModelProfileForProject = (project) => {
   const projectType = String(project?.project_type || '').toLowerCase();
   const name = String(project?.project_name || '').toLowerCase();
   if (entity.includes('blueprint') || projectType.includes('blueprint') || name.includes('blueprint')) {
-    return 'blueprint_2026_02_15';
+    return 'developer_template_2_9_26';
   }
   if (entity.includes('horton') || projectType.includes('horton') || name.includes('horton')) {
     return 'horton';
@@ -205,6 +223,7 @@ export default function PipelineRunner({ isOpen, onClose }) {
   const [lastRunRecord, setLastRunRecord] = useState(null);
   const [applyingDefaults, setApplyingDefaults] = useState(false);
   const [modelProfileFilter, setModelProfileFilter] = useState('all');
+  const [releaseTag, setReleaseTag] = useState('');
 
   const fetchSavedRuns = async () => {
     setLoadingRuns(true);
@@ -1163,9 +1182,11 @@ export default function PipelineRunner({ isOpen, onClose }) {
     }
     try {
       const runName = `Pipeline Run ${new Date().toISOString()}`;
+      const releaseTagSanitized = String(releaseTag || '').trim();
       const res = await macEngineInvoke('downloadPipelineResults', {
         action: 'save_portfolio',
         run_name: runName,
+        release_tag: releaseTagSanitized || undefined,
         scenario_metrics: buildScenarioExportRows(lastRunScenarios),
         scenario_details: buildScenarioDetailPayload(lastRunScenarios),
         portfolio_summary: pipelineResults.portfolio_metrics,
@@ -1191,10 +1212,12 @@ export default function PipelineRunner({ isOpen, onClose }) {
 
       if (resolvedReportUrl) {
         setLastReportUrl(resolvedReportUrl);
+        const effectiveReleaseTag = res.data?.release_tag || releaseTagSanitized || null;
         setLastRunArtifacts({
           report_url: resolvedReportUrl,
           ...artifactUrls,
-          run_id: runId
+          run_id: runId,
+          release_tag: effectiveReleaseTag
         });
         if (exportOnly) {
           const anchor = document.createElement('a');
@@ -1209,6 +1232,7 @@ export default function PipelineRunner({ isOpen, onClose }) {
         } else {
           toast.success('Pipeline run saved');
         }
+        if (releaseTagSanitized) setReleaseTag('');
       } else {
         toast.error('Export link not generated. Run saved but report URL missing.');
       }
@@ -1319,7 +1343,9 @@ export default function PipelineRunner({ isOpen, onClose }) {
                 <option value="">Select a saved run…</option>
                 {savedRuns.map((run) => (
                   <option key={run.run_id} value={run.run_id}>
-                    {run.run_name || run.run_id} ({run.scenario_count || 0} scenarios)
+                    {run.run_name || run.run_id}
+                    {run.release_tag ? ` [${run.release_tag}]` : ''}
+                    {` (${run.scenario_count || 0} scenarios)`}
                   </option>
                 ))}
               </select>
@@ -1444,6 +1470,16 @@ export default function PipelineRunner({ isOpen, onClose }) {
           </Card>
 
           {/* Run Button */}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <label className="text-xs text-muted-foreground">Release Tag</label>
+            <input
+              type="text"
+              value={releaseTag}
+              onChange={(e) => setReleaseTag(e.target.value)}
+              placeholder="INV-20260223-ProspectDemo-v1"
+              className="border rounded px-3 py-2 text-sm bg-background min-w-[260px]"
+            />
+          </div>
           <div className="flex flex-wrap gap-3 justify-end">
             <Button
               variant="outline"
@@ -1489,6 +1525,11 @@ export default function PipelineRunner({ isOpen, onClose }) {
           {lastRunArtifacts && (
             <div className="text-xs text-muted-foreground flex flex-wrap items-center justify-end gap-3">
               <span>Evidence pack:</span>
+              {lastRunArtifacts.release_tag && (
+                <Badge variant="outline" className="text-xs">
+                  Release {lastRunArtifacts.release_tag}
+                </Badge>
+              )}
               {lastRunArtifacts.report_url && (
                 <Button
                   variant="link"
@@ -1711,16 +1752,52 @@ export default function PipelineRunner({ isOpen, onClose }) {
                 <AccordionContent>
                   <Card className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-950 dark:to-blue-950 border-2">
                     <CardContent className="space-y-4 pt-4">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-2">Portfolio KPI Tiles</p>
+                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+                          <div className="rounded-lg border bg-background/80 p-3">
+                            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Gross CapEx</p>
+                            <p className="text-lg font-bold">${pipelineResults.portfolio_metrics.total_capex_book.toLocaleString()}</p>
+                          </div>
+                          <div className="rounded-lg border bg-background/80 p-3">
+                            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Net CapEx</p>
+                            <p className="text-lg font-bold text-emerald-600">${pipelineResults.portfolio_metrics.actual_cash_invested.toLocaleString()}</p>
+                          </div>
+                          <div className="rounded-lg border bg-background/80 p-3">
+                            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">NPV</p>
+                            <p className={`text-lg font-bold ${pipelineResults.portfolio_metrics.npv > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              ${pipelineResults.portfolio_metrics.npv.toLocaleString()}
+                            </p>
+                          </div>
+                          <div className="rounded-lg border bg-background/80 p-3">
+                            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">IRR</p>
+                            <p className="text-lg font-bold text-green-600">
+                              {pipelineResults.portfolio_metrics.irr != null ? `${pipelineResults.portfolio_metrics.irr}%` : 'N/A'}
+                            </p>
+                          </div>
+                          <div className="rounded-lg border bg-background/80 p-3">
+                            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">MOIC</p>
+                            <p className="text-lg font-bold text-green-600">
+                              {pipelineResults.portfolio_metrics.moic != null ? `${pipelineResults.portfolio_metrics.moic}x` : 'N/A'}
+                            </p>
+                          </div>
+                          <div className="rounded-lg border bg-background/80 p-3">
+                            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Scenarios</p>
+                            <p className="text-lg font-bold">{pipelineResults.scenario_count}</p>
+                          </div>
+                        </div>
+                      </div>
+
                       <div className="grid grid-cols-2 gap-4 pb-4 border-b">
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1">Total CAPEX (Book)</p>
+                          <p className="text-xs text-muted-foreground mb-1">Gross CapEx</p>
                           <p className="text-2xl font-bold">
                             ${pipelineResults.portfolio_metrics.total_capex_book.toLocaleString()}
                           </p>
-                          <p className="text-xs text-muted-foreground mt-1">Sum of all scenario book costs</p>
+                          <p className="text-xs text-muted-foreground mt-1">Sum of all selected scenario build costs</p>
                         </div>
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1">Actual Cash Invested</p>
+                          <p className="text-xs text-muted-foreground mb-1">Net CapEx (Actual Cash Invested)</p>
                           <p className="text-2xl font-bold text-emerald-600">
                             ${pipelineResults.portfolio_metrics.actual_cash_invested.toLocaleString()}
                           </p>

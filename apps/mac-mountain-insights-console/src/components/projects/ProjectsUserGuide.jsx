@@ -187,7 +187,14 @@ export default function ProjectsUserGuide() {
                 <li><strong>Baseline scenarios:</strong> ensures each project has a baseline run even if no scenarios exist yet.</li>
                 <li><strong>Saved runs:</strong> can save/export portfolio results (summary + monthly time series + artifacts).</li>
                 <li><strong>Model profiles:</strong> supports profile selection/filtering so the same tool can run different assumption templates.</li>
+                <li><strong>Portfolio summary outputs:</strong> includes Gross CapEx, Net CapEx (actual cash invested), IRR, MOIC, NPV, stage rollups, and monthly curves.</li>
+                <li><strong>Release Tag (investor packages):</strong> optional tag (for example <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">INV-20260223-ProspectDemo-v1</code>) that freezes an immutable package for traceability.</li>
               </ul>
+              <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3">
+                <p className="text-xs text-muted-foreground">
+                  When a Release Tag is used, the package is written under <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">presentation/investor_packages/&lt;release_tag&gt;/</code> with a manifest, run JSON, CSV exports, and XLSX report.
+                </p>
+              </div>
               <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
                 <p className="text-xs text-amber-800 dark:text-amber-200">
                   If a project is missing required inputs, use <strong>Apply Defaults</strong> (in Pipeline Runner) to generate a valid baseline automatically.
@@ -237,7 +244,7 @@ export default function ProjectsUserGuide() {
                 <p className="text-xs font-semibold mb-2">Profiles (what to pick)</p>
                 <ul className="list-disc pl-5 text-xs text-muted-foreground space-y-1">
                   <li><strong>Standard Pipeline Model:</strong> general-purpose baseline for most projects.</li>
-                  <li><strong>Blueprint Example Model 2026-02-15:</strong> matches the Blueprint example assumptions (ARPU/COGS/OPEX/CAPEX) used in the 2/15 model workbook.</li>
+                  <li><strong>Blueprint Baseline (2-9-26 VF):</strong> uses the original Developer Template 2-9-26 VF assumptions loaded for Blueprint baseline runs.</li>
                   <li><strong>Developer Template 2-9-26 (Exec Dashboard):</strong> uses the developer-template engine to match Exec Dashboard / Prospect modeling assumptions.</li>
                   <li><strong>Horton / Acme Developer Profile:</strong> developer-specific profile. Uses the developer-template engine; defaults may be tuned for that developer if configured.</li>
                 </ul>

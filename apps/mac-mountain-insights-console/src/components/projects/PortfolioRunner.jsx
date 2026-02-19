@@ -207,17 +207,49 @@ export default function PortfolioRunner({ isOpen, onClose, projects }) {
                   <CardTitle className="text-base">Portfolio Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">Portfolio KPI Tiles</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+                      <div className="rounded-lg border bg-background/80 p-3">
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Gross CapEx</p>
+                        <p className="text-lg font-bold">${portfolioResults.portfolio_metrics.total_capex_book.toLocaleString()}</p>
+                      </div>
+                      <div className="rounded-lg border bg-background/80 p-3">
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Net CapEx</p>
+                        <p className="text-lg font-bold text-emerald-600">${portfolioResults.portfolio_metrics.actual_cash_invested.toLocaleString()}</p>
+                      </div>
+                      <div className="rounded-lg border bg-background/80 p-3">
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">NPV</p>
+                        <p className={`text-lg font-bold ${portfolioResults.portfolio_metrics.npv > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          ${portfolioResults.portfolio_metrics.npv.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="rounded-lg border bg-background/80 p-3">
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">IRR</p>
+                        <p className="text-lg font-bold text-green-600">{portfolioResults.portfolio_metrics.irr}%</p>
+                      </div>
+                      <div className="rounded-lg border bg-background/80 p-3">
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">MOIC</p>
+                        <p className="text-lg font-bold text-green-600">{portfolioResults.portfolio_metrics.moic}x</p>
+                      </div>
+                      <div className="rounded-lg border bg-background/80 p-3">
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Projects</p>
+                        <p className="text-lg font-bold">{portfolioResults.portfolio_metrics.project_count}</p>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Two CAPEX numbers for portfolio */}
                   <div className="grid grid-cols-2 gap-4 pb-4 border-b">
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">Total CAPEX (Book)</p>
+                      <p className="text-xs text-muted-foreground mb-1">Gross CapEx</p>
                       <p className="text-2xl font-bold">
                         ${portfolioResults.portfolio_metrics.total_capex_book.toLocaleString()}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">Sum of all project book costs</p>
+                      <p className="text-xs text-muted-foreground mt-1">Sum of all selected project build costs</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">Actual Cash Invested</p>
+                      <p className="text-xs text-muted-foreground mb-1">Net CapEx (Actual Cash Invested)</p>
                       <p className="text-2xl font-bold text-emerald-600">
                         ${portfolioResults.portfolio_metrics.actual_cash_invested.toLocaleString()}
                       </p>

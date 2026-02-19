@@ -65,6 +65,10 @@ const GUARD_EXCEPTION_FAIL_PCT = Number(process.env.GUARD_EXCEPTION_FAIL_PCT || 
 const GUARD_MRR_STALE_DAYS = Number(process.env.GUARD_MRR_STALE_DAYS || 45);
 const AUTH_ENABLED = String(process.env.AUTH_ENABLED || 'false').toLowerCase() === 'true';
 const AUTH_ALLOWED_DOMAIN = String(process.env.AUTH_ALLOWED_DOMAIN || '').toLowerCase().trim();
+const AUTH_ALLOWED_EMAILS = String(process.env.AUTH_ALLOWED_EMAILS || '')
+  .split(',')
+  .map((v) => String(v || '').trim().toLowerCase())
+  .filter(Boolean);
 const AUTH_ADMIN_GROUPS = (process.env.AUTH_ADMIN_GROUPS || 'mac-admin')
   .split(',')
   .map((g) => g.trim().toLowerCase())
@@ -87,6 +91,9 @@ const MODEL_VERSION_HASH = String(process.env.MODEL_VERSION_HASH || process.env.
 const RESPONSE_FORMAT_VERSION = String(process.env.RESPONSE_FORMAT_VERSION || '2026-02-13.1').trim();
 // Freshness gating: when enabled, stale sources fail closed (UNAVAILABLE).
 const FRESHNESS_GATE_ENABLED = String(process.env.FRESHNESS_GATE_ENABLED || 'true').toLowerCase() === 'true';
+// Passings quality gating: blocks passings-dependent metrics when Vetro BSLs map to multiple networks.
+const PASSINGS_QUALITY_GATE_ENABLED = String(process.env.PASSINGS_QUALITY_GATE_ENABLED || 'true').toLowerCase() === 'true';
+const PASSINGS_MULTI_NETWORK_MAX_RATIO = Number(process.env.PASSINGS_MULTI_NETWORK_MAX_RATIO || 0.05);
 
 const READ_ONLY_SQL_BLOCKLIST = /\b(insert|update|delete|create|drop|alter|truncate|merge|replace|refresh|msck|repair|grant|revoke|call|unload|export|vacuum)\b/i;
 const ADMIN_ONLY_PATHS = [
@@ -102,6 +109,9 @@ const ADMIN_ONLY_PATHS = [
 
 const MONDAY_SECRET_ID = process.env.MONDAY_SECRET_ID || 'monday/prod';
 const MONDAY_PIPELINE_BOARD_ID = process.env.MONDAY_PIPELINE_BOARD_ID || null;
+// Parent item write-back is risky (can overwrite baselines / create confusion in Monday).
+// Default: disabled. Enable explicitly only if we truly want computed fields to populate the parent item.
+const MONDAY_PARENT_WRITEBACK_ENABLED = String(process.env.MONDAY_PARENT_WRITEBACK_ENABLED || 'false').toLowerCase() === 'true';
 const MONDAY_MAPPING_PATH = path.join(__dirname, 'monday-mapping.json');
 const MONDAY_MAPPING = fs.existsSync(MONDAY_MAPPING_PATH)
   ? JSON.parse(fs.readFileSync(MONDAY_MAPPING_PATH, 'utf8'))
@@ -570,9 +580,10 @@ function isAdminUser(claims) {
 }
 
 function emailAllowed(claims) {
-  if (!AUTH_ALLOWED_DOMAIN) return true;
   const email = String(claims?.email || claims?.['cognito:username'] || '').toLowerCase().trim();
-  if (!email) return false;
+  if (!email) return !AUTH_ALLOWED_DOMAIN && AUTH_ALLOWED_EMAILS.length === 0;
+  if (AUTH_ALLOWED_EMAILS.includes(email)) return true;
+  if (!AUTH_ALLOWED_DOMAIN) return AUTH_ALLOWED_EMAILS.length === 0;
   return email.endsWith(`@${AUTH_ALLOWED_DOMAIN.replace(/^@/, '')}`);
 }
 
@@ -714,6 +725,9 @@ function validateTargetEmail(email) {
     throw new Error('Valid email required');
   }
   const lower = email.toLowerCase().trim();
+  if (AUTH_ALLOWED_EMAILS.includes(lower)) {
+    return lower;
+  }
   if (AUTH_ALLOWED_DOMAIN) {
     const domain = AUTH_ALLOWED_DOMAIN.replace(/^@/, '');
     if (!lower.endsWith(`@${domain}`)) {
@@ -743,7 +757,7 @@ async function sendAdminNotification(email, action) {
     '',
     'Notes:',
     '- Access is read-only to SSOT data (no write operations).',
-    '- Use your @macmtn.com email to sign in.',
+    '- Use your approved Google email to sign in.',
     '- If you have trouble logging in, reply to the admin who invited you.'
   ].join('\n');
 
@@ -1519,7 +1533,7 @@ function resolveDeterministicQuestion(questionText) {
 
   // Owned networks / owned customers (multi-scope). Users will not always say "investor workbook".
   // Return a reconciled view of "owned" counts across:
-  // - bucketed billing customers (latest Platt MRR month)
+  // - bucketed billing customers (latest Plat MRR month)
   // - investor workbook PLAT ID COUNT (owned networks)
   // - modeled subscriptions/passings (Owned FTTP + Owned Customer)
   if (
@@ -1536,15 +1550,35 @@ function resolveDeterministicQuestion(questionText) {
     return { questionId: 'owned_networks_list', params: {} };
   }
 
-  // Investor Questions workbook: "owned networks" is ambiguous across tabs.
-  // Return both (a) modeled Owned FTTP subscriptions (network health) and (b) investor revenue mix PLAT ID COUNT for Owned;*.
-  // This prevents accidental fall-through to generic identity totals.
+  // Legacy alias kept for backward compatibility: route to the governed owned multiscope metric.
   if (
     includesAny(['investor', 'investor question', 'investor questions', 'workbook', 'revenue mix']) &&
     includesAny(['owned']) &&
     (includesAny(['network', 'networks']) || includesAny(['customer', 'customers', 'plat id', 'platid', 'billed', 'subscription', 'subscriptions']))
   ) {
     return { questionId: 'owned_customers_investor_workbook', params: {} };
+  }
+
+  if (
+    wantsClec &&
+    wantsCustomers &&
+    (isCountQuestion || isListQuestion || includesAny(['mix', 'breakdown', 'segment']))
+  ) {
+    return {
+      questionId: 'workbook_customer_mix_kpis',
+      params: buildCustomerMixParams({ networkType: 'CLEC', customerType: 'Owned Customer', accessType: '' })
+    };
+  }
+
+  if (
+    wantsContracted &&
+    wantsCustomers &&
+    (isCountQuestion || isListQuestion || includesAny(['mix', 'breakdown', 'segment']))
+  ) {
+    return {
+      questionId: 'workbook_customer_mix_kpis',
+      params: buildCustomerMixParams({ networkType: 'Contracted', customerType: '', accessType: '' })
+    };
   }
 
   if (normalized.includes('customer') && normalized.includes(' in ')) {
@@ -2603,6 +2637,92 @@ function buildUnavailableMarkdownFromFreshnessGate(gate) {
   return lines.join('\n');
 }
 
+function needsPassingsQualityGate(questionId) {
+  const q = String(questionId || '').toLowerCase();
+  if (!q) return false;
+  return [
+    'passings_subscribers',
+    'workbook_customer_mix_kpis',
+    'workbook_customer_mix_summary',
+    'workbook_customer_mix_networks_list',
+    'workbook_customer_mix_segment_pct'
+  ].includes(q);
+}
+
+async function runPassingsQualityGate({ questionId } = {}) {
+  if (!PASSINGS_QUALITY_GATE_ENABLED) return null;
+  if (!needsPassingsQualityGate(questionId)) return null;
+
+  const sql = `
+WITH b AS (
+  SELECT
+    bsl_id,
+    COALESCE(NULLIF(TRIM(network), ''), 'Unmapped') AS network
+  FROM curated_core.v_vetro_service_locations_tbl
+  WHERE LOWER(COALESCE(CAST(as_built AS varchar), 'false')) IN ('true','t','1','yes','y')
+    AND bsl_id IS NOT NULL
+    AND TRIM(CAST(bsl_id AS varchar)) <> ''
+),
+multi AS (
+  SELECT bsl_id
+  FROM b
+  GROUP BY 1
+  HAVING COUNT(DISTINCT network) > 1
+)
+SELECT
+  COUNT(DISTINCT bsl_id) AS distinct_bsl,
+  COUNT(*) AS rows_total,
+  (SELECT COUNT(*) FROM multi) AS bsl_multi_network
+FROM b
+`;
+  const result = await executeFreeformQuery(sql, {});
+  const rows = result?.rows || [];
+  const vals = rows.length > 1 ? rows[1] : [null, null, null];
+  const distinctBsl = Number(vals[0] || 0);
+  const rowsTotal = Number(vals[1] || 0);
+  const bslMultiNetwork = Number(vals[2] || 0);
+  const ratio = distinctBsl > 0 ? bslMultiNetwork / distinctBsl : null;
+  const blocked = ratio !== null && ratio > PASSINGS_MULTI_NETWORK_MAX_RATIO;
+
+  return {
+    status: blocked ? 'blocked' : 'ok',
+    threshold: PASSINGS_MULTI_NETWORK_MAX_RATIO,
+    distinct_bsl: distinctBsl,
+    rows_total: rowsTotal,
+    bsl_multi_network: bslMultiNetwork,
+    multi_network_ratio: ratio,
+    query_execution_id: result?.query_execution_id || null,
+    sql
+  };
+}
+
+async function runPassingsQualityGateCached({ questionId } = {}) {
+  if (!PASSINGS_QUALITY_GATE_ENABLED || !needsPassingsQualityGate(questionId)) return null;
+  const cacheSeed = `passings_quality:${String(questionId || '').toLowerCase()}:${PASSINGS_MULTI_NETWORK_MAX_RATIO}`;
+  const cacheKey = hashKey(cacheSeed);
+  const cached = await getCache(cacheKey);
+  if (cached && cached.expires_at > Math.floor(Date.now() / 1000) && cached.result) {
+    return { ...cached.result, cached: true };
+  }
+  const gate = await runPassingsQualityGate({ questionId });
+  await putCache(cacheKey, gate, FRESHNESS_CACHE_SECONDS);
+  return { ...gate, cached: false };
+}
+
+function buildUnavailableMarkdownFromPassingsQualityGate(gate) {
+  const ratio = typeof gate?.multi_network_ratio === 'number' ? gate.multi_network_ratio : null;
+  const ratioPct = ratio !== null ? `${(ratio * 100).toFixed(1)}%` : 'N/A';
+  const thresholdPct = `${(PASSINGS_MULTI_NETWORK_MAX_RATIO * 100).toFixed(1)}%`;
+  const distinct = gate?.distinct_bsl != null ? String(gate.distinct_bsl) : 'N/A';
+  const multi = gate?.bsl_multi_network != null ? String(gate.bsl_multi_network) : 'N/A';
+  return [
+    '**UNAVAILABLE** — passings quality gate blocked this result.',
+    `- Multi-network BSL ratio: ${ratioPct} (threshold ${thresholdPct}).`,
+    `- Distinct BSL IDs: ${distinct}; multi-network BSL IDs: ${multi}.`,
+    '- Use trusted native metrics (active subscriptions/services + billed customers + billed MRR) while Vetro passings attribution is remediated.'
+  ].join('\n');
+}
+
 async function executeQueryCached(queryId, queryDef, params, ttlSeconds = INTERNAL_QUERY_CACHE_SECONDS) {
   if (!queryDef?.sql) {
     throw new Error(`queryDef missing sql for query: ${queryId || 'unknown'}`);
@@ -3243,6 +3363,26 @@ function escapeCsvValue(val) {
   return str;
 }
 
+function sanitizeReleaseTag(tag) {
+  if (tag === null || tag === undefined) return null;
+  const str = String(tag).trim();
+  if (!str) return null;
+  return str.replace(/[^A-Za-z0-9._-]/g, '-').slice(0, 80);
+}
+
+function metricLabelForKey(key) {
+  const map = {
+    total_capex_book: 'Gross CapEx',
+    actual_cash_invested: 'Net CapEx (Actual Cash Invested)',
+    npv: 'NPV',
+    irr: 'IRR (%)',
+    moic: 'MOIC (x)',
+    paid_in: 'Paid In',
+    distributions: 'Distributions'
+  };
+  return map[key] || key;
+}
+
 function generateMonthlyCSV(monthly) {
   if (!monthly || monthly.length === 0) return '';
   const headers = Object.keys(monthly[0]).join(',');
@@ -3250,9 +3390,14 @@ function generateMonthlyCSV(monthly) {
   return `${headers}\n${rows.join('\n')}`;
 }
 
-function generateMetricsCSV(metrics) {
-  const headers = 'metric,value';
-  const rows = Object.entries(metrics || {}).map(([key, value]) => `${key},${value}`);
+function generateMetricsCSV(metrics, metadata = {}) {
+  const headers = 'metric_key,metric_label,value';
+  const rows = Object.entries(metrics || {}).map(([key, value]) =>
+    `${escapeCsvValue(key)},${escapeCsvValue(metricLabelForKey(key))},${escapeCsvValue(value)}`
+  );
+  if (metadata.release_tag) rows.push(`release_tag,Release Tag,${escapeCsvValue(metadata.release_tag)}`);
+  if (metadata.run_id) rows.push(`run_id,Run ID,${escapeCsvValue(metadata.run_id)}`);
+  if (metadata.model_version_hash) rows.push(`model_version_hash,Model Version Hash,${escapeCsvValue(metadata.model_version_hash)}`);
   return `${headers}\n${rows.join('\n')}`;
 }
 
@@ -3263,12 +3408,21 @@ function generateScenarioMetricsCSV(scenarios) {
   return rowsToCSV(columns, rows);
 }
 
-function buildPipelineWorkbook({ summary, monthly, scenarios, scenarioDetails }) {
+function buildPipelineWorkbook({ summary, monthly, scenarios, scenarioDetails, metadata = {} }) {
   const wb = XLSX.utils.book_new();
 
-  const summaryRows = Object.entries(summary || {}).map(([key, value]) => [key, value]);
-  const summarySheet = XLSX.utils.aoa_to_sheet([['metric', 'value'], ...summaryRows]);
+  const summaryRows = Object.entries(summary || {}).map(([key, value]) => [key, metricLabelForKey(key), value]);
+  if (metadata.release_tag) summaryRows.push(['release_tag', 'Release Tag', metadata.release_tag]);
+  if (metadata.run_id) summaryRows.push(['run_id', 'Run ID', metadata.run_id]);
+  if (metadata.model_version_hash) summaryRows.push(['model_version_hash', 'Model Version Hash', metadata.model_version_hash]);
+  const summarySheet = XLSX.utils.aoa_to_sheet([['metric_key', 'metric_label', 'value'], ...summaryRows]);
   XLSX.utils.book_append_sheet(wb, summarySheet, 'Summary');
+
+  if (Object.keys(metadata).length > 0) {
+    const metaRows = Object.entries(metadata).map(([key, value]) => [key, value]);
+    const metaSheet = XLSX.utils.aoa_to_sheet([['key', 'value'], ...metaRows]);
+    XLSX.utils.book_append_sheet(wb, metaSheet, 'Metadata');
+  }
 
   if (Array.isArray(monthly) && monthly.length > 0) {
     const monthlyColumns = Object.keys(monthly[0]);
@@ -3526,7 +3680,7 @@ async function runCrossSystemVerification(caseRecord) {
     nativeStatus = 'blocked';
     // Native adapters are not implemented in this lambda yet; keep the Athena-based comparisons
     // but clearly mark what is missing to complete true cross-system verification.
-    const missing = ['Salesforce', 'Intacct', 'Gaiia', 'Platt', 'Vetro'];
+    const missing = ['Salesforce', 'Intacct', 'Gaiia', 'Plat', 'Vetro'];
     nativeAdapters.push(...missing.map((name) => ({
       adapter: name.toLowerCase(),
       status: 'blocked',
@@ -4325,7 +4479,7 @@ function buildAnswerMarkdown(questionId, columns, rows) {
   if (questionId === 'platt_billing_mrr_latest') {
     const period = formatMonth(record.period_month);
     return [
-      '**Platt Billing MRR (Latest) (deterministic)**',
+      '**Plat Billing MRR (Latest) (deterministic)**',
       `- Latest month (${period}): ${formatCurrency(record.latest_total_mrr)}.`,
       `- Active subscriptions (modeled): ${formatNumber(record.active_subscriptions)}.`,
       `- Active customers: ${formatNumber(record.active_customers)}.`,
@@ -4363,15 +4517,23 @@ function buildAnswerMarkdown(questionId, columns, rows) {
 
   if (questionId === 'passings_subscribers') {
     const period = formatMonth(record.period_month || record.dt);
+    const passingsConfidence = String(record.passings_confidence || 'untrusted').toLowerCase();
+    const passingsNote = passingsConfidence === 'trusted'
+      ? '- Passings attribution status: trusted.'
+      : '- Passings attribution status: untrusted (shown from modeled passings while canonical attribution is remediated).';
+    const classified = record.total_subscriptions_classified != null ? formatNumber(record.total_subscriptions_classified) : 'N/A';
+    const unmapped = record.total_subscriptions_unmapped != null ? formatNumber(record.total_subscriptions_unmapped) : 'N/A';
     return [
       '**Passings & Subscribers (deterministic)**',
       `- Period: ${period}.`,
       `- Passings: ${formatNumber(record.total_passings)}.`,
       `- Subscriptions: ${formatNumber(record.total_subscriptions)}.`,
+      `- Subscriptions (classified): ${classified}; unmapped/unclassified: ${unmapped}.`,
       `- Penetration: ${record.penetration_pct ? `${Number(record.penetration_pct).toFixed(2)}%` : 'N/A'}.`,
       `- Avg ARPU: ${formatCurrency(record.avg_arpu, 2)}.`,
       `- Total MRR: ${formatCurrency(record.total_mrr)}.`,
-      `- Billed customers: ${formatNumber(record.total_billed_customers)}.`
+      `- Billed customers: ${formatNumber(record.total_billed_customers)}.`,
+      passingsNote
     ].join('\n');
   }
 
@@ -4380,7 +4542,7 @@ function buildAnswerMarkdown(questionId, columns, rows) {
     return [
       '**Customer Count Overview (deterministic)**',
       `- Active billing customers (MRR > 0) as of ${period}: ${formatNumber(record.active_billing_customers)}.`,
-      `- Active SSOT customers (Platt active flag): ${formatNumber(record.active_customers_ssot)}.`,
+      `- Active SSOT customers (Plat active flag): ${formatNumber(record.active_customers_ssot)}.`,
       `- Total SSOT customers (non-sensitive): ${formatNumber(record.total_customers_ssot)}.`
     ].join('\n');
   }
@@ -4393,7 +4555,7 @@ function buildAnswerMarkdown(questionId, columns, rows) {
       `- Active service customers (SSOT services): ${formatNumber(record.active_service_customers)}.`,
       `- Active subscriptions (network mix): ${formatNumber(record.active_subscriptions)}.`,
       `- Billed customers (network mix): ${formatNumber(record.billed_customers_network)}.`,
-      `- Active SSOT customers (Platt active flag): ${formatNumber(record.active_ssot_customers)}.`,
+      `- Active SSOT customers (Plat active flag): ${formatNumber(record.active_ssot_customers)}.`,
       `- Total SSOT customers (non-sensitive): ${formatNumber(record.total_ssot_customers)}.`,
       '_Subscriptions count services and can exceed unique customers; billing customers are distinct PLAT IDs with billed MRR._'
     ].join('\n');
@@ -4401,8 +4563,8 @@ function buildAnswerMarkdown(questionId, columns, rows) {
 
   if (questionId === 'owned_customers_multiscope') {
     const billingPeriod = formatMonth(record.billing_period_month);
-    const investorPeriod = formatMonth(record.investor_as_of_date);
     const modeledDt = formatMonth(record.modeled_dt);
+    const passingsConfidence = String(record.passings_confidence || 'untrusted').toLowerCase();
     const ownedSubs = Number(record.owned_subscriptions);
     const ownedPass = Number(record.owned_passings);
     const ownedPen = (Number.isFinite(ownedSubs) && Number.isFinite(ownedPass) && ownedPass > 0)
@@ -4412,9 +4574,9 @@ function buildAnswerMarkdown(questionId, columns, rows) {
       '**Owned Networks — Customers (multi-scope, deterministic)**',
       `- Customer-mix subscriptions (Owned FTTP + Owned Customer) as of ${modeledDt}: ${formatNumber(record.owned_subscriptions)} across ${formatNumber(record.owned_passings)} passings (penetration ${ownedPen}).`,
       `- Billing customers (bucket \`owned_fttp\`) as of ${billingPeriod}: ${formatNumber(record.owned_billing_customers_bucket)}.`,
-      `- Billed customers (Revenue Mix, PLAT ID COUNT where network_type LIKE '%owned%') as of ${investorPeriod}: ${formatNumber(record.owned_plat_id_count)}.`,
       `- Owned MRR (billed preferred, modeled fallback): ${formatCurrency(record.owned_mrr)}.`,
-      '_These are distinct definitions: subscriptions (services) vs billed customer IDs (PLAT IDs). Ask “list owned networks” to see the underlying networks._'
+      `- Passings attribution status: ${passingsConfidence}.`,
+      '_Definitions are fixed: subscriptions = active services; billing customers = billed customer IDs. Ask “list owned networks” to see network-level detail._'
     ].join('\n');
   }
 
@@ -4422,7 +4584,7 @@ function buildAnswerMarkdown(questionId, columns, rows) {
     return [
       '**Owned Networks List (deterministic)**',
       `- Rows returned: ${dataRows.length}.`,
-      '_See table for networks and their source (modeled_network_health vs investor_revenue_mix)._'
+      '_See table for network-level subscriptions, billed customers, billed MRR, and passings attribution status._'
     ].join('\n');
   }
 
@@ -4430,7 +4592,7 @@ function buildAnswerMarkdown(questionId, columns, rows) {
     const modeledDt = formatMonth(record.modeled_dt);
     const period = formatMonth(record.period_month || record.modeled_dt);
     return [
-      '**Network Mix — Customer Mix (modeled SSOT, deterministic)**',
+      '**Network Mix — Customer Mix (deterministic)**',
       `- Network Type: ${record.network_type || 'All'}. Customer Type: ${record.customer_type || 'All'}. Access: ${record.access_type || 'All'}.`,
       `- Period: ${period}. As of ${modeledDt}: ${formatNumber(record.subscriptions)} subscriptions across ${formatNumber(record.passings)} passings (penetration ${record.penetration_pct ? `${Number(record.penetration_pct).toFixed(2)}%` : 'N/A'}).`,
       `- Modeled MRR: ${formatCurrency(record.mrr_modeled)} (ARPU ${formatCurrency(record.arpu_modeled, 2)}).`,
@@ -4441,7 +4603,7 @@ function buildAnswerMarkdown(questionId, columns, rows) {
   if (questionId === 'workbook_customer_mix_networks_list') {
     const modeledDt = formatMonth(record.dt);
     return [
-      '**Network Mix — Customer Mix — Networks List (modeled SSOT, deterministic)**',
+      '**Network Mix — Customer Mix — Networks List (deterministic)**',
       `- Rows returned: ${dataRows.length}.`,
       `- As of ${modeledDt}.`,
       '_See table for networks and their passings/subscriptions._'
@@ -4451,7 +4613,7 @@ function buildAnswerMarkdown(questionId, columns, rows) {
   if (questionId === 'workbook_customer_mix_summary') {
     const modeledDt = formatMonth(record.modeled_dt);
     return [
-      '**Network Mix — Customer Mix — Summary (modeled SSOT, deterministic)**',
+      '**Network Mix — Customer Mix — Summary (deterministic)**',
       `- Rows returned: ${dataRows.length}.`,
       `- As of ${modeledDt}.`,
       '_This uses the governed Customer Mix grain: subscriptions/services and passings, grouped by Network Type + Customer Type + Access Type._'
@@ -4500,11 +4662,11 @@ function buildAnswerMarkdown(questionId, columns, rows) {
     const period = formatMonth(record.period_month);
     return [
       '**Copper Customers (deterministic)**',
-      `- Billed copper customers (investor billing snapshot, ${period}): ${formatNumber(record.copper_customer_count)}.`,
+      `- Billed copper customers (${period}): ${formatNumber(record.copper_customer_count)}.`,
       `- Active services (copper): ${formatNumber(record.copper_active_services)}.`,
       `- Subscriptions (copper): ${formatNumber(record.copper_subscriptions)}.`,
       `- Billed MRR (copper): ${formatCurrency(record.copper_mrr_billed)}.`,
-      '_Copper classification is derived from network naming in SSOT modeled network health + investor billing mix._'
+      '_Copper classification is derived from SSOT network type mapping across governed network mix sources._'
     ].join('\n');
   }
 
@@ -5974,10 +6136,122 @@ function withMondayColumns(mapping, mondayConfig) {
 async function findMondayItemByProjectId(boardId, projectId, mapping, token) {
   if (!boardId || !projectId || !mapping?.field_map?.project_id) return null;
   const columnId = mapping.field_map.project_id;
-  const query = `query { items_page_by_column_values(board_id: ${boardId}, columns: [{column_id: "${columnId}", column_values: ["${escapeGraphQLString(projectId)}"]}], limit: 1) { items { id name } } }`;
+  const query = `query { items_page_by_column_values(board_id: ${boardId}, columns: [{column_id: "${columnId}", column_values: ["${escapeGraphQLString(projectId)}"]}], limit: 1) { items { id name column_values { id text value column { id title } } } } }`;
   const data = await mondayGraphQL({ query, token });
   const item = data?.data?.items_page_by_column_values?.items?.[0];
   return item || null;
+}
+
+async function createScenarioSubitemOnMonday({
+  token,
+  parentItemId,
+  parentBoardId,
+  scenarioName,
+  inputs,
+  metrics
+}) {
+  if (!token || !parentItemId || !scenarioName) {
+    return { ok: false, error: 'token, parentItemId, scenarioName required' };
+  }
+
+  const safeName = String(scenarioName).replace(/\"/g, '\\\\\"');
+  const createQuery = `mutation { create_subitem(parent_item_id: ${parentItemId}, item_name: \"${safeName}\") { id name } }`;
+  const createData = await mondayGraphQL({ query: createQuery, token });
+  const subitemId = createData?.data?.create_subitem?.id;
+  if (!subitemId) {
+    return { ok: false, error: 'Failed to create subitem' };
+  }
+
+  // Best-effort: populate subitem columns with key metrics + key inputs.
+  if (parentBoardId) {
+    let targetBoardId = String(parentBoardId);
+    let columnValues = {};
+    try {
+      const subitemsBoardId = await getSubitemsBoardId(parentBoardId, token);
+      if (subitemsBoardId) {
+        targetBoardId = String(subitemsBoardId);
+        const subitemColumns = await getMondayBoardColumns(subitemsBoardId, token);
+        const colMap = buildColumnIdMapByTitle(subitemColumns);
+        const setNumber = (title, value) => {
+          const id = colMap[title.toLowerCase()];
+          if (!id) return;
+          columnValues[id] = String(value ?? 0);
+        };
+
+        const toPct = (val) => {
+          if (val === null || val === undefined || val === '') return null;
+          const num = Number(val);
+          if (Number.isNaN(num)) return null;
+          return num <= 1 ? num * 100 : num;
+        };
+
+        setNumber('NPV', metrics?.npv);
+        setNumber('IRR %', metrics?.irr_pct);
+        setNumber('MOIC', metrics?.moic);
+        setNumber('Cash Invested', metrics?.cash_invested);
+        setNumber('Peak Subs', metrics?.peak_subs);
+        setNumber('Peak EBITDA', metrics?.peak_ebitda);
+
+        const setInput = (title, value) => {
+          if (value === null || value === undefined || value === '') return;
+          setNumber(title, value);
+        };
+        setInput('Passings', inputs?.passings);
+        setInput('Build Months', inputs?.build_months);
+        setInput('Total Capex', inputs?.total_capex);
+        setInput('ARPU Start', inputs?.arpu_start);
+        setInput('Penetration Start %', toPct(inputs?.penetration_start_pct));
+        setInput('Penetration Target %', toPct(inputs?.penetration_target_pct));
+        setInput('Ramp Months', inputs?.ramp_months);
+        setInput('Capex per Passing', inputs?.capex_per_passing);
+        setInput('Opex per Sub', inputs?.opex_per_sub);
+        setInput('Discount Rate %', toPct(inputs?.discount_rate_pct));
+        setInput('Analysis Months', inputs?.analysis_months);
+
+        const dateId = colMap['date'];
+        if (dateId) {
+          columnValues[dateId] = { date: new Date().toISOString().split('T')[0] };
+        }
+      }
+    } catch (_) {
+      // fall back to legacy column ids if lookup fails
+    }
+
+    if (!Object.keys(columnValues).length) {
+      columnValues = {
+        numbers1: String(metrics?.npv || 0),
+        numbers2: String(metrics?.irr_pct || 0),
+        numbers3: String(metrics?.moic || 0),
+        numbers4: String(metrics?.cash_invested || 0),
+        numbers5: String(metrics?.peak_subs || 0),
+        numbers6: String(metrics?.peak_ebitda || 0),
+        date1: { date: new Date().toISOString().split('T')[0] }
+      };
+    }
+
+    const updateQuery = `mutation { change_multiple_column_values(item_id: ${subitemId}, board_id: ${targetBoardId}, column_values: ${JSON.stringify(JSON.stringify(columnValues))}) { id } }`;
+    try {
+      await mondayGraphQL({ query: updateQuery, token });
+    } catch (err) {
+      const msg = String(err?.message || '');
+      // Some monday accounts enforce locks; fall back to per-column best-effort.
+      if (msg.includes('itemLinkMaxLocksExceeded')) {
+        for (const [columnId, value] of Object.entries(columnValues)) {
+          const valuePayload = JSON.stringify(String(value));
+          const single = `mutation { change_column_value(board_id: ${targetBoardId}, item_id: ${subitemId}, column_id: \"${columnId}\", value: ${JSON.stringify(valuePayload)}) { id } }`;
+          try {
+            await mondayGraphQL({ query: single, token });
+          } catch (_) {
+            // ignore per-column failure
+          }
+        }
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  return { ok: true, subitem_id: subitemId, scenario_name: scenarioName };
 }
 
 async function getMondayBoardColumns(boardId, token) {
@@ -6048,44 +6322,114 @@ const BASELINE_REQUIRED_INPUTS = [
   'opex_per_sub'
 ];
 const BASELINE_DEFAULT_ASSUMPTIONS = {
-  passings: 1000,
-  build_months: 24,
-  arpu_start: 63,
-  subscription_rate: 0.4,
-  subscription_months: 36,
-  capex_per_passing: 1200,
-  install_cost_per_subscriber: 0,
-  opex_per_sub: 25
+  passings: 2500,
+  build_months: 36,
+  arpu_start: 75,
+  subscription_rate: 1,
+  subscription_months: 48,
+  capex_per_passing: 1400,
+  install_cost_per_subscriber: 800,
+  opex_per_sub: 14,
+  opex_per_passing: 2,
+  min_monthly_opex: 50000,
+  cogs_pct_revenue: 0.15,
+  min_non_circuit_cogs: 7500,
+  circuit: true,
+  circuit_type: 10,
+  ebitda_multiple: 15
 };
 const BASELINE_PROFILE_DEFAULT_ASSUMPTIONS = {
   standard: {},
+  blueprint_2026_02_15: {
+    passings: 2500,
+    build_months: 36,
+    arpu_start: 75,
+    subscription_rate: 1,
+    subscription_months: 48,
+    capex_per_passing: 1400,
+    install_cost_per_subscriber: 800,
+    opex_per_sub: 14,
+    opex_per_passing: 2,
+    min_monthly_opex: 50000,
+    cogs_pct_revenue: 0.15,
+    min_non_circuit_cogs: 7500,
+    circuit: true,
+    circuit_type: 10,
+    ebitda_multiple: 15
+  },
+  developer_template_2_9_26_vf: {
+    passings: 2500,
+    build_months: 36,
+    arpu_start: 75,
+    subscription_rate: 1,
+    subscription_months: 48,
+    capex_per_passing: 1400,
+    install_cost_per_subscriber: 800,
+    opex_per_sub: 14,
+    opex_per_passing: 2,
+    min_monthly_opex: 50000,
+    cogs_pct_revenue: 0.15,
+    min_non_circuit_cogs: 7500,
+    circuit: true,
+    circuit_type: 10,
+    ebitda_multiple: 15
+  },
   developer_template_2_9_26: {
-    subscription_rate: 0.4,
-    subscription_months: 36,
-    capex_per_passing: 1200,
-    install_cost_per_subscriber: 0,
-    opex_per_sub: 25,
+    passings: 2500,
+    build_months: 36,
+    arpu_start: 75,
+    subscription_rate: 1,
+    subscription_months: 48,
+    capex_per_passing: 1400,
+    install_cost_per_subscriber: 800,
+    opex_per_sub: 14,
+    opex_per_passing: 2,
+    min_monthly_opex: 50000,
+    cogs_pct_revenue: 0.15,
+    min_non_circuit_cogs: 7500,
+    circuit: true,
+    circuit_type: 10,
     ebitda_multiple: 15
   },
   horton: {
-    subscription_rate: 0.4,
-    subscription_months: 36,
-    capex_per_passing: 1200,
-    install_cost_per_subscriber: 0,
-    opex_per_sub: 25,
+    passings: 2500,
+    build_months: 36,
+    arpu_start: 75,
+    subscription_rate: 1,
+    subscription_months: 48,
+    capex_per_passing: 1400,
+    install_cost_per_subscriber: 800,
+    opex_per_sub: 14,
+    opex_per_passing: 2,
+    min_monthly_opex: 50000,
+    cogs_pct_revenue: 0.15,
+    min_non_circuit_cogs: 7500,
+    circuit: true,
+    circuit_type: 10,
     ebitda_multiple: 15
   },
   acme: {
-    subscription_rate: 0.4,
-    subscription_months: 36,
-    capex_per_passing: 1200,
-    install_cost_per_subscriber: 0,
-    opex_per_sub: 25,
+    passings: 2500,
+    build_months: 36,
+    arpu_start: 75,
+    subscription_rate: 1,
+    subscription_months: 48,
+    capex_per_passing: 1400,
+    install_cost_per_subscriber: 800,
+    opex_per_sub: 14,
+    opex_per_passing: 2,
+    min_monthly_opex: 50000,
+    cogs_pct_revenue: 0.15,
+    min_non_circuit_cogs: 7500,
+    circuit: true,
+    circuit_type: 10,
     ebitda_multiple: 15
   }
 };
 const DEVELOPER_TEMPLATE_PROFILE_ALIASES = new Set([
   'developer_template_2_9_26',
+  'developer_template_2_9_26_vf',
+  'blueprint_2026_02_15',
   'developer_template',
   'exec_dashboard',
   'horton',
@@ -6213,13 +6557,13 @@ function applyBaselineDefaults(inputs, derived, options = {}) {
   if (!normalized.total_capex && derived?.totalCapex) normalized.total_capex = derived.totalCapex;
   if (!normalized.arpu_start && derived?.arpuStart) normalized.arpu_start = derived.arpuStart;
   if ((normalized.arpu_start === null || normalized.arpu_start === undefined) && applyAssumptions) {
-    normalized.arpu_start = 63;
+    normalized.arpu_start = 75;
   }
   if ((normalized.penetration_start_pct === null || normalized.penetration_start_pct === undefined) && applyAssumptions) {
     normalized.penetration_start_pct = 0.1;
   }
   if ((normalized.penetration_target_pct === null || normalized.penetration_target_pct === undefined) && applyAssumptions) {
-    normalized.penetration_target_pct = derived?.penetrationTargetPct ?? 0.4;
+    normalized.penetration_target_pct = derived?.penetrationTargetPct ?? 1;
   }
   if ((normalized.subscription_rate === null || normalized.subscription_rate === undefined) && applyAssumptions) {
     normalized.subscription_rate = normalized.penetration_target_pct ?? 0.4;
@@ -6228,47 +6572,47 @@ function applyBaselineDefaults(inputs, derived, options = {}) {
     normalized.subscription_rate = normalized.subscription_rate / 100;
   }
   if ((normalized.ramp_months === null || normalized.ramp_months === undefined) && applyAssumptions) {
-    normalized.ramp_months = 36;
+    normalized.ramp_months = 48;
   }
   if ((normalized.subscription_months === null || normalized.subscription_months === undefined) && applyAssumptions) {
-    normalized.subscription_months = normalized.ramp_months || 36;
+    normalized.subscription_months = normalized.ramp_months || 48;
   }
   if (normalized.capex_per_passing === null || normalized.capex_per_passing === undefined) {
     if (normalized.total_capex && normalized.passings) {
       normalized.capex_per_passing = normalized.total_capex / normalized.passings;
     } else if (applyAssumptions) {
-      normalized.capex_per_passing = 1200;
+      normalized.capex_per_passing = 1400;
     }
   }
   if ((normalized.install_cost_per_subscriber === null || normalized.install_cost_per_subscriber === undefined) && applyAssumptions) {
-    normalized.install_cost_per_subscriber = 0;
+    normalized.install_cost_per_subscriber = 800;
   }
   if ((normalized.opex_per_sub === null || normalized.opex_per_sub === undefined) && applyAssumptions) {
-    normalized.opex_per_sub = 25;
+    normalized.opex_per_sub = 14;
   }
   if ((normalized.opex_per_passing === null || normalized.opex_per_passing === undefined) && applyAssumptions) {
-    normalized.opex_per_passing = 0;
+    normalized.opex_per_passing = 2;
   }
   if ((normalized.min_monthly_opex === null || normalized.min_monthly_opex === undefined) && applyAssumptions) {
-    normalized.min_monthly_opex = 0;
+    normalized.min_monthly_opex = 50000;
   }
   if ((normalized.cogs_pct_revenue === null || normalized.cogs_pct_revenue === undefined) && applyAssumptions) {
-    normalized.cogs_pct_revenue = 0;
+    normalized.cogs_pct_revenue = 0.15;
   }
   if (normalized.cogs_pct_revenue !== null && normalized.cogs_pct_revenue !== undefined && normalized.cogs_pct_revenue > 1) {
     normalized.cogs_pct_revenue = normalized.cogs_pct_revenue / 100;
   }
   if ((normalized.min_non_circuit_cogs === null || normalized.min_non_circuit_cogs === undefined) && applyAssumptions) {
-    normalized.min_non_circuit_cogs = 0;
+    normalized.min_non_circuit_cogs = 7500;
   }
   if ((normalized.circuit === null || normalized.circuit === undefined || normalized.circuit === '') && applyAssumptions) {
-    normalized.circuit = false;
+    normalized.circuit = true;
   }
   if (typeof normalized.circuit === 'string') {
     normalized.circuit = ['yes', 'true', '1', 'y'].includes(normalized.circuit.trim().toLowerCase());
   }
   if ((normalized.circuit_type === null || normalized.circuit_type === undefined) && applyAssumptions) {
-    normalized.circuit_type = 1;
+    normalized.circuit_type = 10;
   }
   if ((normalized.ebitda_multiple === null || normalized.ebitda_multiple === undefined) && applyAssumptions) {
     normalized.ebitda_multiple = 15;
@@ -6501,6 +6845,9 @@ async function ensureDataQualityColumn(boardId, token) {
 }
 
 async function setDataQualityStatus({ boardId, itemId, token, status }) {
+  if (!MONDAY_PARENT_WRITEBACK_ENABLED) {
+    return { ok: false, skipped: true, reason: 'parent_writeback_disabled' };
+  }
   if (!boardId || !itemId || !token || !status) return { ok: false, skipped: true };
   const columnId = await ensureDataQualityColumn(boardId, token);
   if (!columnId) return { ok: false, skipped: true };
@@ -6614,6 +6961,9 @@ function buildColumnValuesFromTitleMap(titleMap, valuesByTitle) {
 }
 
 async function updateParentCalculatedFields({ boardId, itemId, token, valuesByTitle }) {
+  if (!MONDAY_PARENT_WRITEBACK_ENABLED) {
+    return { ok: false, skipped: true, reason: 'parent_writeback_disabled' };
+  }
   const columns = await getMondayBoardColumns(boardId, token);
   const titleMap = buildColumnIdMapByTitle(columns);
   const columnValues = buildColumnValuesFromTitleMap(titleMap, valuesByTitle);
@@ -6786,6 +7136,9 @@ async function querySingleRow(sql) {
 }
 
 async function writeBackToMonday({ boardId, itemId, projectRow, mapping, token }) {
+  if (!MONDAY_PARENT_WRITEBACK_ENABLED) {
+    return { ok: false, skipped: true, reason: 'parent_writeback_disabled' };
+  }
   if (!projectRow || !mapping) return { ok: false };
   const fieldMap = mapping.field_map || {};
   const editableFields = new Set(mapping.editable_fields_monday_to_aws || []);
@@ -8007,6 +8360,7 @@ LIMIT 200000;`;
       metrics: modelResults.metrics
     };
 
+    let mondaySubitem = null;
     try {
       await s3.putObject({
         Bucket: bucket,
@@ -8028,6 +8382,42 @@ LIMIT 200000;`;
         Body: generateMonthlyCSV(modelResults.monthly),
         ContentType: 'text/csv; charset=utf-8'
       }).promise();
+
+      // Best-effort Monday sync: create a scenario subitem only when project belongs to a synced parent item.
+      try {
+        const mondayConfig = await getMondayConfig();
+        if (mondayConfig?.token) {
+          const mondayMapping = withMondayColumns(MONDAY_MAPPING, mondayConfig);
+          const boardId = mondayConfig.pipeline_board_id || mondayMapping?.board_id || MONDAY_PIPELINE_BOARD_ID;
+          if (boardId) {
+            const parentItem = await findMondayItemByProjectId(boardId, projectId, mondayMapping, mondayConfig.token);
+            if (parentItem) {
+              const mappedParent = mapMondayItem(parentItem, mondayMapping);
+              const parentFilter = passesSyncFilter(mappedParent, mondayMapping);
+              if (parentFilter.ok) {
+                mondaySubitem = await createScenarioSubitemOnMonday({
+                  token: mondayConfig.token,
+                  parentItemId: parentItem.id,
+                  parentBoardId: boardId,
+                  scenarioName,
+                  inputs,
+                  metrics: modelResults.metrics
+                });
+              } else {
+                mondaySubitem = { ok: false, skipped: true, reason: parentFilter.reason || 'parent_filtered' };
+              }
+            } else {
+              mondaySubitem = { ok: false, skipped: true, reason: 'parent_not_found' };
+            }
+          } else {
+            mondaySubitem = { ok: false, skipped: true, reason: 'board_id_missing' };
+          }
+        } else {
+          mondaySubitem = { ok: false, skipped: true, reason: 'monday_not_configured' };
+        }
+      } catch (mondayErr) {
+        mondaySubitem = { ok: false, skipped: true, reason: mondayErr.message || String(mondayErr) };
+      }
     } catch (err) {
       return response(500, { ok: false, success: false, error: err.message || 'Failed to write model outputs' });
     }
@@ -8042,6 +8432,8 @@ LIMIT 200000;`;
       outputs,
       metrics: modelResults.metrics,
       metric_explanations: modelResults.metric_explanations || [],
+      monday_subitem_ok: Boolean(mondaySubitem?.ok),
+      monday_subitem: mondaySubitem,
       is_test: is_test
     });
   }
@@ -8365,16 +8757,19 @@ LIMIT 200000;`;
           .promise();
       }
 
-      // Write back locked fields from curated_core.projects_enriched
-      const sql = `SELECT * FROM curated_core.projects_enriched WHERE project_id = ${escapeSqlValue(projectId)} LIMIT 1`;
-      const { row: projectRow } = await querySingleRow(sql);
-      const writeback = await writeBackToMonday({
-        boardId,
-        itemId,
-        projectRow,
-        mapping: mondayMapping,
-        token: mondayConfig.token
-      });
+      // Optional parent-item writeback (off by default to avoid mutating Monday baselines).
+      let writeback = { skipped: true, reason: 'parent_writeback_disabled' };
+      if (MONDAY_PARENT_WRITEBACK_ENABLED) {
+        const sql = `SELECT * FROM curated_core.projects_enriched WHERE project_id = ${escapeSqlValue(projectId)} LIMIT 1`;
+        const { row: projectRow } = await querySingleRow(sql);
+        writeback = await writeBackToMonday({
+          boardId,
+          itemId,
+          projectRow,
+          mapping: mondayMapping,
+          token: mondayConfig.token
+        });
+      }
 
       return response(200, {
         ok: true,
@@ -9283,6 +9678,7 @@ LIMIT 200000;`;
       const runId = `pipeline_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
       const runAt = new Date().toISOString();
       const runName = payload.run_name || payload.runName || `Pipeline Run ${runAt}`;
+      const releaseTag = sanitizeReleaseTag(payload.release_tag || payload.releaseTag || null);
       const summary = payload.portfolio_summary || payload.portfolioSummary || {};
       const monthly = Array.isArray(payload.portfolio_monthly || payload.portfolioMonthly)
         ? (payload.portfolio_monthly || payload.portfolioMonthly)
@@ -9308,6 +9704,7 @@ LIMIT 200000;`;
           sub: claims?.sub || null
         },
         model_version_hash: MODEL_VERSION_HASH,
+        release_tag: releaseTag,
         guard_status: guardStatus || null,
         data_freshness: freshness || [],
         summary,
@@ -9322,6 +9719,14 @@ LIMIT 200000;`;
         scenarios_csv: `${prefix}scenario_metrics.csv`,
         report_xlsx: `${prefix}pipeline_report.xlsx`
       };
+      if (releaseTag) {
+        outputs.release_manifest = `presentation/investor_packages/${releaseTag}/manifest.json`;
+        outputs.release_run_json = `presentation/investor_packages/${releaseTag}/run.json`;
+        outputs.release_summary_csv = `presentation/investor_packages/${releaseTag}/portfolio_summary.csv`;
+        outputs.release_monthly_csv = `presentation/investor_packages/${releaseTag}/portfolio_monthly.csv`;
+        outputs.release_scenarios_csv = `presentation/investor_packages/${releaseTag}/scenario_metrics.csv`;
+        outputs.release_report_xlsx = `presentation/investor_packages/${releaseTag}/pipeline_report.xlsx`;
+      }
 
       try {
         await s3.putObject({
@@ -9334,7 +9739,11 @@ LIMIT 200000;`;
         await s3.putObject({
           Bucket: bucket,
           Key: outputs.summary_csv,
-          Body: generateMetricsCSV(summary),
+          Body: generateMetricsCSV(summary, {
+            release_tag: releaseTag,
+            run_id: runId,
+            model_version_hash: MODEL_VERSION_HASH
+          }),
           ContentType: 'text/csv; charset=utf-8'
         }).promise();
 
@@ -9352,13 +9761,85 @@ LIMIT 200000;`;
           ContentType: 'text/csv; charset=utf-8'
         }).promise();
 
-        const workbookBuffer = buildPipelineWorkbook({ summary, monthly, scenarios: scenarioMetrics, scenarioDetails });
+        const workbookBuffer = buildPipelineWorkbook({
+          summary,
+          monthly,
+          scenarios: scenarioMetrics,
+          scenarioDetails,
+          metadata: {
+            release_tag: releaseTag || '',
+            run_id: runId,
+            run_name: runName,
+            run_at: runAt,
+            model_version_hash: MODEL_VERSION_HASH,
+            scenario_count: scenarioDetails.length
+          }
+        });
         await s3.putObject({
           Bucket: bucket,
           Key: outputs.report_xlsx,
           Body: workbookBuffer,
           ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         }).promise();
+
+        if (releaseTag) {
+          const manifest = {
+            release_tag: releaseTag,
+            run_id: runId,
+            run_name: runName,
+            run_at: runAt,
+            model_version_hash: MODEL_VERSION_HASH,
+            scenario_count: scenarioDetails.length,
+            outputs: {
+              run_json: outputs.release_run_json,
+              summary_csv: outputs.release_summary_csv,
+              monthly_csv: outputs.release_monthly_csv,
+              scenarios_csv: outputs.release_scenarios_csv,
+              report_xlsx: outputs.release_report_xlsx
+            }
+          };
+
+          await s3.putObject({
+            Bucket: bucket,
+            Key: outputs.release_run_json,
+            Body: JSON.stringify(runPayload, null, 2),
+            ContentType: 'application/json'
+          }).promise();
+          await s3.putObject({
+            Bucket: bucket,
+            Key: outputs.release_summary_csv,
+            Body: generateMetricsCSV(summary, {
+              release_tag: releaseTag,
+              run_id: runId,
+              model_version_hash: MODEL_VERSION_HASH
+            }),
+            ContentType: 'text/csv; charset=utf-8'
+          }).promise();
+          await s3.putObject({
+            Bucket: bucket,
+            Key: outputs.release_monthly_csv,
+            Body: generateMonthlyCSV(monthly),
+            ContentType: 'text/csv; charset=utf-8'
+          }).promise();
+          await s3.putObject({
+            Bucket: bucket,
+            Key: outputs.release_scenarios_csv,
+            Body: generateScenarioMetricsCSV(scenarioMetrics),
+            ContentType: 'text/csv; charset=utf-8'
+          }).promise();
+          await s3.putObject({
+            Bucket: bucket,
+            Key: outputs.release_report_xlsx,
+            Body: workbookBuffer,
+            ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          }).promise();
+          await s3.putObject({
+            Bucket: bucket,
+            Key: outputs.release_manifest,
+            Body: JSON.stringify(manifest, null, 2),
+            ContentType: 'application/json'
+          }).promise();
+        }
 
         const reportUrl = await s3.getSignedUrlPromise('getObject', {
           Bucket: bucket,
@@ -9393,6 +9874,7 @@ LIMIT 200000;`;
           run_id: runId,
           run_name: runName,
           run_at: runAt,
+          release_tag: releaseTag,
           outputs,
           report_url: reportUrl,
           artifact_urls: {
@@ -9422,6 +9904,7 @@ LIMIT 200000;`;
               run_id: parsed.run_id,
               run_name: parsed.run_name,
               run_at: parsed.run_at,
+              release_tag: parsed.release_tag || null,
               scenario_count: parsed.scenario_count || (parsed.scenarios ? parsed.scenarios.length : 0),
               s3_key: obj.Key
             });
@@ -10092,6 +10575,10 @@ LIMIT 200000;`;
     if (freshnessGate) {
       evidencePack.freshness_gate = freshnessGate;
     }
+    const passingsQualityGate = await runPassingsQualityGateCached({ questionId });
+    if (passingsQualityGate) {
+      evidencePack.passings_quality_gate = passingsQualityGate;
+    }
 
     if (ladder) {
       evidencePack.status = ladder.status;
@@ -10129,6 +10616,13 @@ LIMIT 200000;`;
       evidencePack.status = 'unavailable';
       evidencePack.confidence = 'low';
       answerMarkdown = buildUnavailableMarkdownFromFreshnessGate(freshnessGate);
+      columnsOut = [];
+      rowsOut = [];
+    }
+    if (passingsQualityGate && passingsQualityGate.status === 'blocked') {
+      evidencePack.status = 'unavailable';
+      evidencePack.confidence = 'low';
+      answerMarkdown = buildUnavailableMarkdownFromPassingsQualityGate(passingsQualityGate);
       columnsOut = [];
       rowsOut = [];
     }
@@ -10197,6 +10691,22 @@ LIMIT 200000;`;
             columns: [],
             rows: [],
             answer_markdown: buildUnavailableMarkdownFromFreshnessGate(freshnessGate),
+            evidence_pack: { ...evidencePack, status: 'unavailable', confidence: 'low' }
+          };
+        }
+      }
+      const passingsQualityGate = await runPassingsQualityGateCached({ questionId });
+      if (passingsQualityGate) {
+        const evidencePack = payloadOut?.evidence_pack && typeof payloadOut.evidence_pack === 'object'
+          ? { ...payloadOut.evidence_pack, passings_quality_gate: passingsQualityGate }
+          : { passings_quality_gate: passingsQualityGate };
+        payloadOut = { ...payloadOut, evidence_pack: evidencePack };
+        if (passingsQualityGate.status === 'blocked') {
+          payloadOut = {
+            ...payloadOut,
+            columns: [],
+            rows: [],
+            answer_markdown: buildUnavailableMarkdownFromPassingsQualityGate(passingsQualityGate),
             evidence_pack: { ...evidencePack, status: 'unavailable', confidence: 'low' }
           };
         }
