@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Schedule Glue crawler for Platt raw data
+
+Parameters:
+  CrawlerName:
+    Type: String
+    Default: platt-raw-crawler
+  ScheduleExpression:
+    Type: String
+    Default: cron(50 3 * * ? *)
+  ScheduleState:
+    Type: String
+    Default: ENABLED
+    AllowedValues: [ENABLED, DISABLED]
+
+Resources:
+  PlattCrawlerInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: platt-crawler-invoke-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: platt-crawler-invoke
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - glue:StartCrawler
+                Resource: !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:crawler/${CrawlerName}"
+
+  PlattCrawlerSchedule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: platt-raw-crawler-schedule
+      ScheduleExpression: !Ref ScheduleExpression
+      State: !Ref ScheduleState
+      Targets:
+        - Arn: !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:crawler/${CrawlerName}"
+          Id: PlattCrawlerTarget
+          RoleArn: !GetAtt PlattCrawlerInvokeRole.Arn
+
+Outputs:
+  RuleName:
+    Value: !Ref PlattCrawlerSchedule

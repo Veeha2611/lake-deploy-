@@ -1,0 +1,196 @@
+{
+  "arpu_summary": [
+    {
+      "access_type": "Fiber",
+      "row": 488,
+      "segment": "Owned; Fiber",
+      "value": 81.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 489,
+      "segment": "Resold; Fiber",
+      "value": 341.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 490,
+      "segment": "DVFiber; DVFiber",
+      "value": 96.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 491,
+      "segment": "DVFiber; GWI",
+      "value": 72910.0
+    },
+    {
+      "access_type": "Copper",
+      "row": 492,
+      "segment": "Resold",
+      "value": 394.0
+    },
+    {
+      "access_type": "Copper",
+      "row": 493,
+      "segment": "Resold; Copper",
+      "value": 107.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 494,
+      "segment": "NWFX; GWI",
+      "value": 10000.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 495,
+      "segment": "ECFiber; GWI",
+      "value": 89576.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 496,
+      "segment": "Lyme; GWI",
+      "value": 5640.0
+    }
+  ],
+  "arpu_total_excluding_dvfiber": [
+    {
+      "access_type": null,
+      "row": 498,
+      "segment": "Total excluding DVFiber Customers",
+      "value": 243.0
+    }
+  ],
+  "as_of_date": "2026-01-25",
+  "asof_col": 3,
+  "plat_id_count_summary": [
+    {
+      "access_type": "Fiber",
+      "row": 476,
+      "segment": "Owned; Fiber",
+      "value": 398.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 477,
+      "segment": "Resold; Fiber",
+      "value": 743.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 478,
+      "segment": "DVFiber; DVFiber",
+      "value": 867.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 479,
+      "segment": "DVFiber; GWI",
+      "value": 2.0
+    },
+    {
+      "access_type": "Copper",
+      "row": 480,
+      "segment": "Resold",
+      "value": 832.0
+    },
+    {
+      "access_type": "Copper",
+      "row": 481,
+      "segment": "Resold; Copper",
+      "value": 2819.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 482,
+      "segment": "NWFX; GWI",
+      "value": 1.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 483,
+      "segment": "ECFiber; GWI",
+      "value": 1.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 484,
+      "segment": "Lyme; GWI",
+      "value": 1.0
+    }
+  ],
+  "plat_id_count_total_excluding_dvfiber": [
+    {
+      "access_type": null,
+      "row": 486,
+      "segment": "Total excluding DVFiber Customers",
+      "value": 4797.0
+    }
+  ],
+  "revenue_summary": [
+    {
+      "access_type": "Fiber",
+      "row": 464,
+      "segment": "Owned; Fiber",
+      "value": 32199.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 465,
+      "segment": "Resold; Fiber",
+      "value": 253171.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 466,
+      "segment": "DVFiber; DVFiber",
+      "value": 83339.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 467,
+      "segment": "DVFiber; GWI",
+      "value": 145820.0
+    },
+    {
+      "access_type": "Copper",
+      "row": 468,
+      "segment": "Resold",
+      "value": 327669.0
+    },
+    {
+      "access_type": "Copper",
+      "row": 469,
+      "segment": "Resold; Copper",
+      "value": 301634.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 470,
+      "segment": "NWFX; GWI",
+      "value": 10000.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 471,
+      "segment": "ECFiber; GWI",
+      "value": 89576.0
+    },
+    {
+      "access_type": "Fiber",
+      "row": 472,
+      "segment": "Lyme; GWI",
+      "value": 5640.0
+    }
+  ],
+  "revenue_total_excluding_dvfiber": [
+    {
+      "access_type": null,
+      "row": 474,
+      "segment": "Total excluding DVFiber Customers",
+      "value": 1165709.0
+    }
+  ]
+}

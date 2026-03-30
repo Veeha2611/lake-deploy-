@@ -1,0 +1,25 @@
+3RB Enterprise
+Belmont/Morril
+Brunswick
+(System ID = FTTX Columbia)
+DVFiber
+Ellsworth - FttP (system id)
+FTTX Knightville (system id)
+South Portland addresses
+GWI - Copper
+GWI - FttP (system id)
+GWI - MDU/MTU
+GWI - Standard
+Islesboro Municipal Broadband
+MFC - 3 Ring Binder (3RB)
+NWFX
+Northport 1
+Northport 2
+Rockport
+Saco Mill #4 (MDU)
+SanfordNet - FttP (system id)
+South Portland
+Sumner
+The Eleven (MDU)
+The Lincoln Lofts (MDU)
+Thornton Heights (MDU)

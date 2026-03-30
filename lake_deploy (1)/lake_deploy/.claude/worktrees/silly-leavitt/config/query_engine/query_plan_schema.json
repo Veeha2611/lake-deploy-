@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryPlan",
+  "type": "object",
+  "required": ["intent"],
+  "properties": {
+    "intent": {
+      "type": "string",
+      "enum": ["metric", "trend", "breakdown", "compare", "anomaly"]
+    },
+    "metric_key": { "type": ["string", "null"] },
+    "grain": { "type": ["string", "null"], "enum": ["day", "month", "customer", null] },
+    "dimensions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "filters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["field", "op", "value"],
+        "properties": {
+          "field": { "type": "string" },
+          "op": { "type": "string", "enum": ["=", "in", "between", ">=", "<=", "!=", "like"] },
+          "value": {}
+        }
+      }
+    },
+    "time_window": {
+      "type": ["object", "null"],
+      "properties": {
+        "type": { "type": "string", "enum": ["last_n", "between", "latest", "snapshot"] },
+        "n": { "type": ["number", "null"] },
+        "start": { "type": ["string", "null"] },
+        "end": { "type": ["string", "null"] },
+        "unit": { "type": ["string", "null"], "enum": ["day", "month", null] }
+      }
+    },
+    "source_view": { "type": ["string", "null"] },
+    "joins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["to_view", "on", "type"],
+        "properties": {
+          "to_view": { "type": "string" },
+          "on": { "type": "array", "items": { "type": "string" } },
+          "type": { "type": "string", "enum": ["inner", "left"] }
+        }
+      }
+    },
+    "limits": {
+      "type": ["object", "null"],
+      "properties": {
+        "rows": { "type": ["number", "null"] }
+      }
+    },
+    "cross_checks": {
+      "type": "array",
+      "items": { "type": "object", "properties": { "template_key": { "type": "string" } } }
+    },
+    "driver_queries": {
+      "type": "array",
+      "items": { "type": "object", "properties": { "template_key": { "type": "string" } } }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "clarifying_question": { "type": ["string", "null"] }
+  },
+  "additionalProperties": true
+}

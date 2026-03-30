@@ -1,0 +1,250 @@
+{
+  "combos": [
+    {
+      "access_type": "Copper",
+      "customer_type": "Owned Customer",
+      "network_type": "CLEC",
+      "passings": 1634.0,
+      "subscriptions": 1634.0
+    },
+    {
+      "access_type": "Fiber",
+      "customer_type": "Contracted Customer",
+      "network_type": "Contracted",
+      "passings": 8913.0,
+      "subscriptions": 2209.0
+    },
+    {
+      "access_type": "Fiber",
+      "customer_type": "Owned Customer",
+      "network_type": "Contracted",
+      "passings": 124.0,
+      "subscriptions": 124.0
+    },
+    {
+      "access_type": "Fiber",
+      "customer_type": "Owned Customer",
+      "network_type": "Owned FTTP",
+      "passings": 3885.0,
+      "subscriptions": 912.0
+    }
+  ],
+  "records": [
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "N/A",
+      "customer_type": "Owned Customer",
+      "network": "Belmont/Morril",
+      "network_type": "Owned FTTP",
+      "passings": 784.0,
+      "subscriptions": 0.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "='Revenue Mix'!N85",
+      "customer_type": "Owned Customer",
+      "network": "Brunswick\n(System ID = FTTX Columbia)",
+      "network_type": "Owned FTTP",
+      "passings": 222.0,
+      "subscriptions": 30.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "='Revenue Mix'!N93",
+      "customer_type": "Owned Customer",
+      "network": "Northport 1",
+      "network_type": "Owned FTTP",
+      "passings": 424.0,
+      "subscriptions": 242.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "='Revenue Mix'!N94",
+      "customer_type": "Owned Customer",
+      "network": "Northport 2",
+      "network_type": "Owned FTTP",
+      "passings": 976.0,
+      "subscriptions": 228.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "='Revenue Mix'!N97",
+      "customer_type": "Owned Customer",
+      "network": "Rockport",
+      "network_type": "Contracted",
+      "passings": 33.0,
+      "subscriptions": 33.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "='Revenue Mix'!N99",
+      "customer_type": "Owned Customer",
+      "network": "SanfordNet - FttP (system id)",
+      "network_type": "Contracted",
+      "passings": 91.0,
+      "subscriptions": 91.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "='Revenue Mix'!N101",
+      "customer_type": "Owned Customer",
+      "network": "Sumner",
+      "network_type": "Owned FTTP",
+      "passings": 504.0,
+      "subscriptions": 30.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "='Revenue Mix'!N100",
+      "customer_type": "Owned Customer",
+      "network": "South Portland",
+      "network_type": "Owned FTTP",
+      "passings": 360.0,
+      "subscriptions": 48.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "='Revenue Mix'!N83",
+      "customer_type": "Owned Customer",
+      "network": "Ellsworth - FttP (system id)",
+      "network_type": "Owned FTTP",
+      "passings": 8.0,
+      "subscriptions": 8.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "='Revenue Mix'!N86",
+      "customer_type": "Owned Customer",
+      "network": "FTTX Knightville (system id)\nSouth Portland addresses",
+      "network_type": "Owned FTTP",
+      "passings": 15.0,
+      "subscriptions": 15.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "='Revenue Mix'!N88",
+      "customer_type": "Owned Customer",
+      "network": "GWI - FttP (system id)",
+      "network_type": "Owned FTTP",
+      "passings": 40.0,
+      "subscriptions": 40.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "='Revenue Mix'!N103",
+      "customer_type": "Owned Customer",
+      "network": "The Lincoln Lofts (MDU)",
+      "network_type": "Owned FTTP",
+      "passings": 148.0,
+      "subscriptions": 69.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "='Revenue Mix'!N102",
+      "customer_type": "Owned Customer",
+      "network": "The Eleven (MDU)",
+      "network_type": "Owned FTTP",
+      "passings": 76.0,
+      "subscriptions": 20.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "='Revenue Mix'!N98",
+      "customer_type": "Owned Customer",
+      "network": "Saco Mill #4 (MDU)",
+      "network_type": "Owned FTTP",
+      "passings": 150.0,
+      "subscriptions": 44.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "='Revenue Mix'!N104",
+      "customer_type": "Owned Customer",
+      "network": "Thornton Heights (MDU)",
+      "network_type": "Owned FTTP",
+      "passings": 42.0,
+      "subscriptions": 2.0
+    },
+    {
+      "access_type": "Copper",
+      "arpu_cell": "='Revenue Mix'!N87",
+      "customer_type": "Owned Customer",
+      "network": "GWI - Copper",
+      "network_type": "CLEC",
+      "passings": 871.0,
+      "subscriptions": 871.0
+    },
+    {
+      "access_type": "Copper",
+      "arpu_cell": "='Revenue Mix'!N80",
+      "customer_type": "Owned Customer",
+      "network": "3RB Enterprise",
+      "network_type": "CLEC",
+      "passings": 7.0,
+      "subscriptions": 7.0
+    },
+    {
+      "access_type": "Copper",
+      "arpu_cell": "='Revenue Mix'!N90",
+      "customer_type": "Owned Customer",
+      "network": "GWI - Standard",
+      "network_type": "CLEC",
+      "passings": 533.0,
+      "subscriptions": 533.0
+    },
+    {
+      "access_type": "Copper",
+      "arpu_cell": "='Revenue Mix'!N80",
+      "customer_type": "Owned Customer",
+      "network": "MFC - 3 Ring Binder (3RB)",
+      "network_type": "CLEC",
+      "passings": 223.0,
+      "subscriptions": 223.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "='Revenue Mix'!N89",
+      "customer_type": "Owned Customer",
+      "network": "GWI - MDU/MTU",
+      "network_type": "Owned FTTP",
+      "passings": 136.0,
+      "subscriptions": 136.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "='Revenue Mix'!N91",
+      "customer_type": "Contracted Customer",
+      "network": "Islesboro Municipal Broadband",
+      "network_type": "Contracted",
+      "passings": 948.0,
+      "subscriptions": 280.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "='Revenue Mix'!N81",
+      "customer_type": "Contracted Customer",
+      "network": "DVFiber",
+      "network_type": "Contracted",
+      "passings": 3235.0,
+      "subscriptions": 1267.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "Business - $130\nResidential - $101",
+      "customer_type": "Contracted Customer",
+      "network": "LymeFiber",
+      "network_type": "Contracted",
+      "passings": 1325.0,
+      "subscriptions": 662.0
+    },
+    {
+      "access_type": "Fiber",
+      "arpu_cell": "n.a.",
+      "customer_type": "Contracted Customer",
+      "network": "NWFX",
+      "network_type": "Contracted",
+      "passings": 3405.0,
+      "subscriptions": 0.0
+    }
+  ]
+}

@@ -1,0 +1,460 @@
+{
+  "version": "2026-02-11",
+  "sources": [
+    {
+      "name": "curated_core.mrr_monthly_rollup",
+      "description": "Monthly MRR rollup with customer counts.",
+      "time_column": "period_month",
+      "time_type": "timestamp",
+      "time_grain": "month",
+      "required_time_filter": true,
+      "default_time_window": {
+        "type": "last_n",
+        "unit": "month",
+        "n": 12
+      },
+      "allowed_dimensions": [
+        "period_month"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_core.v_platt_billing_mrr_monthly",
+      "description": "Platt billing MRR monthly rollup (invoice headers).",
+      "time_column": "period_month",
+      "time_type": "timestamp",
+      "time_grain": "month",
+      "required_time_filter": true,
+      "default_time_window": {
+        "type": "last_n",
+        "unit": "month",
+        "n": 12
+      },
+      "allowed_dimensions": [
+        "period_month"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_core.v_monthly_revenue_platt_long",
+      "description": "Monthly revenue by customer/system (long format) used for RevenueReport workbook.",
+      "time_column": "period_month",
+      "time_type": "timestamp",
+      "time_grain": "month",
+      "required_time_filter": true,
+      "default_time_window": {
+        "type": "last_n",
+        "unit": "month",
+        "n": 12
+      },
+      "allowed_dimensions": [
+        "period_month",
+        "customer_id",
+        "system_id"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_core.invoice_line_item_repro_v1",
+      "description": "Invoice line item reproduction (Revenue Reconciliation Pack).",
+      "time_column": "invoice_date",
+      "time_type": "date",
+      "time_grain": "day",
+      "required_time_filter": true,
+      "default_time_window": {
+        "type": "last_n",
+        "unit": "month",
+        "n": 3
+      },
+      "allowed_dimensions": [
+        "customer_id",
+        "system",
+        "invoice_id",
+        "product"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_core.v_platt_billing_customer_month_latest",
+      "description": "Latest month customer billing snapshot (Platt invoice headers).",
+      "time_column": "period_month",
+      "time_type": "timestamp",
+      "time_grain": "month",
+      "required_time_filter": false,
+      "default_time_window": {
+        "type": "latest"
+      },
+      "allowed_dimensions": [
+        "period_month",
+        "customer_id"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_core.dim_customer_system_latest",
+      "description": "Latest customer-to-system mapping (Platt to GWI system/network).",
+      "time_column": null,
+      "time_type": null,
+      "time_grain": null,
+      "required_time_filter": false,
+      "default_time_window": {
+        "type": "snapshot"
+      },
+      "allowed_dimensions": [
+        "customer_id",
+        "gwi_system",
+        "network",
+        "system_key",
+        "system_name"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_core.platt_customer_current_ssot",
+      "description": "Current customer SSOT snapshot (Platt).",
+      "time_column": null,
+      "time_type": null,
+      "time_grain": null,
+      "required_time_filter": false,
+      "default_time_window": {
+        "type": "snapshot"
+      },
+      "allowed_dimensions": [
+        "city",
+        "state",
+        "gwi_lq_city",
+        "gwi_lq_state",
+        "gwi_customer_type",
+        "active",
+        "username"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_core.v_network_health",
+      "description": "Network health mix with passings/subscriptions.",
+      "time_column": "dt",
+      "time_type": "varchar_date",
+      "time_grain": "day",
+      "required_time_filter": true,
+      "default_time_window": {
+        "type": "latest"
+      },
+      "allowed_dimensions": [
+        "network_type",
+        "customer_type",
+        "network"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_core.v_cci_tickets_clean",
+      "description": "CCI tickets feed (support/outage).",
+      "time_column": "created_time",
+      "time_type": "varchar_datetime",
+      "time_grain": "day",
+      "required_time_filter": true,
+      "default_time_window": {
+        "type": "last_n",
+        "unit": "day",
+        "n": 30
+      },
+      "allowed_dimensions": [
+        "status",
+        "type",
+        "service_location_city",
+        "service_location_state"
+      ],
+      "empty_is_unavailable": true
+    },
+    {
+      "name": "curated_core.projects_enriched_live",
+      "description": "Projects and pipeline live view.",
+      "time_column": null,
+      "time_type": null,
+      "time_grain": null,
+      "required_time_filter": false,
+      "default_time_window": {
+        "type": "snapshot"
+      },
+      "allowed_dimensions": [
+        "entity",
+        "stage",
+        "state",
+        "project_type"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_core.v_monthly_mrr_and_churn_summary",
+      "description": "Monthly MRR and churn summary.",
+      "time_column": "period_month",
+      "time_type": "timestamp",
+      "time_grain": "month",
+      "required_time_filter": true,
+      "default_time_window": {
+        "type": "last_n",
+        "unit": "month",
+        "n": 12
+      },
+      "allowed_dimensions": [
+        "period_month"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_core.v_monthly_mrr_platt",
+      "description": "Monthly MRR by customer (Platt).",
+      "time_column": "period_month",
+      "time_type": "timestamp",
+      "time_grain": "month",
+      "required_time_filter": true,
+      "default_time_window": {
+        "type": "last_n",
+        "unit": "month",
+        "n": 12
+      },
+      "allowed_dimensions": [
+        "period_month",
+        "customer_id",
+        "customer_name"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_core.v_finance_kpis_latest",
+      "description": "Latest finance KPI snapshot (MRR, churn, active accounts).",
+      "time_column": "period_month",
+      "time_type": "timestamp",
+      "time_grain": "month",
+      "required_time_filter": false,
+      "default_time_window": {
+        "type": "latest"
+      },
+      "allowed_dimensions": [
+        "period_month"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_core.v_monthly_account_churn_by_segment",
+      "description": "Monthly account churn by segment.",
+      "time_column": "period_month",
+      "time_type": "timestamp",
+      "time_grain": "month",
+      "required_time_filter": true,
+      "default_time_window": {
+        "type": "last_n",
+        "unit": "month",
+        "n": 12
+      },
+      "allowed_dimensions": [
+        "period_month",
+        "segment"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_core.dim_customer_platt_v1_1",
+      "description": "Customer dimension (Platt v1.1).",
+      "time_column": null,
+      "time_type": null,
+      "time_grain": null,
+      "required_time_filter": false,
+      "default_time_window": {
+        "type": "snapshot"
+      },
+      "allowed_dimensions": [
+        "customer_id",
+        "customer_name",
+        "has_active_service",
+        "is_test_internal"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_core.v_customer_fully_loaded_margin_banded",
+      "description": "Customer margin bands with MRR.",
+      "time_column": null,
+      "time_type": null,
+      "time_grain": null,
+      "required_time_filter": false,
+      "default_time_window": {
+        "type": "snapshot"
+      },
+      "allowed_dimensions": [
+        "customer_id",
+        "action_band"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_core.v_ticket_burden_banded",
+      "description": "Ticket burden banded view.",
+      "time_column": null,
+      "time_type": null,
+      "time_grain": null,
+      "required_time_filter": false,
+      "default_time_window": {
+        "type": "snapshot"
+      },
+      "allowed_dimensions": [
+        "customer_id",
+        "ticket_burden_band"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_core.v_investor_revenue_mix_latest",
+      "description": "Investor Questions revenue mix latest snapshot (Revenue/PlatIdCount/ARPU).",
+      "time_column": "as_of_date",
+      "time_type": "date",
+      "time_grain": "day",
+      "required_time_filter": false,
+      "default_time_window": {
+        "type": "latest"
+      },
+      "allowed_dimensions": [
+        "network",
+        "network_type",
+        "as_of_date"
+      ],
+      "empty_is_unavailable": true
+    },
+    {
+      "name": "raw_platt.customer",
+      "description": "Raw Platt customer export (billing system).",
+      "time_column": "dt",
+      "time_type": "string",
+      "time_grain": "day",
+      "required_time_filter": true,
+      "default_time_window": {
+        "type": "latest"
+      },
+      "allowed_dimensions": [
+        "id",
+        "gwi_system",
+        "active",
+        "gwi_lq_city",
+        "city"
+      ],
+      "empty_is_unavailable": true
+    },
+    {
+      "name": "raw_platt.iheader_raw",
+      "description": "Raw Platt invoice header export (billing system).",
+      "time_column": "dt",
+      "time_type": "string",
+      "time_grain": "day",
+      "required_time_filter": true,
+      "default_time_window": {
+        "type": "latest"
+      },
+      "allowed_dimensions": [
+        "customer",
+        "date",
+        "total"
+      ],
+      "empty_is_unavailable": true
+    },
+    {
+      "name": "curated_recon.v_network_mrr_recon_latest",
+      "description": "Billed vs modeled MRR reconciliation by network (latest).",
+      "time_column": "period_month",
+      "time_type": "timestamp",
+      "time_grain": "month",
+      "required_time_filter": false,
+      "default_time_window": {
+        "type": "latest"
+      },
+      "allowed_dimensions": [
+        "network",
+        "period_month"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_recon.v_network_active_services_latest",
+      "description": "Active services by network (Platt SSOT).",
+      "time_column": null,
+      "time_type": null,
+      "time_grain": null,
+      "required_time_filter": false,
+      "default_time_window": {
+        "type": "snapshot"
+      },
+      "allowed_dimensions": [
+        "network",
+        "system_key"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_recon.v_network_mix_billing_aligned_latest",
+      "description": "Network mix aligned to billing MRR + active services (latest).",
+      "time_column": "period_month",
+      "time_type": "timestamp",
+      "time_grain": "month",
+      "required_time_filter": false,
+      "default_time_window": {
+        "type": "latest"
+      },
+      "allowed_dimensions": [
+        "network",
+        "network_type",
+        "customer_type"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_recon.v_unmapped_network_services_latest",
+      "description": "Unmapped GWI system rollup (active services + billed customers).",
+      "time_column": "period_month",
+      "time_type": "timestamp",
+      "time_grain": "month",
+      "required_time_filter": false,
+      "default_time_window": {
+        "type": "latest"
+      },
+      "allowed_dimensions": [
+        "gwi_system",
+        "period_month"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_core.v_bucket_summary_latest",
+      "description": "Ownership bucket summary (owned/contracted/clec) for latest month with FSA, customer, and MRR totals.",
+      "time_column": null,
+      "time_type": null,
+      "time_grain": null,
+      "required_time_filter": false,
+      "default_time_window": {
+        "type": "snapshot"
+      },
+      "allowed_dimensions": [
+        "bucket"
+      ],
+      "empty_is_unavailable": false
+    },
+    {
+      "name": "curated_recon.v_unmapped_network_customers_latest",
+      "description": "Unmapped customer detail (active services).",
+      "time_column": "period_month",
+      "time_type": "timestamp",
+      "time_grain": "month",
+      "required_time_filter": false,
+      "default_time_window": {
+        "type": "latest"
+      },
+      "allowed_dimensions": [
+        "customer_id",
+        "customer_name",
+        "city",
+        "state",
+        "gwi_system"
+      ],
+      "empty_is_unavailable": false
+    }
+  ]
+}

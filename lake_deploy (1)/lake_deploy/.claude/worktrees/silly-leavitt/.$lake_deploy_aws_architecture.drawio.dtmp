@@ -1,0 +1,357 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.6 Chrome/140.0.7339.249 Electron/38.8.0 Safari/537.36" version="29.3.6">
+  <diagram id="aws-arch" name="AWS High-Level Architecture">
+    <mxGraphModel dx="1097" dy="694" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="2200" math="0" shadow="1">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="TITLE" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#232F3E;strokeColor=#232F3E;fontSize=16;fontStyle=1;fontColor=#ffffff;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="☁️  &lt;b&gt;OnPoint Insights — AWS Data Lake Architecture&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:10px; font-weight:normal&#39;&gt;High-Level Overview  ·  lake_deploy Platform  ·  us-east-2&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="3240" x="20" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="EXT_BG" parent="1" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#f9f9f9;strokeColor=#bbbbbb;fontSize=10;fontStyle=1;fontColor=#555555;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="EXTERNAL DATA SOURCES" vertex="1">
+          <mxGeometry height="150" width="3240" x="20" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="EXT_GAIIA" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#1565c0;fontSize=10;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;Gaiia&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;GraphQL API (Billing / CRM)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="100" width="190" x="60" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="EXT_VETRO" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#1565c0;fontSize=10;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;VETRO&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;REST API (Network / GIS)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="100" width="190" x="680" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="EXT_PLATT" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#2e7d32;fontSize=10;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;Platt&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;CSV Extract (Billing / Subscribers)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="100" width="190" x="1300" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="EXT_INTACCT" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d1c4e9;strokeColor=#4527a0;fontSize=10;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;Intacct&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;SOAP / XML (General Ledger)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="100" width="190" x="1920" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="EXT_SF" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffccbc;strokeColor=#bf360c;fontSize=10;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;Salesforce&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;CRM (Accounts / Opps)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="100" width="190" x="2540" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="AWS_BG" parent="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#fafcff;strokeColor=#FF9900;fontSize=12;fontStyle=1;fontColor=#232F3E;verticalAlign=middle;align=center;strokeWidth=2;opacity=40;" value="" vertex="1">
+          <mxGeometry height="1870" width="3240" x="20" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="AWS_LBL" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=11;fontStyle=1;fontColor=#FF9900;" value="☁️  AWS Cloud  (us-east-2)" vertex="1">
+          <mxGeometry height="24" width="250" x="35" y="268" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_BG" parent="1" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#4a0e8f;fontSize=11;fontStyle=1;fontColor=#4a0e8f;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="INGESTION LAYER" vertex="1">
+          <mxGeometry height="260" width="3220" x="30" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_GAIIA_BG" parent="1" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#ede7f6;strokeColor=#4a0e8f;fontSize=10;fontStyle=0;fontColor=#4a0e8f;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="" vertex="1">
+          <mxGeometry height="210" width="580" x="50" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_GAIIA_LBL" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=13;fontStyle=1;fontColor=#4a0e8f;" value="Gaiia" vertex="1">
+          <mxGeometry height="30" width="580" x="50" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_GAIIA_LAMBDA" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#4a0e8f;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="⚡ &lt;b&gt;Lambda&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;gaiia_ingest_lambda&lt;br&gt;GraphQL query executor&lt;br&gt;Multi-tenant loop&lt;/font&gt;" vertex="1">
+          <mxGeometry height="90" width="155" x="65" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_GAIIA_EB" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#4a0e8f;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="⏱️ &lt;b&gt;EventBridge&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Daily schedule rule&lt;br&gt;gaiia-ingest-schedule&lt;/font&gt;" vertex="1">
+          <mxGeometry height="90" width="155" x="240" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_GAIIA_SM" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#4a0e8f;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="🔐 &lt;b&gt;Secrets Mgr&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;X-Gaiia-Api-Key&lt;br&gt;Per tenant&lt;/font&gt;" vertex="1">
+          <mxGeometry height="90" width="155" x="415" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_VETRO_BG" parent="1" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#ede7f6;strokeColor=#4a0e8f;fontSize=10;fontStyle=0;fontColor=#4a0e8f;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="" vertex="1">
+          <mxGeometry height="210" width="580" x="645" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_VETRO_LBL" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=13;fontStyle=1;fontColor=#4a0e8f;" value="VETRO" vertex="1">
+          <mxGeometry height="30" width="580" x="645" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_VETRO_LAMBDA" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#4a0e8f;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="⚡ &lt;b&gt;Lambda&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;vetro_export_lambda&lt;br&gt;REST API + 429 backoff&lt;br&gt;plan_index state&lt;/font&gt;" vertex="1">
+          <mxGeometry height="90" width="155" x="660" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_VETRO_SQS" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#4a0e8f;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="📬 &lt;b&gt;SQS DLQ&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Rate-limit dead letters&lt;br&gt;vetro-export-dlq&lt;/font&gt;" vertex="1">
+          <mxGeometry height="90" width="155" x="835" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_VETRO_EB" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#4a0e8f;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="⏱️ &lt;b&gt;EventBridge&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Daily schedule rule&lt;br&gt;vetro-export-schedule&lt;/font&gt;" vertex="1">
+          <mxGeometry height="90" width="155" x="1010" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_PLATT_BG" parent="1" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#1b5e20;fontSize=10;fontStyle=0;fontColor=#1b5e20;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="" vertex="1">
+          <mxGeometry height="210" width="300" x="1240" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_PLATT_LBL" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=13;fontStyle=1;fontColor=#1b5e20;" value="Platt" vertex="1">
+          <mxGeometry height="30" width="300" x="1240" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_PLATT" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#1b5e20;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="🗂️ &lt;b&gt;Manual S3 Upload&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;+ Glue Crawler&lt;br&gt;(console-deployed ⚠️)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="90" width="260" x="1260" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_INTACCT_BG" parent="1" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#ede7f6;strokeColor=#4a0e8f;fontSize=10;fontStyle=0;fontColor=#4a0e8f;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="" vertex="1">
+          <mxGeometry height="210" width="430" x="1555" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_INTACCT_LBL" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=13;fontStyle=1;fontColor=#4a0e8f;" value="Intacct" vertex="1">
+          <mxGeometry height="30" width="430" x="1555" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_INTACCT_ECS" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d1c4e9;strokeColor=#4a0e8f;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="🐳 &lt;b&gt;ECS Task&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;intacct_ingest&lt;br&gt;SOAP/XML fetch&lt;br&gt;IaC: CF stack ✅&lt;/font&gt;" vertex="1">
+          <mxGeometry height="90" width="190" x="1570" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_INTACCT_EB" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#d1c4e9;strokeColor=#4a0e8f;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="⏱️ &lt;b&gt;EventBridge&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Daily schedule&lt;br&gt;intacct-ingest-schedule&lt;/font&gt;" vertex="1">
+          <mxGeometry height="90" width="190" x="1775" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_SF_BG" parent="1" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#e65100;fontSize=10;fontStyle=0;fontColor=#e65100;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="" vertex="1">
+          <mxGeometry height="210" width="390" x="2000" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_SF_LBL" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=13;fontStyle=1;fontColor=#e65100;" value="Salesforce" vertex="1">
+          <mxGeometry height="30" width="390" x="2000" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_SF_APPFLOW" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffccbc;strokeColor=#e65100;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="🔄 &lt;b&gt;AWS AppFlow&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;SF → S3 connector&lt;br&gt;Console-deployed ⚠️&lt;br&gt;Daily trigger&lt;/font&gt;" vertex="1">
+          <mxGeometry height="90" width="360" x="2015" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_SM_SHARED" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#c62828;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="🔐 &lt;b&gt;Secrets Manager&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;VETRO_API_KEY&lt;br&gt;INTACCT_CREDS&lt;br&gt;SF_CREDS&lt;/font&gt;" vertex="1">
+          <mxGeometry height="150" width="200" x="2415" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="ING_CF_TAG" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FF9900;strokeColor=none;fontSize=8;fontStyle=1;fontColor=#232F3E;arcSize=50;verticalAlign=middle;align=center;" value="IaC: CF" vertex="1">
+          <mxGeometry height="18" width="55" x="2630" y="335" as="geometry" />
+        </mxCell>
+        <mxCell id="RAW_BG" parent="1" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#1b5e20;fontSize=11;fontStyle=1;fontColor=#1b5e20;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="RAW LAYER" vertex="1">
+          <mxGeometry height="280" width="3220" x="30" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="RAW_S3" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#1b5e20;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="🪣 &lt;b&gt;Amazon S3&lt;/b&gt;  —  gwi-raw-us-east-2-pc&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;raw/gaiia/graphql/&amp;lt;entity&amp;gt;/tenant=&amp;lt;t&amp;gt;/dt=  &amp;nbsp;|&amp;nbsp;  raw/vetro/plan_id=/dt=  &amp;nbsp;|&amp;nbsp;  raw/platt/*  &amp;nbsp;|&amp;nbsp;  raw/intacct_xml/ + intacct_json/  &amp;nbsp;|&amp;nbsp;  raw/salesforce_prod_appflow/&lt;br&gt;orchestration/&amp;lt;source&amp;gt;_daily/run_date=/manifest.json  &amp;nbsp;|&amp;nbsp;  vetro_export_state/plan_index.json  &amp;nbsp;|&amp;nbsp;  curated_core/ + curated_recon/ + ssot/&lt;/font&gt;" vertex="1">
+          <mxGeometry height="90" width="2160" x="50" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="RAW_GLUE" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#a5d6a7;strokeColor=#1b5e20;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="🔍 &lt;b&gt;AWS Glue&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Data Catalog + Crawlers&lt;br&gt;DBs: raw_gaiia, raw_vetro,&lt;br&gt;raw_platt, raw_intacct,&lt;br&gt;raw_salesforce&lt;br&gt;Partition projection ✅&lt;br&gt;⚠️ Console-deployed&lt;/font&gt;" vertex="1">
+          <mxGeometry height="240" width="220" x="2240" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="RAW_ORCH" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f57f17;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="📋 &lt;b&gt;Orchestration State&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;ssot_daily.sh (sequential ⚠️)&lt;br&gt;EventBridge trigger (02:00 UTC)&lt;br&gt;Manifests in S3&lt;br&gt;plan_index.json (state file ⚠️)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="150" width="250" x="2480" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="RAW_PART_NOTE" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=12;fillColor=#fff9c4;strokeColor=#e6b800;fontSize=8.5;fontColor=#333;" value="Partition strategy ⚠️ Gaiia: tenant= + dt= Vetro: plan_id= + dt= Salesforce: year/month/day Intacct: run_date= ← inconsistent" vertex="1">
+          <mxGeometry height="80" width="420" x="50" y="715" as="geometry" />
+        </mxCell>
+        <mxCell id="ATHENA_BG" parent="1" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#6a1b9a;fontSize=11;fontStyle=1;fontColor=#6a1b9a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="QUERY ENGINE" vertex="1">
+          <mxGeometry height="110" width="3220" x="30" y="880" as="geometry" />
+        </mxCell>
+        <mxCell id="ATHENA" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#e1bee7;strokeColor=#6a1b9a;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="🔎 &lt;b&gt;Amazon Athena&lt;/b&gt; (Serverless SQL)&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Workgroup: primary (single, no cost isolation ⚠️)  &amp;nbsp;·&amp;nbsp;  $5 / TB scanned  &amp;nbsp;·&amp;nbsp;  Partition projection on raw tables  &amp;nbsp;·&amp;nbsp;  Query Result Reuse: NOT enabled ⚠️  &amp;nbsp;·&amp;nbsp;  UNNEST + json_extract_scalar + ROW_NUMBER() dedup  &amp;nbsp;·&amp;nbsp;  CTAS for physical curated tables&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="2700" x="50" y="900" as="geometry" />
+        </mxCell>
+        <mxCell id="CUR_BG" parent="1" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#e65100;fontSize=11;fontStyle=1;fontColor=#e65100;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="CURATED LAYER  (Athena Views — 92% Virtual ⚠️)" vertex="1">
+          <mxGeometry height="290" width="3220" x="30" y="1010" as="geometry" />
+        </mxCell>
+        <mxCell id="CUR_GAIIA" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;🔷 Gaiia Curated&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:7.5px&#39;&gt;gaiia_accounts_current (VIEW)&lt;br&gt;gaiia_subscriptions_current (VIEW)&lt;br&gt;gaiia_invoices_curated_raw (PHYS)&lt;br&gt;gaiia_products_current (VIEW)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="240" width="500" x="50" y="1040" as="geometry" />
+        </mxCell>
+        <mxCell id="CUR_VETRO" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;🗺️ Vetro Curated&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:7.5px&#39;&gt;v_vetro_plans_as_built (VIEW)&lt;br&gt;v_vetro_passings_by_plan (VIEW)&lt;br&gt;v_vetro_network_map_layers (VIEW)&lt;br&gt;vetro_plan_map (PHYS)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="240" width="500" x="570" y="1040" as="geometry" />
+        </mxCell>
+        <mxCell id="CUR_PLATT" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;📄 Platt Curated&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:7.5px&#39;&gt;platt_customer_current (VIEW)&lt;br&gt;platt_billing_summary (PHYS)&lt;br&gt;v_monthly_revenue_platt (VIEW)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="240" width="500" x="1090" y="1040" as="geometry" />
+        </mxCell>
+        <mxCell id="Cudk586M3DMpd2p0_Iv5-2" edge="1" parent="1" source="CUR_INTACCT" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;startSize=8;endSize=8;" target="CUR_PLATT" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CUR_INTACCT" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;📊 Intacct Curated&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:7.5px&#39;&gt;intacct_gl_entries_current (VIEW)&lt;br&gt;intacct_gl_entries_ssot (VIEW)&lt;br&gt;+ COA + Sage dims join&lt;/font&gt;" vertex="1">
+          <mxGeometry height="240" width="500" x="1610" y="1040" as="geometry" />
+        </mxCell>
+        <mxCell id="CUR_SF" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;☁️ Salesforce Curated&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:7.5px&#39;&gt;salesforce_account_current (VIEW)&lt;br&gt;salesforce_opportunity_current&lt;br&gt;projects_enriched (VIEW — blended)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="240" width="500" x="2130" y="1040" as="geometry" />
+        </mxCell>
+        <mxCell id="CUR_XW" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#e65100;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;🔗 Crosswalk &amp; Recon&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:7.5px&#39;&gt;sf_account_to_intacct_final&lt;br&gt;sf_intacct_crosswalk_gaps&lt;br&gt;gaiia_customers_exceptions&lt;br&gt;dq_run_log (PHYS)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="240" width="500" x="2650" y="1040" as="geometry" />
+        </mxCell>
+        <mxCell id="SSOT_BG" parent="1" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#e0f2f1;strokeColor=#00695c;fontSize=11;fontStyle=1;fontColor=#00695c;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="SSOT LAYER  (18 Physical Tables — Single Source of Truth)" vertex="1">
+          <mxGeometry height="290" width="3220" x="30" y="1320" as="geometry" />
+        </mxCell>
+        <mxCell id="SSOT_ACCT" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#b2dfdb;strokeColor=#00695c;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;dim_account&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;SF primary CONDITIONAL ⚠️&lt;/font&gt;" vertex="1">
+          <mxGeometry height="105" width="290" x="50" y="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="SSOT_LOC" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#b2dfdb;strokeColor=#00695c;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;dim_location&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Vetro+Gaiia DEGRADED ⚠️&lt;/font&gt;" vertex="1">
+          <mxGeometry height="105" width="290" x="350" y="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="SSOT_ASSET" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#b2dfdb;strokeColor=#00695c;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;dim_asset&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Vetro primary DEGRADED ⚠️&lt;/font&gt;" vertex="1">
+          <mxGeometry height="105" width="290" x="650" y="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="SSOT_PROD" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#b2dfdb;strokeColor=#00695c;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;dim_product&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;SF/Vetro/Platt PARTIAL ⚠️&lt;/font&gt;" vertex="1">
+          <mxGeometry height="105" width="290" x="950" y="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="SSOT_INV" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#a5d6a7;strokeColor=#1b5e20;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;dim_invoice&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Intacct primary PASS ✅&lt;/font&gt;" vertex="1">
+          <mxGeometry height="105" width="290" x="1250" y="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="SSOT_PAY" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#a5d6a7;strokeColor=#1b5e20;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;dim_payment&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Intacct primary PASS ✅&lt;/font&gt;" vertex="1">
+          <mxGeometry height="105" width="290" x="1550" y="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="SSOT_TICK" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#b2dfdb;strokeColor=#00695c;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;dim_ticket&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Gaiia primary CONDITIONAL&lt;/font&gt;" vertex="1">
+          <mxGeometry height="105" width="290" x="1850" y="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="XW_ACCT" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#e0f2f1;strokeColor=#00897b;fontSize=8;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;font style=&#39;font-size:8px&#39;&gt;xwalk_account SF↔Platt↔Intacct&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="432" x="50" y="1465" as="geometry" />
+        </mxCell>
+        <mxCell id="XW_LOC" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#e0f2f1;strokeColor=#00897b;fontSize=8;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;font style=&#39;font-size:8px&#39;&gt;xwalk_location Vetro↔Platt↔Gaiia&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="432" x="492" y="1465" as="geometry" />
+        </mxCell>
+        <mxCell id="XW_PROD" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#e0f2f1;strokeColor=#00897b;fontSize=8;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;font style=&#39;font-size:8px&#39;&gt;xwalk_product SF↔Platt↔Vetro&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="432" x="934" y="1465" as="geometry" />
+        </mxCell>
+        <mxCell id="XW_INV" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#e0f2f1;strokeColor=#00897b;fontSize=8;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;font style=&#39;font-size:8px&#39;&gt;xwalk_invoice Intacct↔Platt↔SF&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="432" x="1376" y="1465" as="geometry" />
+        </mxCell>
+        <mxCell id="SSOT_CERT" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#004d40;strokeColor=#00695c;fontSize=9;fontStyle=0;fontColor=#ffffff;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="📋 &lt;b&gt;SSOT Certification Status (2026-02-16)&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Platt mirror: PASS ✅  &amp;nbsp;·&amp;nbsp;  Intacct 24-month: PASS ✅  &amp;nbsp;·&amp;nbsp;  Intacct full-history: FAIL ❌  &amp;nbsp;·&amp;nbsp;  SF crosswalk: CONDITIONAL ⚠️  &amp;nbsp;·&amp;nbsp;  Ownership parity: FAIL ❌  &amp;nbsp;·&amp;nbsp;  Finance KPI: PASS ✅&lt;/font&gt;" vertex="1">
+          <mxGeometry height="50" width="3180" x="50" y="1540" as="geometry" />
+        </mxCell>
+        <mxCell id="CON_BG" parent="1" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#0d47a1;fontSize=11;fontStyle=1;fontColor=#0d47a1;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="CONSUMERS" vertex="1">
+          <mxGeometry height="150" width="3220" x="30" y="1630" as="geometry" />
+        </mxCell>
+        <mxCell id="CON_ATHENA" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#0d47a1;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;🔎 Athena Ad-Hoc&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Direct SQL queries Data analysts&lt;/font&gt;" vertex="1">
+          <mxGeometry height="100" width="580" x="50" y="1660" as="geometry" />
+        </mxCell>
+        <mxCell id="CON_DASH" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#0d47a1;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;📊 Dashboards&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Base44 (Amplify) BI tools / reports&lt;/font&gt;" vertex="1">
+          <mxGeometry height="100" width="580" x="650" y="1660" as="geometry" />
+        </mxCell>
+        <mxCell id="CON_INV" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#0d47a1;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;📈 Investor Reports&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Workbook reconciliation Proof artifacts&lt;/font&gt;" vertex="1">
+          <mxGeometry height="100" width="580" x="1250" y="1660" as="geometry" />
+        </mxCell>
+        <mxCell id="CON_API" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#0d47a1;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;🔌 API / Apps&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Downstream services Data products&lt;/font&gt;" vertex="1">
+          <mxGeometry height="100" width="580" x="1850" y="1660" as="geometry" />
+        </mxCell>
+        <mxCell id="CON_NOTION" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#0d47a1;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;📝 Notion / Docs&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Knowledge base Runbook access&lt;/font&gt;" vertex="1">
+          <mxGeometry height="100" width="580" x="2450" y="1660" as="geometry" />
+        </mxCell>
+        <mxCell id="MT_BG" parent="1" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#f3f3f3;strokeColor=#aaaaaa;fontSize=10;fontStyle=1;fontColor=#333333;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="MULTI-TENANCY STATUS" vertex="1">
+          <mxGeometry height="110" width="3220" x="30" y="1800" as="geometry" />
+        </mxCell>
+        <mxCell id="MT_GAIIA" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#0d47a1;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;🔷 Gaiia&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;✅ Multi-tenant gwi | lymefiber | dvfiber tenant= partition&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="580" x="50" y="1820" as="geometry" />
+        </mxCell>
+        <mxCell id="MT_VETRO" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffccbc;strokeColor=#e65100;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;🗺️ VETRO&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;❌ GWI-only No tenant partition Plan→tenant xwalk needed&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="580" x="650" y="1820" as="geometry" />
+        </mxCell>
+        <mxCell id="MT_PLATT" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffccbc;strokeColor=#e65100;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;📄 Platt&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;❌ GWI-only Operator code exists Not partitioned yet&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="580" x="1250" y="1820" as="geometry" />
+        </mxCell>
+        <mxCell id="MT_INTACCT" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffccbc;strokeColor=#e65100;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;📊 Intacct&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;❌ GWI-only Single entity Needs entity_id→tenant&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="580" x="1850" y="1820" as="geometry" />
+        </mxCell>
+        <mxCell id="MT_SF" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffccbc;strokeColor=#e65100;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;☁️ Salesforce&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;❌ GWI-only Single AppFlow Per-tenant connector needed&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="580" x="2450" y="1820" as="geometry" />
+        </mxCell>
+        <mxCell id="LEG_BG" parent="1" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#aaaaaa;fontSize=10;fontStyle=1;fontColor=#333333;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="LEGEND" vertex="1">
+          <mxGeometry height="230" width="480" x="2780" y="1800" as="geometry" />
+        </mxCell>
+        <mxCell id="LEG_PASS" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#1b5e20;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="PASS ✅  — Evidence validated" vertex="1">
+          <mxGeometry height="32" width="455" x="2795" y="1835" as="geometry" />
+        </mxCell>
+        <mxCell id="LEG_COND" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f57f17;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="CONDITIONAL ⚠️ — Partial / caveats" vertex="1">
+          <mxGeometry height="32" width="455" x="2795" y="1872" as="geometry" />
+        </mxCell>
+        <mxCell id="LEG_FAIL" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffcdd2;strokeColor=#c62828;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="FAIL ❌  — Gap / not implemented" vertex="1">
+          <mxGeometry height="32" width="455" x="2795" y="1909" as="geometry" />
+        </mxCell>
+        <mxCell id="LEG_IaC" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#e1bee7;strokeColor=#4a0e8f;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="IaC ✅  — CloudFormation deployed" vertex="1">
+          <mxGeometry height="32" width="455" x="2795" y="1946" as="geometry" />
+        </mxCell>
+        <mxCell id="LEG_CONS" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#e65100;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="Console ⚠️ — Manual, not in IaC" vertex="1">
+          <mxGeometry height="32" width="455" x="2795" y="1983" as="geometry" />
+        </mxCell>
+        <mxCell id="A_E_GAIIA" edge="1" parent="1" source="EXT_GAIIA" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#0d47a1;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="ING_GAIIA_LAMBDA" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_E_VETRO" edge="1" parent="1" source="EXT_VETRO" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#0d47a1;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="ING_VETRO_LAMBDA" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_E_PLATT" edge="1" parent="1" source="EXT_PLATT" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#1b5e20;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="ING_PLATT" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_E_INTACCT" edge="1" parent="1" source="EXT_INTACCT" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#4a0e8f;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="ING_INTACCT_ECS" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_E_SF" edge="1" parent="1" source="EXT_SF" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#e65100;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="ING_SF_APPFLOW" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_EB_GAIIA" edge="1" parent="1" source="ING_GAIIA_EB" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#4a0e8f;strokeWidth=2;rounded=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="ING_GAIIA_LAMBDA" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_EB_VETRO" edge="1" parent="1" source="ING_VETRO_EB" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#4a0e8f;strokeWidth=2;rounded=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="ING_VETRO_LAMBDA" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_EB_INTACCT" edge="1" parent="1" source="ING_INTACCT_EB" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#4a0e8f;strokeWidth=2;rounded=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="ING_INTACCT_ECS" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_ING_S3_1" edge="1" parent="1" source="ING_GAIIA_LAMBDA" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#1b5e20;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="RAW_S3" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_ING_S3_2" edge="1" parent="1" source="ING_VETRO_LAMBDA" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#1b5e20;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="RAW_S3" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_ING_S3_3" edge="1" parent="1" source="ING_PLATT" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#1b5e20;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="RAW_S3" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_ING_S3_4" edge="1" parent="1" source="ING_INTACCT_ECS" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#1b5e20;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="RAW_S3" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_ING_S3_5" edge="1" parent="1" source="ING_SF_APPFLOW" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#1b5e20;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="RAW_S3" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_S3_GLUE" edge="1" parent="1" source="RAW_S3" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#1b5e20;strokeWidth=2;rounded=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="RAW_GLUE" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_GLUE_ATH" edge="1" parent="1" source="RAW_GLUE" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#6a1b9a;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="ATHENA" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_S3_ATH" edge="1" parent="1" source="RAW_S3" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;dashPattern=6 3;strokeColor=#6a1b9a;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="ATHENA" value="CTAS / View">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_ATH_CUR" edge="1" parent="1" source="ATHENA" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#e65100;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="CUR_GAIIA" value="Athena Views → Curated">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_CUR_SSOT" edge="1" parent="1" source="CUR_GAIIA" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#00695c;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="SSOT_ACCT" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_CUR_SSOT2" edge="1" parent="1" source="CUR_VETRO" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#00695c;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="SSOT_LOC" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_CUR_SSOT3" edge="1" parent="1" source="CUR_PLATT" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#00695c;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="SSOT_INV" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_CUR_SSOT4" edge="1" parent="1" source="CUR_INTACCT" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#00695c;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="SSOT_INV" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_CUR_SSOT5" edge="1" parent="1" source="CUR_SF" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#00695c;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="SSOT_ACCT" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2380" y="1480" />
+              <mxPoint x="195" y="1480" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="A_SSOT_CON" edge="1" parent="1" source="SSOT_ACCT" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#0d47a1;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="CON_DASH" value="Query via Athena">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_SSOT_CON2" edge="1" parent="1" source="SSOT_INV" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=0;strokeColor=#0d47a1;strokeWidth=2;rounded=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="CON_INV" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_SQS_VETRO" edge="1" parent="1" source="ING_VETRO_LAMBDA" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;dashPattern=6 3;strokeColor=#c62828;strokeWidth=2;rounded=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="ING_VETRO_SQS" value="429 DLQ">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_SM_GAIIA" edge="1" parent="1" source="ING_GAIIA_SM" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;dashPattern=6 3;strokeColor=#c62828;strokeWidth=2;rounded=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="ING_GAIIA_LAMBDA" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_SM_SHARED" edge="1" parent="1" source="ING_SM_SHARED" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;dashPattern=6 3;strokeColor=#c62828;strokeWidth=2;rounded=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="ING_INTACCT_ECS" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A_CW_ING" edge="1" parent="1" source="OBS_CW" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;dashPattern=6 3;strokeColor=#aaaaaa;strokeWidth=2;rounded=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=block;endFill=1;" target="ING_GAIIA_LAMBDA" value="logs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Cudk586M3DMpd2p0_Iv5-1" connectable="0" parent="1" style="group" value="" vertex="1">
+          <mxGeometry height="710" width="510" x="3335" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="ATHENA_WG" parent="Cudk586M3DMpd2p0_Iv5-1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ce93d8;strokeColor=#6a1b9a;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="⚙️ &lt;b&gt;Workgroups&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;primary (all-in-one ⚠️)&lt;br&gt;No per-stage cost&lt;br&gt;attribution&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="445" x="25" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="OBS_BG" parent="Cudk586M3DMpd2p0_Iv5-1" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#eceff1;strokeColor=#455a64;fontSize=11;fontStyle=1;fontColor=#455a64;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="OBSERVABILITY &amp; GOVERNANCE" vertex="1">
+          <mxGeometry height="710" width="510" as="geometry" />
+        </mxCell>
+        <mxCell id="OBS_CW" parent="Cudk586M3DMpd2p0_Iv5-1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#c62828;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;☁️ CloudWatch&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Logs (basic only ⚠️) No SLA alarms ⚠️ No DLQ alarm ⚠️&lt;/font&gt;" vertex="1">
+          <mxGeometry height="110" width="480" x="15" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="OBS_CF" parent="Cudk586M3DMpd2p0_Iv5-1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f57f17;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;🏗️ CloudFormation&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Gaiia stack ✅ Vetro stack ✅ Intacct ECS ✅ Glue/AppFlow ❌&lt;/font&gt;" vertex="1">
+          <mxGeometry height="110" width="480" x="15" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="OBS_IAM" parent="Cudk586M3DMpd2p0_Iv5-1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#c62828;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;🔒 IAM / OIDC&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Lambda exec roles ECS task roles Long-lived keys ⚠️&lt;/font&gt;" vertex="1">
+          <mxGeometry height="110" width="480" x="15" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="OBS_SM2" parent="Cudk586M3DMpd2p0_Iv5-1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#1b5e20;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;🔐 Secrets Manager&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;All API keys stored No rotation config ⚠️&lt;/font&gt;" vertex="1">
+          <mxGeometry height="110" width="480" x="15" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="OBS_AMPLIFY" parent="Cudk586M3DMpd2p0_Iv5-1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f57f17;fontSize=9;fontStyle=0;fontColor=#1a1a1a;verticalAlign=middle;align=center;strokeWidth=2;opacity=100;" value="&lt;b&gt;&lt;font style=&#39;font-size:9px&#39;&gt;📱 Amplify&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:8px&#39;&gt;Base44 frontend app Manual artifact upload ⚠️ No CI/CD pipeline&lt;/font&gt;" vertex="1">
+          <mxGeometry height="110" width="480" x="15" y="510" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

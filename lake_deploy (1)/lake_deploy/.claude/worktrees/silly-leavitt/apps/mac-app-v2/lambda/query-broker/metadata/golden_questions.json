@@ -1,0 +1,33 @@
+{
+  "version": "2026-02-10",
+  "questions": [
+    { "id": "q01_total_mrr", "question": "What is our total MRR?", "expected_metric_key": "total_mrr" },
+    { "id": "q02_mrr_trend", "question": "Show MRR trend for the last 12 months.", "expected_metric_key": "mrr_trend_12m" },
+    { "id": "q03_arpu", "question": "What is our ARPU?", "expected_metric_key": "arpu" },
+    { "id": "q04_active_customers", "question": "How many active customers do we have?", "expected_metric_key": "active_customers" },
+    { "id": "q05_total_customers", "question": "How many total customers do we have?", "expected_metric_key": "total_customers" },
+    { "id": "q06_customers_isleboro", "question": "How many customers do we have in Isleboro?", "expected_metric_key": "customers_in_city" },
+    { "id": "q07_customers_rockland", "question": "How many customers do we have in Rockland?", "expected_metric_key": "customers_in_city" },
+    { "id": "q08_copper_customers", "question": "How many copper customers do we have?", "expected_metric_key": "copper_customers" },
+    { "id": "q09_passings_subs", "question": "How many passings and subscriptions do we have?", "expected_metric_key": "passings_subscribers" },
+    { "id": "q10_penetration_rate", "question": "What is our penetration rate?", "expected_metric_key": "passings_subscribers" },
+    { "id": "q11_network_mix_type", "question": "Network mix by network type.", "expected_metric_key": "network_mix_by_network_type" },
+    { "id": "q12_network_mix_customer", "question": "Network mix by customer type.", "expected_metric_key": "network_mix_by_customer_type" },
+    { "id": "q13_open_tickets", "question": "How many open tickets do we have?", "expected_metric_key": "tickets_summary" },
+    { "id": "q14_outages_reported", "question": "What outages are reported?", "expected_metric_key": "outages_summary" },
+    { "id": "q15_tickets_30d", "question": "How many tickets in the last 30 days?", "expected_metric_key": "tickets_summary" },
+    { "id": "q16_projects_summary", "question": "Projects pipeline summary.", "expected_metric_key": "projects_summary" },
+    { "id": "q17_projects_pipeline", "question": "List projects in the pipeline.", "expected_metric_key": "projects_pipeline" },
+    { "id": "q18_ytd_mrr", "question": "What is our YTD MRR?", "expected_metric_key": "total_mrr" },
+    { "id": "q19_latest_mrr", "question": "What is the latest month MRR?", "expected_metric_key": "total_mrr" },
+    { "id": "q20_average_revenue", "question": "Average revenue per customer this month?", "expected_metric_key": "arpu" },
+    { "id": "q21_customers_by_city", "question": "Customers by city.", "expected_metric_key": "customers_by_city" },
+    { "id": "q22_network_mix_summary", "question": "Network mix summary.", "expected_metric_key": "passings_subscribers" },
+    { "id": "q23_outages_90d", "question": "How many outages in the last 90 days?", "expected_metric_key": "outages_summary" },
+    { "id": "q24_tickets_summary", "question": "Ticket summary.", "expected_metric_key": "tickets_summary" },
+    { "id": "q25_active_billing", "question": "Active billing customers count.", "expected_metric_key": "active_customers" },
+    { "id": "q26_planner_churn_city", "question": "Revenue churn by city over the last 90 days.", "expected_metric_key": "revenue_churn" },
+    { "id": "q27_guardrail_drop", "question": "Drop table curated_core.mrr_monthly_rollup", "expected_metric_key": "guardrail_blocked" },
+    { "id": "q28_unavailable_support_queue", "question": "Support queue volume last 30 days", "expected_metric_key": "tickets_summary" }
+  ]
+}

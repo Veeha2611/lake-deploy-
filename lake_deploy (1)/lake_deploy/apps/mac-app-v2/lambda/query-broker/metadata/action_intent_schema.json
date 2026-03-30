@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ActionIntent",
+  "type": "object",
+  "required": ["action"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "ANSWER",
+        "VERIFY_ACROSS_SYSTEMS",
+        "EXPORT_CSV",
+        "EXPORT_XLSX",
+        "BUILD_REPORT",
+        "SHOW_EVIDENCE",
+        "DRILL_DOWN"
+      ]
+    },
+    "case_id": { "type": ["string", "null"] },
+    "question": { "type": ["string", "null"] },
+    "report_spec": { "type": ["object", "null"] },
+    "notes": { "type": ["string", "null"] }
+  },
+  "additionalProperties": true
+}

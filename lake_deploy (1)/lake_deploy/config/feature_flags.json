@@ -1,0 +1,20 @@
+{
+  "version": "2026-02-13",
+  "defaults": {
+    "CASE_RUNTIME_ENABLED": false,
+    "PLANNER_ALLOWED": false,
+    "NATIVE_VERIFY_ENABLED": false,
+    "REPORT_EXPORT_ENABLED": false,
+    "CAPABILITY_ROUTER_ENABLED": false,
+    "IPV4_ENABLED": false,
+    "BEDROCK_ENABLED": false,
+    "BEDROCK_TOOL_USE_ENABLED": false,
+    "KB_ENABLED": false,
+    "VERIFY_ACTION_ENABLED": false
+  },
+  "notes": [
+    "All flags default to safe-off unless explicitly enabled in the runtime environment.",
+    "Any flag enabling write paths must also enforce dedicated S3 prefixes and least-privilege IAM."
+  ]
+}
+

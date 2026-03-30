@@ -1,0 +1,96 @@
+#!/bin/bash
+
+REDACTED
+OUTDIR="$HOME/vetro_ingest/raw"
+mkdir -p "$OUTDIR"
+
+PLAN_IDS=(
+63
+316
+366
+408
+667
+743
+744
+1025
+1026
+1027
+1028
+1029
+1041
+1089
+1120
+1139
+1148
+1207
+1215
+1236
+1237
+1243
+1298
+1300
+1408
+1542
+1547
+1548
+1549
+1550
+1653
+1778
+1827
+1882
+2196
+2197
+2262
+2263
+2285
+2289
+2290
+2291
+2292
+2309
+2318
+2321
+2325
+2327
+2329
+2346
+2351
+2383
+2393
+2395
+2413
+2419
+2423
+2509
+2562
+2606
+2628
+2635
+2636
+2669
+2682
+2688
+2749
+2750
+2751
+2752
+2753
+2754
+2756
+2757
+)
+
+for PLAN_ID in "${PLAN_IDS[@]}"; do
+  echo "Fetching plan $PLAN_ID..."
+  OUTFILE="${OUTDIR}/plan_${PLAN_ID}.json"
+
+  curl --silent \
+    --header "REDACTED \
+    "https://api.vetro.io/v3/features/query?plan_ids[]=${PLAN_ID}&limit=50000&offset=0" \
+    > "$OUTFILE"
+
+  echo "Saved: $OUTFILE"
+done
+
+echo "Batch ingestion complete."

@@ -1,0 +1,39 @@
+flowchart LR
+  subgraph Sources
+    SF[Salesforce]
+    PL[Platt]
+    IA[Intacct]
+    VT[Vetro]
+    MN[Monday]
+    GA[Gaiia]
+    B44[Base44 App]
+  end
+
+  subgraph Raw
+    RAW_S3[(S3 raw/*)]
+  end
+
+  subgraph Curated
+    CUR_S3[(S3 curated/*)]
+    ATHENA[Athena Views]
+  end
+
+  subgraph SSOT_Layer
+    SSOT_VIEW[(SSOT Views)]
+  end
+
+  subgraph Consumption
+    APP[Base44 UI]
+    BI[Analysis / Reports]
+  end
+
+  SF --> RAW_S3
+  PL --> RAW_S3
+  IA --> RAW_S3
+  VT --> RAW_S3
+  MN --> RAW_S3
+  GA --> RAW_S3
+  B44 --> RAW_S3
+
+  RAW_S3 --> CUR_S3 --> ATHENA --> SSOT_VIEW --> APP
+  SSOT_VIEW --> BI

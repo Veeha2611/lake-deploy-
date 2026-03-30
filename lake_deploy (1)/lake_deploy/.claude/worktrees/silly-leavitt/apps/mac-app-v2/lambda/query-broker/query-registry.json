@@ -1,0 +1,1011 @@
+{
+  "total_mrr": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt"
+    ],
+    "sql": "WITH monthly AS (\n  SELECT\n    CAST(date_trunc('month', period_month) AS date) AS period_month,\n    SUM(COALESCE(mrr_total, 0)) AS total_mrr,\n    COUNT(DISTINCT CASE WHEN COALESCE(mrr_total, 0) > 0 THEN customer_id END) AS customer_count\n  FROM curated_core.v_monthly_mrr_platt\n  GROUP BY 1\n), latest AS (\n  SELECT MAX(period_month) AS latest_month\n  FROM monthly\n)\nSELECT\n  period_month,\n  total_mrr,\n  customer_count\nFROM monthly\nWHERE period_month = (SELECT latest_month FROM latest)\nLIMIT 1;",
+    "params": []
+  },
+  "mrr_overview": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt"
+    ],
+    "sql": "WITH monthly AS (\n  SELECT\n    CAST(date_trunc('month', period_month) AS date) AS period_month,\n    SUM(COALESCE(mrr_total, 0)) AS total_mrr,\n    COUNT(DISTINCT CASE WHEN COALESCE(mrr_total, 0) > 0 THEN customer_id END) AS customer_count\n  FROM curated_core.v_monthly_mrr_platt\n  GROUP BY 1\n), latest AS (\n  SELECT MAX(period_month) AS latest_month\n  FROM monthly\n), recent AS (\n  SELECT period_month, total_mrr, customer_count\n  FROM monthly\n  WHERE period_month >= date_add('month', -11, (SELECT latest_month FROM latest))\n), ytd AS (\n  SELECT\n    SUM(total_mrr) AS ytd_total_mrr,\n    AVG(total_mrr) AS ytd_avg_mrr,\n    COUNT(*) AS ytd_months\n  FROM monthly\n  WHERE year(period_month) = year((SELECT latest_month FROM latest))\n), latest_row AS (\n  SELECT total_mrr, customer_count, period_month\n  FROM monthly\n  WHERE period_month = (SELECT latest_month FROM latest)\n)\nSELECT\n  CAST(MAX(l.latest_month) AS DATE) AS period_month,\n  MAX(lr.total_mrr) AS latest_total_mrr,\n  MAX(lr.customer_count) AS latest_active_accounts,\n  MAX(ytd.ytd_total_mrr) AS ytd_total_mrr,\n  MAX(ytd.ytd_avg_mrr) AS ytd_avg_mrr,\n  MAX(ytd.ytd_months) AS ytd_months,\n  SUM(r.total_mrr) AS ttm_total_mrr,\n  AVG(r.total_mrr) AS ttm_avg_mrr,\n  COUNT(*) AS ttm_months\nFROM latest l\nCROSS JOIN latest_row lr\nCROSS JOIN ytd\nCROSS JOIN recent r\nLIMIT 1;",
+    "params": []
+  },
+  "mrr_trend_12m": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt"
+    ],
+    "sql": "WITH monthly AS (\n  SELECT\n    CAST(date_trunc('month', period_month) AS date) AS period_month,\n    SUM(COALESCE(mrr_total, 0)) AS total_mrr,\n    COUNT(DISTINCT CASE WHEN COALESCE(mrr_total, 0) > 0 THEN customer_id END) AS customer_count\n  FROM curated_core.v_monthly_mrr_platt\n  GROUP BY 1\n), latest AS (\n  SELECT MAX(period_month) AS latest_month\n  FROM monthly\n)\nSELECT\n  period_month,\n  total_mrr,\n  customer_count\nFROM monthly\nWHERE period_month >= date_add('month', -11, (SELECT latest_month FROM latest))\nORDER BY period_month\nLIMIT 12;",
+    "params": []
+  },
+  "mrr_trend_range": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt"
+    ],
+    "sql": "WITH monthly AS (\n  SELECT\n    CAST(date_trunc('month', period_month) AS date) AS period_month,\n    SUM(COALESCE(mrr_total, 0)) AS total_mrr,\n    COUNT(DISTINCT CASE WHEN COALESCE(mrr_total, 0) > 0 THEN customer_id END) AS customer_count\n  FROM curated_core.v_monthly_mrr_platt\n  GROUP BY 1\n), latest AS (\n  SELECT MAX(period_month) AS latest_month\n  FROM monthly\n), bounds AS (\n  SELECT\n    CASE\n      WHEN DATE ${start_month} > (SELECT latest_month FROM latest) THEN (SELECT latest_month FROM latest)\n      ELSE DATE ${start_month}\n    END AS start_month,\n    CASE\n      WHEN DATE ${end_month} > (SELECT latest_month FROM latest) THEN (SELECT latest_month FROM latest)\n      ELSE DATE ${end_month}\n    END AS end_month\n)\nSELECT\n  period_month,\n  total_mrr,\n  customer_count,\n  CASE WHEN customer_count > 0 THEN total_mrr / customer_count ELSE NULL END AS arpu\nFROM monthly\nWHERE period_month BETWEEN (SELECT start_month FROM bounds) AND (SELECT end_month FROM bounds)\nORDER BY period_month\nLIMIT 60;",
+    "params": [
+      "start_month",
+      "end_month"
+    ]
+  },
+  "mrr_by_month": {
+    "views_used": [
+      "curated_core.v_monthly_revenue_platt_long"
+    ],
+    "sql": "SELECT\n  period_month,\n  SUM(revenue_total) AS total_revenue,\n  COUNT(DISTINCT customer_id) AS customers,\n  CASE WHEN COUNT(DISTINCT customer_id) > 0 THEN SUM(revenue_total) / COUNT(DISTINCT customer_id) ELSE NULL END AS arpu\nFROM curated_core.v_monthly_revenue_platt_long\nWHERE period_month = DATE ${target_month}\nGROUP BY period_month\nLIMIT 1;",
+    "params": [
+      "target_month"
+    ]
+  },
+  "forecast_ap_spend": {
+    "views_used": [
+      "curated_core.intacct_gl_entries_current_ssot"
+    ],
+    "sql": "WITH base AS (\n  SELECT\n    COALESCE(business_date, TRY(date_parse(entry_date, '%m/%d/%Y'))) AS entry_dt,\n    account_category,\n    TRY_CAST(amount AS double) AS amount\n  FROM curated_core.intacct_gl_entries_current_ssot\n  WHERE business_date IS NOT NULL OR entry_date IS NOT NULL\n), windowed AS (\n  SELECT *\n  FROM base\n  WHERE entry_dt IS NOT NULL\n    AND entry_dt >= DATE ${start_date}\n    AND entry_dt < date_add('month', 1, date_trunc('month', DATE ${end_date}))\n)\nSELECT\n  date_format(date_trunc('month', entry_dt), '%Y-%m') AS period_month,\n  SUM(amount) AS amount_total\nFROM windowed\nWHERE account_category LIKE 'Accounts Payable%'\nGROUP BY 1\nORDER BY 1;",
+    "params": [
+      "start_date",
+      "end_date"
+    ]
+  },
+  "forecast_revenue": {
+    "views_used": [
+      "curated_core.v_monthly_revenue_platt_long"
+    ],
+    "sql": "SELECT\n  date_format(period_month, '%Y-%m') AS period_month,\n  SUM(revenue_total) AS total_revenue\nFROM curated_core.v_monthly_revenue_platt_long\nWHERE period_month >= DATE ${start_date}\n  AND period_month < date_add('month', 1, date_trunc('month', DATE ${end_date}))\nGROUP BY 1\nORDER BY 1;",
+    "params": [
+      "start_date",
+      "end_date"
+    ]
+  },
+  "forecast_vendor_spend": {
+    "views_used": [
+      "curated_core.intacct_gl_entries_current_ssot"
+    ],
+    "sql": "WITH base AS (\n  SELECT\n    COALESCE(business_date, TRY(date_parse(entry_date, '%m/%d/%Y'))) AS entry_dt,\n    account_category,\n    vendor_name_dim,\n    vendorname,\n    vendorid,\n    TRY_CAST(amount AS double) AS amount\n  FROM curated_core.intacct_gl_entries_current_ssot\n  WHERE business_date IS NOT NULL OR entry_date IS NOT NULL\n), windowed AS (\n  SELECT *\n  FROM base\n  WHERE entry_dt IS NOT NULL\n    AND entry_dt >= DATE ${start_date}\n    AND entry_dt < date_add('month', 1, date_trunc('month', DATE ${end_date}))\n), ranked AS (\n  SELECT\n    COALESCE(NULLIF(vendor_name_dim, ''), NULLIF(vendorname, ''), NULLIF(vendorid, ''), 'Unknown') AS vendor,\n    SUM(ABS(amount)) AS total_abs\n  FROM windowed\n  GROUP BY 1\n  ORDER BY total_abs DESC\n  LIMIT 10\n), monthly AS (\n  SELECT\n    date_format(date_trunc('month', entry_dt), '%Y-%m') AS period_month,\n    COALESCE(NULLIF(vendor_name_dim, ''), NULLIF(vendorname, ''), NULLIF(vendorid, ''), 'Unknown') AS vendor,\n    SUM(amount) AS amount_total\n  FROM windowed\n  WHERE COALESCE(NULLIF(vendor_name_dim, ''), NULLIF(vendorname, ''), NULLIF(vendorid, ''), 'Unknown') IN (SELECT vendor FROM ranked)\n  GROUP BY 1,2\n)\nSELECT period_month, vendor, amount_total\nFROM monthly\nORDER BY period_month, vendor;",
+    "params": [
+      "start_date",
+      "end_date"
+    ]
+  },
+  "forecast_gl_account": {
+    "views_used": [
+      "curated_core.intacct_gl_entries_current_ssot"
+    ],
+    "sql": "WITH base AS (\n  SELECT\n    COALESCE(business_date, TRY(date_parse(entry_date, '%m/%d/%Y'))) AS entry_dt,\n    accountno,\n    account_title,\n    TRY_CAST(amount AS double) AS amount\n  FROM curated_core.intacct_gl_entries_current_ssot\n  WHERE business_date IS NOT NULL OR entry_date IS NOT NULL\n), windowed AS (\n  SELECT *\n  FROM base\n  WHERE entry_dt IS NOT NULL\n    AND entry_dt >= DATE ${start_date}\n    AND entry_dt < date_add('month', 1, date_trunc('month', DATE ${end_date}))\n), ranked AS (\n  SELECT accountno, account_title, SUM(ABS(amount)) AS total_abs\n  FROM windowed\n  WHERE accountno IS NOT NULL AND account_title IS NOT NULL\n  GROUP BY 1,2\n  ORDER BY total_abs DESC\n  LIMIT 15\n)\nSELECT\n  date_format(date_trunc('month', w.entry_dt), '%Y-%m') AS period_month,\n  w.accountno,\n  w.account_title,\n  SUM(w.amount) AS amount_total\nFROM windowed w\nJOIN ranked r\n  ON w.accountno = r.accountno AND w.account_title = r.account_title\nGROUP BY 1,2,3\nORDER BY period_month, accountno;",
+    "params": [
+      "start_date",
+      "end_date"
+    ]
+  },
+  "forecast_cash_flow": {
+    "views_used": [
+      "curated_core.intacct_gl_entries_current_ssot"
+    ],
+    "sql": "WITH base AS (\n  SELECT\n    COALESCE(business_date, TRY(date_parse(entry_date, '%m/%d/%Y'))) AS entry_dt,\n    account_category,\n    TRY_CAST(amount AS double) AS amount\n  FROM curated_core.intacct_gl_entries_current_ssot\n  WHERE business_date IS NOT NULL OR entry_date IS NOT NULL\n), windowed AS (\n  SELECT *\n  FROM base\n  WHERE entry_dt IS NOT NULL\n    AND entry_dt >= DATE ${start_date}\n    AND entry_dt < date_add('month', 1, date_trunc('month', DATE ${end_date}))\n)\nSELECT\n  date_format(date_trunc('month', entry_dt), '%Y-%m') AS period_month,\n  SUM(CASE WHEN account_category LIKE 'Revenue%' OR account_category LIKE '%Revenue' OR account_category = 'Sales Returns and Discounts' THEN amount ELSE 0 END) AS revenue,\n  SUM(CASE WHEN account_category LIKE 'Revenue%' OR account_category LIKE '%Revenue' OR account_category = 'Sales Returns and Discounts' THEN 0 ELSE ABS(amount) END) AS expenses,\n  SUM(CASE WHEN account_category LIKE 'Revenue%' OR account_category LIKE '%Revenue' OR account_category = 'Sales Returns and Discounts' THEN amount ELSE 0 END)\n    - SUM(CASE WHEN account_category LIKE 'Revenue%' OR account_category LIKE '%Revenue' OR account_category = 'Sales Returns and Discounts' THEN 0 ELSE ABS(amount) END) AS cash_flow\nFROM windowed\nGROUP BY 1\nORDER BY 1;",
+    "params": [
+      "start_date",
+      "end_date"
+    ]
+  },
+  "forecast_expense_category": {
+    "views_used": [
+      "curated_core.intacct_gl_entries_current_ssot"
+    ],
+    "sql": "WITH base AS (\n  SELECT\n    COALESCE(business_date, TRY(date_parse(entry_date, '%m/%d/%Y'))) AS entry_dt,\n    account_category,\n    TRY_CAST(amount AS double) AS amount\n  FROM curated_core.intacct_gl_entries_current_ssot\n  WHERE business_date IS NOT NULL OR entry_date IS NOT NULL\n), windowed AS (\n  SELECT *\n  FROM base\n  WHERE entry_dt IS NOT NULL\n    AND entry_dt >= DATE ${start_date}\n    AND entry_dt < date_add('month', 1, date_trunc('month', DATE ${end_date}))\n)\nSELECT\n  date_format(date_trunc('month', entry_dt), '%Y-%m') AS period_month,\n  account_category,\n  SUM(amount) AS amount_total\nFROM windowed\nWHERE account_category IS NOT NULL\n  AND NOT (account_category LIKE 'Revenue%' OR account_category LIKE '%Revenue' OR account_category = 'Sales Returns and Discounts')\nGROUP BY 1,2\nORDER BY 1,2;",
+    "params": [
+      "start_date",
+      "end_date"
+    ]
+  },
+  "customer_count": {
+    "views_used": [
+      "curated_core.dim_customer_platt_v1_1"
+    ],
+    "sql": "SELECT\n  COUNT(DISTINCT customer_id) AS total_customers,\n  COUNT(DISTINCT CASE WHEN has_active_service = true THEN customer_id END) AS active_customers,\n  COUNT(DISTINCT CASE WHEN has_active_service = false THEN customer_id END) AS inactive_customers\nFROM curated_core.dim_customer_platt_v1_1\nWHERE (is_test_internal = false OR is_test_internal IS NULL)\nLIMIT 1;",
+    "params": []
+  },
+  "billing_customers_latest": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt"
+    ],
+    "sql": "WITH latest AS (\n  SELECT MAX(period_month) AS period_month\n  FROM curated_core.v_monthly_mrr_platt\n)\nSELECT\n  COUNT(DISTINCT CASE WHEN COALESCE(m.mrr_total, 0) > 0 THEN m.customer_id END) AS billing_customers,\n  MAX(l.period_month) AS period_month\nFROM curated_core.v_monthly_mrr_platt m\nCROSS JOIN latest l\nWHERE m.period_month = l.period_month\nLIMIT 1;",
+    "params": []
+  },
+  "arpu_overview": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt"
+    ],
+    "sql": "WITH monthly AS (\n  SELECT\n    CAST(date_trunc('month', period_month) AS date) AS period_month,\n    SUM(COALESCE(mrr_total, 0)) AS total_mrr,\n    COUNT(DISTINCT CASE WHEN COALESCE(mrr_total, 0) > 0 THEN customer_id END) AS customer_count\n  FROM curated_core.v_monthly_mrr_platt\n  GROUP BY 1\n), latest AS (\n  SELECT MAX(period_month) AS latest_month\n  FROM monthly\n), latest_row AS (\n  SELECT total_mrr, customer_count, period_month\n  FROM monthly\n  WHERE period_month = (SELECT latest_month FROM latest)\n), recent AS (\n  SELECT total_mrr, customer_count\n  FROM monthly\n  WHERE period_month >= date_add('month', -11, (SELECT latest_month FROM latest))\n)\nSELECT\n  CAST(MAX(latest.latest_month) AS DATE) AS period_month,\n  CASE\n    WHEN MAX(latest_row.customer_count) > 0 THEN MAX(latest_row.total_mrr) / MAX(latest_row.customer_count)\n    ELSE NULL\n  END AS latest_arpu,\n  AVG(CASE WHEN recent.customer_count > 0 THEN recent.total_mrr / recent.customer_count ELSE NULL END) AS ttm_avg_arpu\nFROM latest\nCROSS JOIN latest_row\nCROSS JOIN recent\nLIMIT 1;",
+    "params": []
+  },
+  "customer_overview": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt",
+      "curated_core.platt_customer_current_ssot"
+    ],
+    "sql": "WITH latest AS (\n  SELECT MAX(period_month) AS period_month\n  FROM curated_core.v_monthly_mrr_platt\n), billing AS (\n  SELECT\n    COUNT(DISTINCT CASE WHEN COALESCE(m.mrr_total, 0) > 0 THEN m.customer_id END) AS active_billing_customers,\n    MAX(l.period_month) AS period_month\n  FROM curated_core.v_monthly_mrr_platt m\n  CROSS JOIN latest l\n  WHERE m.period_month = l.period_month\n), ssot AS (\n  SELECT\n    COUNT(DISTINCT CASE WHEN username IS NOT NULL AND TRIM(username) <> '' THEN username END) AS total_customers_ssot,\n    COUNT(DISTINCT CASE WHEN LOWER(COALESCE(active, '')) IN ('y','yes','true','1') AND username IS NOT NULL AND TRIM(username) <> '' THEN username END) AS active_customers_ssot\n  FROM curated_core.platt_customer_current_ssot\n  WHERE LOWER(COALESCE(sensitive_p, '')) <> 'y'\n)\nSELECT\n  billing.period_month,\n  billing.active_billing_customers,\n  ssot.total_customers_ssot,\n  ssot.active_customers_ssot\nFROM billing\nCROSS JOIN ssot\nLIMIT 1;",
+    "params": []
+  },
+  "customer_identity_overview": {
+    "views_used": [
+      "curated_core.v_finance_kpis_latest",
+      "curated_core.v_network_health",
+      "curated_core.platt_customer_current_ssot"
+    ],
+    "sql": "WITH finance AS (\n  SELECT\n    CAST(period_month AS date) AS period_month,\n    CAST(mrr_customers AS bigint) AS billing_customers,\n    CAST(active_accounts AS bigint) AS active_service_customers\n  FROM curated_core.v_finance_kpis_latest\n  LIMIT 1\n), modeled AS (\n  SELECT\n    SUM(COALESCE(subscriptions, 0)) AS active_subscriptions\n  FROM curated_core.v_network_health\n  WHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n), ssot AS (\n  SELECT\n    COUNT(DISTINCT CASE WHEN username IS NOT NULL AND TRIM(username) <> '' THEN username END) AS total_ssot_customers,\n    COUNT(DISTINCT CASE WHEN LOWER(COALESCE(active, '')) IN ('y','yes','true','1') AND username IS NOT NULL AND TRIM(username) <> '' THEN username END) AS active_ssot_customers\n  FROM curated_core.platt_customer_current_ssot\n  WHERE LOWER(COALESCE(sensitive_p, '')) <> 'y'\n)\nSELECT\n  CAST(finance.period_month AS timestamp) AS period_month,\n  finance.billing_customers,\n  finance.active_service_customers,\n  modeled.active_subscriptions,\n  ssot.active_ssot_customers,\n  ssot.total_ssot_customers\nFROM finance\nCROSS JOIN modeled\nCROSS JOIN ssot\nLIMIT 1;",
+    "params": []
+  },
+  "customer_trend_12m": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt"
+    ],
+    "sql": "WITH monthly AS (\n  SELECT\n    CAST(date_trunc('month', period_month) AS date) AS period_month,\n    SUM(COALESCE(mrr_total, 0)) AS total_mrr,\n    COUNT(DISTINCT CASE WHEN COALESCE(mrr_total, 0) > 0 THEN customer_id END) AS customer_count\n  FROM curated_core.v_monthly_mrr_platt\n  GROUP BY 1\n), latest AS (\n  SELECT MAX(period_month) AS latest_month\n  FROM monthly\n)\nSELECT\n  period_month,\n  customer_count\nFROM monthly\nWHERE period_month >= date_add('month', -11, (SELECT latest_month FROM latest))\nORDER BY period_month\nLIMIT 12;",
+    "params": []
+  },
+  "tickets_summary": {
+    "views_used": [
+      "curated_core.v_cci_tickets_clean"
+    ],
+    "sql": "WITH base AS (\n  SELECT\n    COALESCE(\n      TRY(date(from_iso8601_timestamp(created_time))),\n      TRY(date(date_parse(created_time, '%Y-%m-%d')))\n    ) AS created_date,\n    status,\n    type,\n    work_done,\n    operations_code\n  FROM curated_core.v_cci_tickets_clean\n  WHERE created_time IS NOT NULL\n    AND TRIM(created_time) <> ''\n), latest AS (\n  SELECT MAX(created_date) AS max_date FROM base\n), open_flagged AS (\n  SELECT\n    created_date,\n    CASE\n      WHEN status IS NULL OR TRIM(status) = '' THEN true\n      WHEN LOWER(status) IN ('closed', 'resolved', 'complete', 'completed', 'done') THEN false\n      WHEN LOWER(status) LIKE '%closed%' OR LOWER(status) LIKE '%resolved%' THEN false\n      ELSE true\n    END AS is_open\n  FROM base\n  WHERE created_date IS NOT NULL\n)\nSELECT\n  MAX(latest.max_date) AS latest_ticket_date,\n  COUNT(*) AS tickets_total,\n  SUM(CASE WHEN created_date >= date_add('day', -30, latest.max_date) THEN 1 ELSE 0 END) AS tickets_last_30d,\n  SUM(CASE WHEN created_date >= date_add('day', -90, latest.max_date) THEN 1 ELSE 0 END) AS tickets_last_90d,\n  SUM(CASE WHEN is_open THEN 1 ELSE 0 END) AS open_tickets_estimate\nFROM open_flagged\nCROSS JOIN latest\nLIMIT 1;",
+    "params": []
+  },
+  "outages_summary": {
+    "views_used": [
+      "curated_core.v_cci_tickets_clean"
+    ],
+    "sql": "WITH base AS (\n  SELECT\n    COALESCE(\n      TRY(date(from_iso8601_timestamp(created_time))),\n      TRY(date(date_parse(created_time, '%Y-%m-%d')))\n    ) AS created_date,\n    type,\n    work_done,\n    operations_code\n  FROM curated_core.v_cci_tickets_clean\n  WHERE created_time IS NOT NULL\n    AND TRIM(created_time) <> ''\n), latest AS (\n  SELECT MAX(created_date) AS max_date FROM base\n), outages AS (\n  SELECT created_date\n  FROM base\n  WHERE created_date IS NOT NULL\n    AND (\n      LOWER(type) LIKE '%outage%'\n      OR LOWER(work_done) LIKE '%outage%'\n      OR LOWER(operations_code) LIKE '%outage%'\n    )\n)\nSELECT\n  MAX(latest.max_date) AS latest_ticket_date,\n  COUNT(*) AS outages_total,\n  SUM(CASE WHEN created_date >= date_add('day', -30, latest.max_date) THEN 1 ELSE 0 END) AS outages_last_30d,\n  SUM(CASE WHEN created_date >= date_add('day', -90, latest.max_date) THEN 1 ELSE 0 END) AS outages_last_90d\nFROM outages\nCROSS JOIN latest\nLIMIT 1;",
+    "params": []
+  },
+  "finance_kpis_latest": {
+    "views_used": [
+      "curated_core.v_finance_kpis_latest"
+    ],
+    "sql": "SELECT\n  period_month,\n  total_mrr,\n  mrr_customers,\n  active_accounts,\n  churn_rate,\n  churned_customers,\n  prev_customers\nFROM curated_core.v_finance_kpis_latest\nLIMIT 1;",
+    "params": []
+  },
+  "platt_billing_mrr_latest": {
+    "views_used": [
+      "curated_core.v_finance_kpis_latest",
+      "curated_core.v_network_health",
+      "curated_core.v_monthly_mrr_and_churn_summary"
+    ],
+    "sql": "WITH finance AS (\n  SELECT\n    CAST(period_month AS date) AS period_month,\n    CAST(total_mrr AS double) AS latest_total_mrr,\n    CAST(mrr_customers AS bigint) AS latest_billing_customers,\n    CAST(active_accounts AS bigint) AS active_customers\n  FROM curated_core.v_finance_kpis_latest\n  LIMIT 1\n), modeled AS (\n  SELECT\n    SUM(COALESCE(subscriptions, 0)) AS active_subscriptions\n  FROM curated_core.v_network_health\n  WHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n), monthly_totals AS (\n  SELECT\n    period_month,\n    SUM(total_mrr) AS total_mrr\n  FROM curated_core.v_monthly_mrr_and_churn_summary\n  GROUP BY 1\n), latest_month AS (\n  SELECT MAX(period_month) AS latest_month\n  FROM monthly_totals\n), recent AS (\n  SELECT period_month, total_mrr\n  FROM monthly_totals\n  WHERE period_month >= date_add('month', -11, (SELECT latest_month FROM latest_month))\n), ttm AS (\n  SELECT\n    SUM(total_mrr) AS ttm_total_mrr,\n    AVG(total_mrr) AS ttm_avg_mrr,\n    COUNT(*) AS ttm_months\n  FROM recent\n), ytd AS (\n  SELECT\n    SUM(total_mrr) AS ytd_total_mrr,\n    COUNT(*) AS ytd_months\n  FROM monthly_totals\n  WHERE date_trunc('year', period_month) = date_trunc('year', (SELECT latest_month FROM latest_month))\n    AND period_month <= (SELECT latest_month FROM latest_month)\n)\nSELECT\n  finance.period_month,\n  finance.latest_total_mrr,\n  modeled.active_subscriptions,\n  finance.active_customers,\n  CASE\n    WHEN modeled.active_subscriptions > 0 THEN finance.latest_total_mrr / modeled.active_subscriptions\n    ELSE NULL\n  END AS latest_arpu,\n  finance.latest_billing_customers,\n  ttm.ttm_total_mrr,\n  ttm.ttm_avg_mrr,\n  ytd.ytd_total_mrr,\n  ytd.ytd_months\nFROM finance\nCROSS JOIN modeled\nCROSS JOIN ttm\nCROSS JOIN ytd\nLIMIT 1;",
+    "params": []
+  },
+  "platt_billing_mrr_trend_12m": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt"
+    ],
+    "sql": "WITH monthly AS (\n  SELECT\n    CAST(date_trunc('month', period_month) AS date) AS period_month,\n    SUM(COALESCE(mrr_total, 0)) AS total_mrr,\n    COUNT(DISTINCT CASE WHEN COALESCE(mrr_total, 0) > 0 THEN customer_id END) AS customer_count\n  FROM curated_core.v_monthly_mrr_platt\n  GROUP BY 1\n), latest AS (\n  SELECT MAX(period_month) AS latest_month\n  FROM monthly\n)\nSELECT\n  period_month,\n  total_mrr,\n  customer_count\nFROM monthly\nWHERE period_month >= date_add('month', -11, (SELECT latest_month FROM latest))\nORDER BY period_month\nLIMIT 12;",
+    "params": []
+  },
+  "network_mix_billed_mrr_trend_12m": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt",
+      "curated_recon.platt_customer_system_map",
+      "curated_core.platt_customer_current_ssot",
+      "curated_recon.v_gwi_system_network_map_canon",
+      "curated_recon.v_network_mix_trusted_latest",
+      "curated_recon.v_network_mrr_recon_latest"
+    ],
+    "sql": "WITH monthly_hist AS (\n  SELECT\n    CAST(date_trunc('month', period_month) AS date) AS period_month,\n    SUM(COALESCE(total_mrr, 0)) AS total_mrr,\n    SUM(COALESCE(active_accounts_proxy, 0)) AS customer_count\n  FROM curated_core.v_monthly_mrr_and_churn_summary\n  GROUP BY 1\n), latest_mix AS (\n  SELECT\n    CAST(MAX(period_month) AS date) AS period_month,\n    SUM(COALESCE(billed_mrr_total, 0)) AS total_mrr,\n    SUM(COALESCE(billed_customers, 0)) AS customer_count\n  FROM curated_recon.v_network_mrr_recon_summary\n), combined AS (\n  SELECT\n    h.period_month,\n    CASE\n      WHEN h.period_month = (SELECT period_month FROM latest_mix)\n        THEN COALESCE((SELECT total_mrr FROM latest_mix), h.total_mrr)\n      ELSE h.total_mrr\n    END AS total_mrr,\n    CASE\n      WHEN h.period_month = (SELECT period_month FROM latest_mix)\n        THEN COALESCE((SELECT customer_count FROM latest_mix), h.customer_count)\n      ELSE h.customer_count\n    END AS customer_count\n  FROM monthly_hist h\n), latest_month AS (\n  SELECT MAX(period_month) AS period_month FROM combined\n), recent AS (\n  SELECT period_month, total_mrr, customer_count\n  FROM combined\n  WHERE period_month >= date_add('month', -11, (SELECT period_month FROM latest_month))\n)\nSELECT period_month, total_mrr, customer_count\nFROM recent\nORDER BY period_month\nLIMIT 12;",
+    "params": []
+  },
+  "active_accounts": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt"
+    ],
+    "sql": "WITH latest AS (\n  SELECT MAX(period_month) AS period_month\n  FROM curated_core.v_monthly_mrr_platt\n)\nSELECT\n  COUNT(DISTINCT CASE WHEN COALESCE(m.mrr_total, 0) > 0 THEN m.customer_id END) AS customers_with_mrr,\n  MAX(l.period_month) AS period_month\nFROM curated_core.v_monthly_mrr_platt m\nCROSS JOIN latest l\nWHERE m.period_month = l.period_month\nLIMIT 1;",
+    "params": []
+  },
+  "account_movement_6m": {
+    "views_used": [
+      "curated_core.v_monthly_account_churn_by_segment"
+    ],
+    "sql": "SELECT *\nFROM curated_core.v_monthly_account_churn_by_segment\nORDER BY period_month DESC, segment\nLIMIT 30;",
+    "params": []
+  },
+  "mrr_summary_12m": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_and_churn_summary"
+    ],
+    "sql": "SELECT *\nFROM curated_core.v_monthly_mrr_and_churn_summary\nORDER BY period_month DESC\nLIMIT 12;",
+    "params": []
+  },
+  "month_end_close": {
+    "views_used": [
+      "curated_core.mrr_monthly_rollup"
+    ],
+    "sql": "WITH ordered AS (\n  SELECT\n    period_month,\n    total_mrr,\n    customer_count,\n    LAG(customer_count) OVER (ORDER BY period_month) AS prev_customer_count\n  FROM curated_core.mrr_monthly_rollup\n), latest AS (\n  SELECT *\n  FROM ordered\n  WHERE period_month = (SELECT MAX(period_month) FROM ordered)\n)\nSELECT\n  period_month,\n  total_mrr,\n  customer_count AS active_accounts,\n  CASE\n    WHEN prev_customer_count IS NULL THEN NULL\n    WHEN customer_count - prev_customer_count > 0 THEN customer_count - prev_customer_count\n    ELSE 0\n  END AS accounts_added,\n  CASE\n    WHEN prev_customer_count IS NULL THEN NULL\n    WHEN customer_count - prev_customer_count < 0 THEN ABS(customer_count - prev_customer_count)\n    ELSE 0\n  END AS accounts_lost,\n  CASE\n    WHEN prev_customer_count IS NULL THEN NULL\n    ELSE customer_count - prev_customer_count\n  END AS net_accounts\nFROM latest\nLIMIT 1;",
+    "params": []
+  },
+  "revenue_report_12m": {
+    "views_used": [
+      "curated_core.mrr_monthly_rollup"
+    ],
+    "sql": "SELECT\n  period_month,\n  total_mrr AS total_revenue,\n  customer_count AS active_accounts,\n  CASE\n    WHEN customer_count > 0 THEN total_mrr / customer_count\n    ELSE NULL\n  END AS arpu\nFROM curated_core.mrr_monthly_rollup\nORDER BY period_month DESC\nLIMIT 12;",
+    "params": []
+  },
+  "passings_subscribers": {
+    "views_used": [
+      "curated_recon.v_network_mix_trusted_latest",
+      "curated_recon.v_network_active_services_latest"
+    ],
+    "sql": "WITH totals AS (\n  SELECT\n    CAST((SELECT MAX(period_month) FROM curated_recon.v_network_mix_trusted_latest) AS timestamp) AS period_month,\n    CAST((\n      SELECT SUM(COALESCE(trusted_subscriptions, 0))\n      FROM curated_recon.v_network_mix_trusted_latest\n      WHERE network <> 'Unmapped'\n        AND network_type <> 'Unmapped'\n        AND network <> 'NWFX'\n    ) AS bigint) AS total_subscriptions_all,\n    CAST((\n      SELECT SUM(COALESCE(trusted_subscriptions, 0))\n      FROM curated_recon.v_network_mix_trusted_latest\n      WHERE network <> 'Unmapped'\n        AND network_type <> 'Unmapped'\n        AND network <> 'NWFX'\n    ) AS bigint) AS total_subscriptions_classified,\n    CAST((\n      SELECT SUM(COALESCE(trusted_subscriptions, 0))\n      FROM curated_recon.v_network_mix_trusted_latest\n      WHERE network_type = 'Unmapped'\n        OR network = 'NWFX'\n    ) AS bigint) AS total_subscriptions_unmapped,\n    CAST((\n      SELECT SUM(COALESCE(billed_customers, 0))\n      FROM (\n        SELECT network, billed_customers\n        FROM (\n          SELECT network, SUM(COALESCE(billed_customers, 0)) AS billed_customers, billed_source,\n                 ROW_NUMBER() OVER (\n                   PARTITION BY network\n                   ORDER BY CASE billed_source WHEN 'platt_monthly_mrr' THEN 1 WHEN 'gaiia_invoices' THEN 2 ELSE 9 END\n                 ) AS rn\n          FROM curated_recon.v_network_mrr_recon_latest\n          GROUP BY 1,3\n        ) r\n        WHERE rn = 1\n      ) b\n    ) AS bigint) AS total_billed_customers,\n    CAST((\n      SELECT SUM(COALESCE(billed_mrr, 0))\n      FROM (\n        SELECT network, billed_mrr\n        FROM (\n          SELECT network, SUM(COALESCE(billed_mrr, 0)) AS billed_mrr, billed_source,\n                 ROW_NUMBER() OVER (\n                   PARTITION BY network\n                   ORDER BY CASE billed_source WHEN 'platt_monthly_mrr' THEN 1 WHEN 'gaiia_invoices' THEN 2 ELSE 9 END\n                 ) AS rn\n          FROM curated_recon.v_network_mrr_recon_latest\n          GROUP BY 1,3\n        ) r\n        WHERE rn = 1\n      ) b\n    ) AS double) AS total_mrr,\n    CAST((\n      SELECT SUM(\n        CASE\n          WHEN COALESCE(canonical_passings_as_built, 0) = 0 THEN COALESCE(modeled_passings, 0)\n          WHEN COALESCE(modeled_passings, 0) > 0\n            AND COALESCE(passings_confidence, '') <> 'trusted'\n            AND COALESCE(canonical_passings_as_built, 0) > COALESCE(modeled_passings, 0) * 3\n            THEN COALESCE(modeled_passings, 0)\n          ELSE COALESCE(canonical_passings_as_built, 0)\n        END\n      )\n      FROM curated_recon.v_network_mix_trusted_latest\n      WHERE network <> 'Unmapped'\n        AND network_type <> 'Unmapped'\n        AND network <> 'NWFX'\n    ) AS double) AS total_passings,\n    CASE\n      WHEN SUM(CASE WHEN passings_confidence <> 'trusted' THEN 1 ELSE 0 END) > 0 THEN 'partial'\n      ELSE 'trusted'\n    END AS passings_confidence\n  FROM curated_recon.v_network_mix_trusted_latest\n)\nSELECT\n  CAST(period_month AS timestamp) AS dt,\n  period_month,\n  total_passings,\n  total_subscriptions_classified AS total_subscriptions,\n  CASE\n    WHEN total_passings > 0 THEN (total_subscriptions_classified / total_passings) * 100\n    ELSE NULL\n  END AS penetration_pct,\n  CASE\n    WHEN total_subscriptions_classified > 0 THEN total_mrr / total_subscriptions_classified\n    ELSE NULL\n  END AS avg_arpu,\n  total_mrr,\n  total_billed_customers,\n  passings_confidence,\n  total_subscriptions_classified,\n  total_subscriptions_unmapped\nFROM totals\nLIMIT 1;",
+    "params": []
+  },
+  "ae_band_distribution": {
+    "views_used": [
+      "curated_core.v_customer_fully_loaded_margin_banded"
+    ],
+    "sql": "SELECT\n  action_band,\n  COUNT(*) AS customer_count,\n  SUM(total_mrr) AS total_mrr\nFROM curated_core.v_customer_fully_loaded_margin_banded\nWHERE action_band IS NOT NULL\n  AND total_mrr > 0\nGROUP BY 1\nORDER BY 1\nLIMIT 50;",
+    "params": []
+  },
+  "at_risk_customers": {
+    "views_used": [
+      "curated_core.v_customer_fully_loaded_margin_banded",
+      "curated_core.dim_customer_platt_v1_1"
+    ],
+    "sql": "SELECT\n  b.customer_id,\n  c.customer_name,\n  b.action_band,\n  b.fully_loaded_margin_pct,\n  b.total_mrr\nFROM curated_core.v_customer_fully_loaded_margin_banded b\nLEFT JOIN curated_core.dim_customer_platt_v1_1 c\n  ON c.customer_id = b.customer_id\nWHERE b.action_band IN ('D_PRICE_PLUS_SIMPLIFY', 'E_EXIT_OR_RESCOPE')\nORDER BY b.fully_loaded_margin_pct ASC\nLIMIT 500;",
+    "params": []
+  },
+  "at_risk_count": {
+    "views_used": [
+      "curated_core.v_customer_fully_loaded_margin_banded"
+    ],
+    "sql": "SELECT COUNT(*) AS at_risk_count\nFROM curated_core.v_customer_fully_loaded_margin_banded\nWHERE action_band IN ('D_PRICE_PLUS_SIMPLIFY', 'E_EXIT_OR_RESCOPE')\nLIMIT 1;",
+    "params": []
+  },
+  "ticket_burden_banded": {
+    "views_used": [
+      "curated_core.v_ticket_burden_banded"
+    ],
+    "sql": "SELECT\n  ticket_burden_band,\n  COUNT(*) AS customer_count,\n  SUM(ticket_count_lake) AS total_tickets\nFROM curated_core.v_ticket_burden_banded\nGROUP BY ticket_burden_band\nORDER BY\n  CASE ticket_burden_band\n    WHEN '0' THEN 0\n    WHEN '1-5' THEN 1\n    WHEN '6-20' THEN 2\n    WHEN '20+' THEN 3\n    ELSE 4\n  END;",
+    "params": []
+  },
+  "ticket_burden_lake": {
+    "views_used": [
+      "curated_core.v_ticket_burden_lake"
+    ],
+    "sql": "SELECT customer_id, customer_name, ticket_count_lake\nFROM curated_core.v_ticket_burden_lake\nORDER BY ticket_count_lake DESC\nLIMIT 200;",
+    "params": []
+  },
+  "ticket_trend_90d": {
+    "views_used": [
+      "curated_core.v_cci_tickets_clean"
+    ],
+    "sql": "SELECT\n  CAST(DATE_TRUNC('day', TRY(from_iso8601_timestamp(created_time))) AS DATE) AS ticket_date,\n  COUNT(*) AS ticket_count\nFROM curated_core.v_cci_tickets_clean\nWHERE created_time IS NOT NULL\n  AND created_time <> ''\n  AND TRY(from_iso8601_timestamp(created_time)) IS NOT NULL\nGROUP BY CAST(DATE_TRUNC('day', TRY(from_iso8601_timestamp(created_time))) AS DATE)\nORDER BY ticket_date DESC\nLIMIT 90;",
+    "params": []
+  },
+  "raw_tickets_cci": {
+    "views_used": [
+      "curated_core.v_cci_tickets_clean"
+    ],
+    "sql": "SELECT\n  st_number AS ticket_number,\n  customer_name,\n  customer_display_name,\n  service_location_city,\n  service_location_state,\n  status,\n  type,\n  priority,\n  service_area,\n  operations_code,\n  equipment_name,\n  estimated_arrival_time,\n  SUBSTR(work_done, 1, 200) AS work_done_preview,\n  case_or_ticket_number,\n  created_time\nFROM curated_core.v_cci_tickets_clean\nORDER BY created_time DESC\nLIMIT 500;",
+    "params": []
+  },
+  "bucket_summary": {
+    "views_used": [
+      "curated_recon.v_network_mix_trusted_latest",
+      "curated_recon.v_network_mrr_recon_latest",
+      "curated_core.v_vetro_bucket_fsa_counts"
+    ],
+    "sql": "WITH class_map AS (\n  SELECT\n    network,\n    CASE\n      WHEN network_type = 'Owned FTTP' THEN 'owned_fttp'\n      WHEN network_type = 'Contracted' THEN 'contracted_fttp'\n      WHEN network_type = 'CLEC' THEN 'clec_business'\n      ELSE 'unmapped'\n    END AS bucket,\n    CASE\n      WHEN COALESCE(canonical_passings_as_built, 0) = 0 THEN COALESCE(modeled_passings, 0)\n      WHEN COALESCE(modeled_passings, 0) > 0\n        AND COALESCE(passings_confidence, '') <> 'trusted'\n        AND COALESCE(canonical_passings_as_built, 0) > COALESCE(modeled_passings, 0) * 3\n        THEN COALESCE(modeled_passings, 0)\n      ELSE COALESCE(canonical_passings_as_built, 0)\n    END AS passings,\n    trusted_subscriptions\n  FROM curated_recon.v_network_mix_trusted_latest\n  WHERE network <> 'Unmapped'\n    AND network <> 'NWFX'\n    AND network_type IN ('Owned FTTP', 'Contracted', 'CLEC')\n), billing_ranked AS (\n  SELECT\n    network,\n    SUM(COALESCE(billed_customers, 0)) AS billed_customers,\n    SUM(COALESCE(billed_mrr, 0)) AS billed_mrr,\n    billed_source,\n    ROW_NUMBER() OVER (\n      PARTITION BY network\n      ORDER BY CASE billed_source\n        WHEN 'platt_monthly_mrr' THEN 1\n        WHEN 'gaiia_invoices' THEN 2\n        ELSE 9\n      END\n    ) AS rn\n  FROM curated_recon.v_network_mrr_recon_latest\n  GROUP BY 1, 4\n), billing AS (\n  SELECT network, billed_customers, billed_mrr\n  FROM billing_ranked\n  WHERE rn = 1\n), agg AS (\n  SELECT\n    cm.bucket,\n    SUM(COALESCE(cm.passings, 0)) AS passings_count,\n    SUM(COALESCE(cm.trusted_subscriptions, 0)) AS customer_count,\n    SUM(COALESCE(pb.billed_mrr, 0)) AS total_mrr\n  FROM class_map cm\n  LEFT JOIN billing pb\n    ON cm.network = pb.network\n  GROUP BY 1\n)\nSELECT\n  a.bucket,\n  CAST(a.passings_count AS bigint) AS fsa_count,\n  CAST(a.customer_count AS bigint) AS customer_count,\n  a.total_mrr,\n  CASE WHEN a.customer_count > 0 THEN a.total_mrr / a.customer_count ELSE NULL END AS revenue_per_customer,\n  CAST(COALESCE(f.fsa_count, 0) AS bigint) AS vetro_fsa_count\nFROM agg a\nLEFT JOIN curated_core.v_vetro_bucket_fsa_counts f\n  ON a.bucket = f.bucket\nORDER BY CASE a.bucket WHEN 'owned_fttp' THEN 1 WHEN 'contracted_fttp' THEN 2 ELSE 3 END;",
+    "params": []
+  },
+  "bucket_summary_billing": {
+    "views_used": [
+      "curated_recon.v_network_mix_trusted_latest",
+      "curated_recon.v_network_mrr_recon_latest",
+      "curated_core.v_vetro_bucket_fsa_counts"
+    ],
+    "sql": "WITH class_map AS (\n  SELECT\n    network,\n    network_type,\n    trusted_subscriptions,\n    period_month,\n    modeled_dt,\n    CASE\n      WHEN COALESCE(canonical_passings_as_built, 0) = 0 THEN COALESCE(modeled_passings, 0)\n      WHEN COALESCE(modeled_passings, 0) > 0\n        AND COALESCE(passings_confidence, '') <> 'trusted'\n        AND COALESCE(canonical_passings_as_built, 0) > COALESCE(modeled_passings, 0) * 3\n        THEN COALESCE(modeled_passings, 0)\n      ELSE COALESCE(canonical_passings_as_built, 0)\n    END AS passings\n  FROM curated_recon.v_network_mix_trusted_latest\n  WHERE network <> 'Unmapped'\n    AND network <> 'NWFX'\n    AND network_type IN ('Owned FTTP', 'Contracted', 'CLEC')\n), billing_ranked AS (\n  SELECT\n    network,\n    SUM(COALESCE(billed_customers, 0)) AS billed_customers,\n    SUM(COALESCE(billed_mrr, 0)) AS billed_mrr,\n    billed_source,\n    ROW_NUMBER() OVER (\n      PARTITION BY network\n      ORDER BY CASE billed_source\n        WHEN 'platt_monthly_mrr' THEN 1\n        WHEN 'gaiia_invoices' THEN 2\n        ELSE 9\n      END\n    ) AS rn\n  FROM curated_recon.v_network_mrr_recon_latest\n  GROUP BY 1, 4\n), billing AS (\n  SELECT network, billed_customers, billed_mrr\n  FROM billing_ranked\n  WHERE rn = 1\n), base AS (\n  SELECT\n    CASE\n      WHEN cm.network_type = 'Owned FTTP' THEN 'owned_fttp'\n      WHEN cm.network_type = 'Contracted' THEN 'contracted_fttp'\n      WHEN cm.network_type = 'CLEC' THEN 'clec_business'\n      ELSE 'unmapped'\n    END AS bucket,\n    COALESCE(pb.billed_customers, 0) AS billed_customers,\n    COALESCE(pb.billed_mrr, 0) AS billed_mrr,\n    cm.trusted_subscriptions,\n    cm.passings,\n    cm.period_month,\n    cm.modeled_dt\n  FROM class_map cm\n  LEFT JOIN billing pb\n    ON cm.network = pb.network\n), agg AS (\n  SELECT\n    bucket,\n    CAST(SUM(COALESCE(passings, 0)) AS bigint) AS fsa_count,\n    CAST(SUM(COALESCE(billed_customers, 0)) AS bigint) AS billed_customers,\n    SUM(COALESCE(billed_mrr, 0)) AS billed_mrr,\n    CAST(SUM(COALESCE(trusted_subscriptions, 0)) AS bigint) AS active_services,\n    MAX(period_month) AS period_month,\n    MAX(modeled_dt) AS modeled_dt\n  FROM base\n  GROUP BY 1\n)\nSELECT\n  a.bucket,\n  a.fsa_count,\n  a.billed_customers,\n  a.billed_mrr,\n  CASE\n    WHEN a.billed_customers > 0 THEN a.billed_mrr / a.billed_customers\n    ELSE NULL\n  END AS revenue_per_customer,\n  CAST(COALESCE(f.fsa_count, 0) AS bigint) AS vetro_fsa_count,\n  a.active_services,\n  a.period_month,\n  a.modeled_dt\nFROM agg a\nLEFT JOIN curated_core.v_vetro_bucket_fsa_counts f\n  ON a.bucket = f.bucket\nORDER BY CASE a.bucket WHEN 'owned_fttp' THEN 1 WHEN 'contracted_fttp' THEN 2 ELSE 3 END;",
+    "params": []
+  },
+  "owned_fttp_subscriptions_bucket": {
+    "views_used": [
+      "curated_core.v_bucket_summary_latest"
+    ],
+    "sql": "SELECT\n  customer_count AS owned_fttp_subscriptions\nFROM curated_core.v_bucket_summary_latest\nWHERE bucket = 'owned_fttp'\nLIMIT 1;",
+    "params": []
+  },
+  "owned_fttp_subscriptions_nh": {
+    "views_used": [
+      "curated_core.v_network_health"
+    ],
+    "sql": "SELECT\n  CAST(SUM(COALESCE(subscriptions, 0)) AS bigint) AS owned_fttp_subscriptions\nFROM curated_core.v_network_health\nWHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n  AND network <> 'Unmapped'\n  AND network_type = 'Owned FTTP'\nLIMIT 1;",
+    "params": []
+  },
+  "contracted_fttp_subscriptions_bucket": {
+    "views_used": [
+      "curated_core.v_bucket_summary_latest"
+    ],
+    "sql": "SELECT\n  customer_count AS contracted_fttp_subscriptions\nFROM curated_core.v_bucket_summary_latest\nWHERE bucket = 'contracted_fttp'\nLIMIT 1;",
+    "params": []
+  },
+  "contracted_fttp_subscriptions_nh": {
+    "views_used": [
+      "curated_core.v_network_health"
+    ],
+    "sql": "SELECT\n  CAST(SUM(COALESCE(subscriptions, 0)) AS bigint) AS contracted_fttp_subscriptions\nFROM curated_core.v_network_health\nWHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n  AND network <> 'Unmapped'\n  AND network_type = 'Contracted'\nLIMIT 1;",
+    "params": []
+  },
+  "clec_subscriptions_bucket": {
+    "views_used": [
+      "curated_core.v_bucket_summary_latest"
+    ],
+    "sql": "SELECT\n  customer_count AS clec_subscriptions\nFROM curated_core.v_bucket_summary_latest\nWHERE bucket = 'clec_business'\nLIMIT 1;",
+    "params": []
+  },
+  "clec_subscriptions_nh": {
+    "views_used": [
+      "curated_core.v_network_health"
+    ],
+    "sql": "SELECT\n  CAST(SUM(COALESCE(subscriptions, 0)) AS bigint) AS clec_subscriptions\nFROM curated_core.v_network_health\nWHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n  AND network <> 'Unmapped'\n  AND network_type = 'CLEC'\nLIMIT 1;",
+    "params": []
+  },
+  "projects_pipeline": {
+    "views_used": [
+      "curated_core.projects_enriched_live"
+    ],
+    "sql": "SELECT\n  project_id,\n  entity,\n  project_name,\n  project_type,\n  state,\n  COALESCE(NULLIF(stage, ''), 'Unknown') AS stage,\n  COALESCE(NULLIF(priority, ''), 'Unranked') AS priority,\n  COALESCE(NULLIF(owner, ''), 'Unassigned') AS owner,\n  partner,\n  split_pct,\n  investment,\n  npv,\n  irr AS irr_pct,\n  moic,\n  notes\nFROM curated_core.projects_enriched_live\nWHERE project_id IS NOT NULL\n  AND TRIM(CAST(project_id AS varchar)) <> ''\n  AND LOWER(TRIM(CAST(project_id AS varchar))) <> 'nan'\nORDER BY entity, project_name\nLIMIT 200;",
+    "params": [],
+    "tables": [
+      "curated_core.projects_enriched_live"
+    ]
+  },
+  "projects_pipeline_defaults": {
+    "views_used": [
+      "curated_core.projects_enriched_live"
+    ],
+    "sql": "SELECT\n  approx_percentile(passings, 0.5) AS passings_p50,\n  approx_percentile(months_to_completion, 0.5) AS build_months_p50,\n  approx_percentile(arpu, 0.5) AS arpu_p50,\n  approx_percentile(COALESCE(investment, construction_plus_install_cost), 0.5) AS total_capex_p50,\n  approx_percentile(COALESCE(capex_per_passing, total_cost_per_passing), 0.5) AS capex_per_passing_p50,\n  approx_percentile(install_cost_per_subscriber, 0.5) AS install_cost_per_subscriber_p50,\n  approx_percentile(opex_per_sub, 0.5) AS opex_per_sub_p50\nFROM curated_core.projects_enriched_live\nWHERE passings > 0\n  AND months_to_completion > 0\n  AND arpu > 0;",
+    "params": [],
+    "tables": [
+      "curated_core.projects_enriched_live"
+    ]
+  },
+  "projects_summary": {
+    "views_used": [
+      "curated_core.projects_enriched_live"
+    ],
+    "sql": "SELECT\n  COUNT(*) AS project_count,\n  COUNT(DISTINCT entity) AS entity_count,\n  COUNT(DISTINCT stage) AS stage_count,\n  COUNT(DISTINCT state) AS state_count\nFROM curated_core.projects_enriched_live\nWHERE project_id IS NOT NULL\n  AND TRIM(CAST(project_id AS varchar)) <> ''\n  AND LOWER(TRIM(CAST(project_id AS varchar))) <> 'nan'\nLIMIT 1;",
+    "params": []
+  },
+  "projects_pipeline_full": {
+    "views_used": [
+      "curated_core.projects_enriched_live"
+    ],
+    "sql": "SELECT\n  project_id,\n  entity,\n  project_name,\n  project_type,\n  state,\n  stage,\n  priority,\n  owner,\n  notes,\n  partner,\n  split_pct,\n  investment,\n  npv,\n  irr,\n  moic,\n  passings,\n  subscribers,\n  take_rate,\n  revenue,\n  cash_flow,\n  coc_return,\n  construction_cost,\n  construction_cost_per_passing,\n  install_cost,\n  install_cost_per_subscriber,\n  construction_plus_install_cost,\n  total_cost_per_passing,\n  arpu,\n  months_to_completion,\n  contract_date,\n  start_date,\n  end_date,\n  funnel_value,\n  funnel_multiple,\n  penetration_start_pct,\n  penetration_target_pct,\n  ramp_months,\n  opex_per_sub,\n  discount_rate_pct\nFROM curated_core.projects_enriched_live\nWHERE project_id IS NOT NULL\n  AND TRIM(CAST(project_id AS varchar)) <> ''\n  AND LOWER(TRIM(CAST(project_id AS varchar))) <> 'nan'\nORDER BY entity, project_name\nLIMIT 500;",
+    "params": [],
+    "tables": [
+      "curated_core.projects_enriched_live"
+    ]
+  },
+  "project_detail": {
+    "views_used": [
+      "curated_core.projects_enriched_live"
+    ],
+    "sql": "SELECT\n  entity,\n  project_name,\n  passings,\n  months_to_completion AS build_months,\n  COALESCE(investment, construction_plus_install_cost) AS total_capex,\n  arpu AS arpu_start,\n  penetration_start_pct,\n  penetration_target_pct,\n  ramp_months,\n  COALESCE(capex_per_passing, total_cost_per_passing) AS capex_per_passing,\n  opex_per_sub,\n  opex_per_passing,\n  subscription_months,\n  subscription_rate,\n  install_cost_per_subscriber,\n  min_monthly_opex,\n  cogs_pct_revenue,\n  min_non_circuit_cogs,\n  circuit,\n  circuit_type,\n  ebitda_multiple,\n  discount_rate_pct\nFROM curated_core.projects_enriched_live\nWHERE project_id = ${project_id}\nLIMIT 1;",
+    "params": [
+      "project_id"
+    ],
+    "tables": [
+      "curated_core.projects_enriched_live"
+    ]
+  },
+  "glclosepack_discovery": {
+    "views_used": [
+      "curated_core.intacct_gl_entries_current_ssot"
+    ],
+    "sql": "WITH base AS (\n  SELECT COALESCE(business_date, TRY(date_parse(entry_date, '%m/%d/%Y'))) AS entry_dt\n  FROM curated_core.intacct_gl_entries_current_ssot\n  WHERE business_date IS NOT NULL OR entry_date IS NOT NULL\n)\nSELECT date_format(entry_dt, '%Y-%m') AS period_month\nFROM base\nWHERE entry_dt IS NOT NULL\n  AND entry_dt >= date_add('month', -24, current_date)\nGROUP BY 1\nORDER BY 1 DESC\nLIMIT 36;",
+    "params": []
+  },
+  "glclosepack_summary": {
+    "views_used": [
+      "curated_core.intacct_gl_entries_current_ssot"
+    ],
+    "sql": "WITH base AS (\n  SELECT\n    COALESCE(business_date, TRY(date_parse(entry_date, '%m/%d/%Y'))) AS entry_dt,\n    accountno,\n    account_title,\n    account_category,\n    TRY_CAST(amount AS double) AS amount\n  FROM curated_core.intacct_gl_entries_current_ssot\n)\nSELECT\n  account_category,\n  accountno,\n  account_title,\n  SUM(amount) AS amount_total\nFROM base\nWHERE entry_dt >= date_parse(concat(${period_month}, '-01'), '%Y-%m-%d')\n  AND entry_dt < date_add('month', 1, date_parse(concat(${period_month}, '-01'), '%Y-%m-%d'))\n  AND account_category IS NOT NULL\n  AND (account_category LIKE 'Revenue%' OR account_category LIKE '%Revenue' OR account_category = 'Sales Returns and Discounts')\nGROUP BY 1,2,3\nORDER BY 1,2\nLIMIT ${limit};",
+    "params": [
+      "period_month",
+      "limit"
+    ]
+  },
+  "glclosepack_detail": {
+    "views_used": [
+      "curated_core.intacct_gl_entries_current_ssot"
+    ],
+    "sql": "WITH base AS (\n  SELECT\n    COALESCE(business_date, TRY(date_parse(entry_date, '%m/%d/%Y'))) AS entry_dt,\n    accountno,\n    account_title,\n    account_category,\n    customerid,\n    customername,\n    document,\n    description,\n    TRY_CAST(amount AS double) AS amount\n  FROM curated_core.intacct_gl_entries_current_ssot\n)\nSELECT\n  entry_dt,\n  account_category,\n  accountno,\n  account_title,\n  customerid,\n  customername,\n  amount,\n  document,\n  description\nFROM base\nWHERE entry_dt >= date_parse(concat(${period_month}, '-01'), '%Y-%m-%d')\n  AND entry_dt < date_add('month', 1, date_parse(concat(${period_month}, '-01'), '%Y-%m-%d'))\n  AND account_category IS NOT NULL\n  AND (account_category LIKE 'Revenue%' OR account_category LIKE '%Revenue' OR account_category = 'Sales Returns and Discounts')\nORDER BY entry_dt DESC\nLIMIT ${limit};",
+    "params": [
+      "period_month",
+      "limit"
+    ]
+  },
+  "active_customers": {
+    "views_used": [
+      "curated_core.dim_customer_platt"
+    ],
+    "sql": "SELECT COUNT(*) AS active_customers\nFROM curated_core.dim_customer_platt\nWHERE has_active_service = true AND is_test_internal = false\nLIMIT 1;",
+    "params": []
+  },
+  "health_score_detail": {
+    "views_used": [
+      "curated_core.v_customer_fully_loaded_margin_banded"
+    ],
+    "sql": "SELECT\n  action_band,\n  COUNT(*) AS count,\n  SUM(total_mrr) AS mrr\nFROM curated_core.v_customer_fully_loaded_margin_banded\nGROUP BY action_band\nORDER BY action_band\nLIMIT 10;",
+    "params": []
+  },
+  "worst_e_band": {
+    "views_used": [
+      "curated_core.v_cci_e_band_exit_accounts"
+    ],
+    "sql": "SELECT *\nFROM curated_core.v_cci_e_band_exit_accounts\nLIMIT 20;",
+    "params": []
+  },
+  "hosted_pbx": {
+    "views_used": [
+      "curated_core.v_hosted_pbx_migration"
+    ],
+    "sql": "SELECT *\nFROM curated_core.v_hosted_pbx_migration\nWHERE mrr_uplift_to_50 > 1000\nORDER BY mrr_uplift_to_50 DESC\nLIMIT 200;",
+    "params": []
+  },
+  "ticket_burden_customer": {
+    "views_used": [
+      "curated_core.v_ticket_burden_banded",
+      "curated_core.dim_customer_platt_v1_1"
+    ],
+    "sql": "SELECT\n  c.customer_id,\n  c.customer_name,\n  b.ticket_count_lake,\n  b.ticket_burden_band\nFROM curated_core.v_ticket_burden_banded b\nLEFT JOIN curated_core.dim_customer_platt_v1_1 c\n  ON c.customer_id = b.customer_id\nORDER BY b.ticket_count_lake DESC\nLIMIT 200;",
+    "params": []
+  },
+  "margin_tickets": {
+    "views_used": [
+      "curated_core.v_customer_margin_plus_tickets"
+    ],
+    "sql": "SELECT\n  customer_id,\n  customer_name,\n  total_mrr,\n  total_cci_cost,\n  gross_margin_dollars,\n  gross_margin_pct,\n  ticket_count_lake,\n  ticket_burden_band,\n  partner_pct,\n  hosted_pbx_flag\nFROM curated_core.v_customer_margin_plus_tickets\nORDER BY\n  ticket_count_lake DESC,\n  gross_margin_pct ASC\nLIMIT 500;",
+    "params": []
+  },
+  "network_health": {
+    "views_used": [
+      "curated_recon.v_network_mix_trusted_latest"
+    ],
+    "sql": "WITH base AS (\n  SELECT\n    network,\n    network_type,\n    customer_type,\n    CASE\n      WHEN COALESCE(canonical_passings_as_built, 0) = 0 THEN COALESCE(modeled_passings, 0)\n      WHEN COALESCE(modeled_passings, 0) > 0\n        AND COALESCE(passings_confidence, '') <> 'trusted'\n        AND COALESCE(canonical_passings_as_built, 0) > COALESCE(modeled_passings, 0) * 3\n        THEN COALESCE(modeled_passings, 0)\n      ELSE COALESCE(canonical_passings_as_built, 0)\n    END AS passings,\n    trusted_subscriptions,\n    period_month,\n    passings_confidence,\n    canonical_passings_as_built,\n    canonical_passings_as_built_low_confidence,\n    modeled_passings\n  FROM curated_recon.v_network_mix_trusted_latest\n  WHERE network <> 'Unmapped'\n    AND network <> 'NWFX'\n    AND network_type <> 'Unmapped'\n), billing_ranked AS (\n  SELECT\n    network,\n    SUM(COALESCE(billed_customers, 0)) AS billed_customers,\n    SUM(COALESCE(billed_mrr, 0)) AS billed_mrr,\n    billed_source,\n    ROW_NUMBER() OVER (\n      PARTITION BY network\n      ORDER BY CASE billed_source\n        WHEN 'platt_monthly_mrr' THEN 1\n        WHEN 'gaiia_invoices' THEN 2\n        ELSE 9\n      END\n    ) AS rn\n  FROM curated_recon.v_network_mrr_recon_latest\n  GROUP BY 1, 4\n), billing AS (\n  SELECT network, billed_customers, billed_mrr\n  FROM billing_ranked\n  WHERE rn = 1\n)\nSELECT\n  b.network,\n  REGEXP_REPLACE(LOWER(COALESCE(b.network, '')), '[^a-z0-9]', ' ') AS network_norm,\n  b.network_type,\n  b.customer_type,\n  CAST(COALESCE(b.passings, 0) AS bigint) AS passings,\n  CAST(COALESCE(b.trusted_subscriptions, 0) AS bigint) AS subscriptions,\n  CAST(COALESCE(b.trusted_subscriptions, 0) AS bigint) AS active_services,\n  CAST(COALESCE(pb.billed_customers, 0) AS bigint) AS billed_customers,\n  COALESCE(pb.billed_mrr, 0) AS mrr_billed,\n  CASE\n    WHEN COALESCE(pb.billed_customers, 0) > 0 THEN COALESCE(pb.billed_mrr, 0) / COALESCE(pb.billed_customers, 0)\n    ELSE NULL\n  END AS arpu,\n  CASE\n    WHEN COALESCE(pb.billed_customers, 0) = 0 THEN 'N/A'\n    WHEN (COALESCE(pb.billed_mrr, 0) / COALESCE(pb.billed_customers, 0)) < 60 THEN '<$60'\n    WHEN (COALESCE(pb.billed_mrr, 0) / COALESCE(pb.billed_customers, 0)) < 80 THEN '$60-$80'\n    WHEN (COALESCE(pb.billed_mrr, 0) / COALESCE(pb.billed_customers, 0)) < 100 THEN '$80-$100'\n    WHEN (COALESCE(pb.billed_mrr, 0) / COALESCE(pb.billed_customers, 0)) < 140 THEN '$100-$140'\n    ELSE '$140+'\n  END AS arpu_label,\n  COALESCE(pb.billed_mrr, 0) AS mrr,\n  CASE\n    WHEN COALESCE(pb.billed_customers, 0) > 0 THEN COALESCE(pb.billed_mrr, 0) / COALESCE(pb.billed_customers, 0)\n    ELSE NULL\n  END AS arpu_billed,\n  CAST(b.period_month AS timestamp) AS period_month,\n  CASE\n    WHEN COALESCE(b.canonical_passings_as_built, 0) > 0 AND COALESCE(b.canonical_passings_as_built_low_confidence, 0) = 0 THEN 'trusted'\n    WHEN COALESCE(b.canonical_passings_as_built, 0) > 0 THEN 'partial'\n    WHEN COALESCE(b.modeled_passings, 0) > 0 THEN 'modeled_fallback'\n    ELSE COALESCE(b.passings_confidence, 'unknown')\n  END AS passings_confidence,\n  COALESCE(b.canonical_passings_as_built, 0) AS canonical_passings_as_built,\n  COALESCE(b.canonical_passings_as_built_low_confidence, 0) AS canonical_passings_as_built_low_confidence\nFROM base b\nLEFT JOIN billing pb\n  ON b.network = pb.network\nLIMIT 2000;",
+    "params": []
+  },
+  "network_network_type_summary": {
+    "views_used": [
+      "curated_recon.v_network_mix_trusted_latest",
+      "curated_recon.v_network_mrr_recon_latest"
+    ],
+    "sql": "WITH base AS (\n  SELECT\n    network,\n    network_type,\n    CASE\n      WHEN COALESCE(canonical_passings_as_built, 0) = 0 THEN COALESCE(modeled_passings, 0)\n      WHEN COALESCE(modeled_passings, 0) > 0\n        AND COALESCE(passings_confidence, '') <> 'trusted'\n        AND COALESCE(canonical_passings_as_built, 0) > COALESCE(modeled_passings, 0) * 3\n        THEN COALESCE(modeled_passings, 0)\n      ELSE COALESCE(canonical_passings_as_built, 0)\n    END AS passings,\n    trusted_subscriptions AS subscriptions\n  FROM curated_recon.v_network_mix_trusted_latest\n  WHERE network <> 'Unmapped'\n    AND network <> 'NWFX'\n    AND network_type IN ('Owned FTTP', 'Contracted', 'CLEC')\n), billing_ranked AS (\n  SELECT\n    network,\n    SUM(COALESCE(billed_customers, 0)) AS billed_customers,\n    SUM(COALESCE(billed_mrr, 0)) AS billed_mrr,\n    billed_source,\n    ROW_NUMBER() OVER (\n      PARTITION BY network\n      ORDER BY CASE billed_source\n        WHEN 'platt_monthly_mrr' THEN 1\n        WHEN 'gaiia_invoices' THEN 2\n        ELSE 9\n      END\n    ) AS rn\n  FROM curated_recon.v_network_mrr_recon_latest\n  GROUP BY 1, 4\n), billing AS (\n  SELECT network, billed_customers, billed_mrr\n  FROM billing_ranked\n  WHERE rn = 1\n)\nSELECT\n  b.network_type,\n  SUM(COALESCE(b.passings, 0)) AS passings,\n  SUM(COALESCE(b.subscriptions, 0)) AS subscriptions,\n  CASE WHEN SUM(COALESCE(b.passings, 0)) > 0 THEN (SUM(COALESCE(b.subscriptions, 0)) / SUM(COALESCE(b.passings, 0))) * 100 ELSE NULL END AS penetration_pct,\n  CASE WHEN SUM(COALESCE(b.subscriptions, 0)) > 0 THEN SUM(COALESCE(bl.billed_mrr, 0)) / SUM(COALESCE(b.subscriptions, 0)) ELSE NULL END AS avg_arpu,\n  SUM(COALESCE(bl.billed_mrr, 0)) AS total_mrr\nFROM base b\nLEFT JOIN billing bl\n  ON b.network = bl.network\nGROUP BY b.network_type\nORDER BY passings DESC\nLIMIT 200;",
+    "params": []
+  },
+  "network_customer_type_summary": {
+    "views_used": [
+      "curated_recon.v_network_mix_trusted_latest",
+      "curated_recon.v_network_mrr_recon_latest"
+    ],
+    "sql": "WITH base AS (\n  SELECT\n    network,\n    customer_type,\n    CASE\n      WHEN COALESCE(canonical_passings_as_built, 0) = 0 THEN COALESCE(modeled_passings, 0)\n      WHEN COALESCE(modeled_passings, 0) > 0\n        AND COALESCE(passings_confidence, '') <> 'trusted'\n        AND COALESCE(canonical_passings_as_built, 0) > COALESCE(modeled_passings, 0) * 3\n        THEN COALESCE(modeled_passings, 0)\n      ELSE COALESCE(canonical_passings_as_built, 0)\n    END AS passings,\n    trusted_subscriptions AS subscriptions\n  FROM curated_recon.v_network_mix_trusted_latest\n  WHERE network <> 'Unmapped'\n    AND network <> 'NWFX'\n    AND network_type IN ('Owned FTTP', 'Contracted', 'CLEC')\n), billing_ranked AS (\n  SELECT\n    network,\n    SUM(COALESCE(billed_customers, 0)) AS billed_customers,\n    SUM(COALESCE(billed_mrr, 0)) AS billed_mrr,\n    billed_source,\n    ROW_NUMBER() OVER (\n      PARTITION BY network\n      ORDER BY CASE billed_source\n        WHEN 'platt_monthly_mrr' THEN 1\n        WHEN 'gaiia_invoices' THEN 2\n        ELSE 9\n      END\n    ) AS rn\n  FROM curated_recon.v_network_mrr_recon_latest\n  GROUP BY 1, 4\n), billing AS (\n  SELECT network, billed_customers, billed_mrr\n  FROM billing_ranked\n  WHERE rn = 1\n)\nSELECT\n  b.customer_type,\n  SUM(COALESCE(b.passings, 0)) AS passings,\n  SUM(COALESCE(b.subscriptions, 0)) AS subscriptions,\n  CASE WHEN SUM(COALESCE(b.passings, 0)) > 0 THEN (SUM(COALESCE(b.subscriptions, 0)) / SUM(COALESCE(b.passings, 0))) * 100 ELSE NULL END AS penetration_pct,\n  CASE WHEN SUM(COALESCE(b.subscriptions, 0)) > 0 THEN SUM(COALESCE(bl.billed_mrr, 0)) / SUM(COALESCE(b.subscriptions, 0)) ELSE NULL END AS avg_arpu,\n  SUM(COALESCE(bl.billed_mrr, 0)) AS total_mrr\nFROM base b\nLEFT JOIN billing bl\n  ON b.network = bl.network\nGROUP BY b.customer_type\nORDER BY passings DESC\nLIMIT 200;",
+    "params": []
+  },
+  "unmapped_network_services": {
+    "views_used": [
+      "curated_recon.v_unmapped_network_services_latest"
+    ],
+    "sql": "SELECT * FROM curated_recon.v_unmapped_network_services_latest ORDER BY active_services DESC;",
+    "params": []
+  },
+  "unmapped_network_customers": {
+    "views_used": [
+      "curated_recon.v_unmapped_network_customers_latest"
+    ],
+    "sql": "SELECT * FROM curated_recon.v_unmapped_network_customers_latest;",
+    "params": []
+  },
+  "freshness_mrr": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_and_churn_summary"
+    ],
+    "sql": "SELECT\n  MAX(period_month) AS latest_dt,\n  COUNT(*) AS ssot_count,\n  COUNT(CASE WHEN total_mrr < 0 THEN 1 END) AS exception_count\nFROM curated_core.v_monthly_mrr_and_churn_summary\nWHERE period_month = (SELECT MAX(period_month) FROM curated_core.v_monthly_mrr_and_churn_summary)\nLIMIT 1;",
+    "params": []
+  },
+  "freshness_projects": {
+    "views_used": [
+      "curated_core.projects_enriched"
+    ],
+    "sql": "SELECT\n  COUNT(*) AS ssot_count,\n  COUNT(CASE WHEN project_id IS NULL THEN 1 END) AS exception_count\nFROM curated_core.projects_enriched\nLIMIT 1;",
+    "params": []
+  },
+  "freshness_tickets": {
+    "views_used": [
+      "curated_core.v_cci_tickets_clean"
+    ],
+    "sql": "SELECT\n  COUNT(*) AS ssot_count,\n  COUNT(CASE WHEN customer_account_number IS NULL OR customer_account_number = '' THEN 1 END) AS exception_count\nFROM curated_core.v_cci_tickets_clean\nLIMIT 1;",
+    "params": []
+  },
+  "account_churn_rate": {
+    "views_used": [
+      "curated_core.v_monthly_account_churn_by_segment"
+    ],
+    "sql": "SELECT\n  period_month,\n  SUM(accounts_lost) AS accounts_lost,\n  SUM(active_accounts_proxy) AS active_accounts_proxy\nFROM curated_core.v_monthly_account_churn_by_segment\nWHERE period_month = (SELECT MAX(period_month) FROM curated_core.v_monthly_account_churn_by_segment)\nGROUP BY period_month\nLIMIT 1;",
+    "params": []
+  },
+  "mrr_fy2025_kpi": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt"
+    ],
+    "sql": "WITH monthly AS (\n  SELECT\n    CAST(date_trunc('month', period_month) AS date) AS period_month,\n    SUM(COALESCE(mrr_total, 0)) AS total_mrr\n  FROM curated_core.v_monthly_mrr_platt\n  GROUP BY 1\n)\nSELECT\n  SUM(total_mrr) AS fy2025_mrr_total\nFROM monthly\nWHERE period_month >= DATE '2025-01-01'\n  AND period_month < DATE '2026-01-01'\nLIMIT 1;",
+    "params": []
+  },
+  "mrr_fy2025_monthly": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt"
+    ],
+    "sql": "WITH monthly AS (\n  SELECT\n    CAST(date_trunc('month', period_month) AS date) AS period_month,\n    SUM(COALESCE(mrr_total, 0)) AS total_mrr\n  FROM curated_core.v_monthly_mrr_platt\n  GROUP BY 1\n)\nSELECT\n  substr(CAST(period_month AS varchar), 1, 7) AS period_month,\n  total_mrr\nFROM monthly\nWHERE period_month >= DATE '2025-01-01'\n  AND period_month < DATE '2026-01-01'\nORDER BY 1\nLIMIT 50;",
+    "params": []
+  },
+  "mrr_fy2025_top_customers": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt"
+    ],
+    "sql": "WITH customer_month AS (\n  SELECT\n    period_month,\n    customer_id,\n    customer_name,\n    SUM(mrr_total) AS mrr_total_customer_month\n  FROM curated_core.v_monthly_mrr_platt\n  WHERE substr(CAST(period_month AS varchar), 1, 7) >= '2025-01'\n    AND substr(CAST(period_month AS varchar), 1, 7) <= '2025-12'\n  GROUP BY 1,2,3\n)\nSELECT\n  customer_id,\n  customer_name,\n  SUM(mrr_total_customer_month) AS fy2025_mrr_total\nFROM customer_month\nGROUP BY 1,2\nORDER BY 3 DESC\nLIMIT 25;",
+    "params": []
+  },
+  "executive_strip_mrr": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt"
+    ],
+    "sql": "SELECT\n  SUM(mrr_total) AS total_mrr,\n  COUNT(DISTINCT customer_id) AS customer_count,\n  MAX(period_month) AS period_month\nFROM curated_core.v_monthly_mrr_platt\nWHERE period_month = (SELECT MAX(period_month) FROM curated_core.v_monthly_mrr_platt)\n  AND mrr_total > 0\nLIMIT 1;",
+    "params": []
+  },
+  "executive_strip_churn": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_and_churn_summary"
+    ],
+    "sql": "SELECT period_month, ending_mrr, mrr_churn\nFROM curated_core.v_monthly_mrr_and_churn_summary\nORDER BY period_month DESC\nLIMIT 2;",
+    "params": []
+  },
+  "mrr_trajectory": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_and_churn_summary"
+    ],
+    "sql": "SELECT period_month, ending_mrr\nFROM curated_core.v_monthly_mrr_and_churn_summary\nORDER BY period_month DESC\nLIMIT 24;",
+    "params": []
+  },
+  "revenue_quality": {
+    "views_used": [
+      "curated_core.v_customer_fully_loaded_margin_banded"
+    ],
+    "sql": "SELECT\n  action_band,\n  COUNT(*) AS customer_count,\n  SUM(total_mrr) AS total_mrr\nFROM curated_core.v_customer_fully_loaded_margin_banded\nWHERE total_mrr > 0\nGROUP BY action_band\nORDER BY action_band;",
+    "params": []
+  },
+  "ops_health": {
+    "views_used": [
+      "curated_core.v_ticket_burden_lake",
+      "curated_core.v_monthly_mrr_platt"
+    ],
+    "sql": "SELECT\n  (SELECT SUM(ticket_count_lake) FROM curated_core.v_ticket_burden_lake) AS total_tickets,\n  (SELECT COUNT(DISTINCT customer_id)\n     FROM curated_core.v_monthly_mrr_platt\n     WHERE period_month = (SELECT MAX(period_month) FROM curated_core.v_monthly_mrr_platt)\n       AND mrr_total > 0\n  ) AS active_customers;",
+    "params": []
+  },
+  "data_confidence": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt",
+      "curated_core.v_network_health"
+    ],
+    "sql": "SELECT\n  (SELECT MAX(period_month) FROM curated_core.v_monthly_mrr_platt) AS latest_period,\n  (SELECT COUNT(*) FROM curated_core.v_network_health) AS network_rows;",
+    "params": []
+  },
+  "network_map_points": {
+    "views_used": [
+      "curated_core.v_vetro_service_locations"
+    ],
+    "sql": "SELECT\n  service_location_id,\n  latitude,\n  longitude,\n  broadband_status,\n  build,\n  plan_id\nFROM curated_core.v_vetro_service_locations\nLIMIT 100;",
+    "params": []
+  },
+  "network_map_counts": {
+    "views_used": [
+      "curated_core.v_vetro_network_map_layers_v1",
+      "curated_core.v_vetro_service_locations_tbl"
+    ],
+    "sql": "WITH plan_cte AS (\n  SELECT\n    COUNT(DISTINCT plan_id) AS plan_count\n  FROM curated_core.v_vetro_network_map_layers_v1\n  WHERE plan_id IS NOT NULL AND TRIM(CAST(plan_id AS varchar)) <> ''\n), sl_cte AS (\n  SELECT\n    COUNT(DISTINCT service_location_id) AS service_locations_unique,\n    COUNT(DISTINCT CASE WHEN build = 'Yes' THEN service_location_id END) AS build_yes_unique\n  FROM curated_core.v_vetro_service_locations_tbl\n)\nSELECT\n  plan_cte.plan_count,\n  sl_cte.service_locations_unique,\n  sl_cte.build_yes_unique\nFROM plan_cte\nCROSS JOIN sl_cte;",
+    "params": []
+  },
+  "gis_service_locations": {
+    "views_used": [
+      "curated_core.v_vetro_network_map_layers_v1"
+    ],
+    "sql": "WITH ranked AS (\n  SELECT\n    layer_key,\n    entity_id,\n    latitude,\n    longitude,\n    icon_key,\n    color_hex,\n    city,\n    state,\n    build,\n    broadband_status,\n    network_status,\n    bsl_id,\n    plan_id,\n    network,\n    network_source,\n    as_built,\n    ROW_NUMBER() OVER (\n      PARTITION BY entity_id\n      ORDER BY as_built DESC, network_source DESC, network DESC\n    ) AS rn\n  FROM curated_core.v_vetro_network_map_layers_v1\n  WHERE layer_key = 'service_locations'\n)\nSELECT\n  layer_key,\n  entity_id,\n  latitude,\n  longitude,\n  icon_key,\n  color_hex,\n  city,\n  state,\n  build,\n  broadband_status,\n  network_status,\n  bsl_id,\n  plan_id,\n  network,\n  network_source,\n  as_built\nFROM ranked\nWHERE rn = 1\nLIMIT 25000;",
+    "max_rows": 25000,
+    "params": []
+  },
+  "gis_service_locations_by_network": {
+    "views_used": [
+      "curated_core.v_vetro_network_map_layers_v1"
+    ],
+    "sql": "WITH ranked AS (\n  SELECT\n    layer_key,\n    entity_id,\n    latitude,\n    longitude,\n    icon_key,\n    color_hex,\n    city,\n    state,\n    build,\n    broadband_status,\n    network_status,\n    bsl_id,\n    plan_id,\n    network,\n    network_source,\n    as_built,\n    ROW_NUMBER() OVER (\n      PARTITION BY entity_id\n      ORDER BY as_built DESC, network_source DESC, network DESC\n    ) AS rn\n  FROM curated_core.v_vetro_network_map_layers_v1\n  WHERE layer_key = 'service_locations'\n    AND network = ${network}\n)\nSELECT\n  layer_key,\n  entity_id,\n  latitude,\n  longitude,\n  icon_key,\n  color_hex,\n  city,\n  state,\n  build,\n  broadband_status,\n  network_status,\n  bsl_id,\n  plan_id,\n  network,\n  network_source,\n  as_built\nFROM ranked\nWHERE rn = 1\nLIMIT 25000;",
+    "max_rows": 25000,
+    "params": [
+      "network"
+    ]
+  },
+  "gis_network_list": {
+    "views_used": [
+      "curated_core.v_vetro_network_map_layers_v1"
+    ],
+    "sql": "SELECT\n  network,\n  COUNT(DISTINCT entity_id) AS service_location_count\nFROM curated_core.v_vetro_network_map_layers_v1\nWHERE layer_key = 'service_locations'\n  AND network IS NOT NULL\n  AND TRIM(CAST(network AS varchar)) <> ''\nGROUP BY 1\nORDER BY service_location_count DESC, network\nLIMIT 200;",
+    "params": []
+  },
+  "gis_naps": {
+    "views_used": [
+      "curated_core.v_vetro_network_map_layers_v1"
+    ],
+    "sql": "SELECT * FROM curated_core.v_vetro_network_map_layers_v1 WHERE layer_key = 'naps' LIMIT 25000;",
+    "max_rows": 25000,
+    "params": []
+  },
+  "gis_fat": {
+    "views_used": [
+      "curated_core.v_vetro_network_map_layers_v1"
+    ],
+    "sql": "SELECT * FROM curated_core.v_vetro_network_map_layers_v1 WHERE layer_key = 'fat' LIMIT 25000;",
+    "max_rows": 25000,
+    "params": []
+  },
+  "gis_fiber_aerial": {
+    "views_used": [
+      "curated_core.v_vetro_map_lines_layers_v1"
+    ],
+    "sql": "SELECT * FROM curated_core.v_vetro_map_lines_layers_v1 WHERE layer_key = 'fiber_aerial' LIMIT 25000;",
+    "max_rows": 25000,
+    "params": []
+  },
+  "gis_fiber_underground": {
+    "views_used": [
+      "curated_core.v_vetro_map_lines_layers_v1"
+    ],
+    "sql": "SELECT * FROM curated_core.v_vetro_map_lines_layers_v1 WHERE layer_key = 'fiber_underground' LIMIT 25000;",
+    "max_rows": 25000,
+    "params": []
+  },
+  "gis_fiber_mixed": {
+    "views_used": [
+      "curated_core.v_vetro_map_lines_layers_v1"
+    ],
+    "sql": "SELECT * FROM curated_core.v_vetro_map_lines_layers_v1 WHERE layer_key = 'fiber_mixed' LIMIT 25000;",
+    "max_rows": 25000,
+    "params": []
+  },
+  "gis_fiber_unknown": {
+    "views_used": [
+      "curated_core.v_vetro_map_lines_layers_v1"
+    ],
+    "sql": "SELECT * FROM curated_core.v_vetro_map_lines_layers_v1 WHERE layer_key = 'fiber_unknown' LIMIT 25000;",
+    "max_rows": 25000,
+    "params": []
+  },
+  "gis_fiber_owner_gwi": {
+    "views_used": [
+      "curated_core.v_vetro_map_lines_owner_v1"
+    ],
+    "sql": "SELECT * FROM curated_core.v_vetro_map_lines_owner_v1 WHERE layer_key = 'fiber_owner_gwi' LIMIT 25000;",
+    "max_rows": 25000,
+    "params": []
+  },
+  "gis_fiber_owner_lymefiber": {
+    "views_used": [
+      "curated_core.v_vetro_map_lines_owner_v1"
+    ],
+    "sql": "SELECT * FROM curated_core.v_vetro_map_lines_owner_v1 WHERE layer_key = 'fiber_owner_lymefiber' LIMIT 25000;",
+    "max_rows": 25000,
+    "params": []
+  },
+  "gis_polygons": {
+    "views_used": [
+      "curated_core.v_vetro_map_polygons_v1"
+    ],
+    "sql": "SELECT * FROM curated_core.v_vetro_map_polygons_v1 LIMIT 25000;",
+    "max_rows": 25000,
+    "params": []
+  },
+  "gis_fcc_fiber": {
+    "views_used": [
+      "curated_core.v_fcc_fiber_h3_counts_me_nh_2026_01"
+    ],
+    "sql": "SELECT * FROM curated_core.v_fcc_fiber_h3_counts_me_nh_2026_01 LIMIT 25000;",
+    "max_rows": 25000,
+    "params": []
+  },
+  "gis_fcc_cable": {
+    "views_used": [
+      "curated_core.v_fcc_nonfiber_h3_counts_me_nh_2026_01"
+    ],
+    "sql": "SELECT * FROM curated_core.v_fcc_nonfiber_h3_counts_me_nh_2026_01 WHERE tech_source = 'Cable' LIMIT 25000;",
+    "max_rows": 25000,
+    "params": []
+  },
+  "gis_fcc_copper": {
+    "views_used": [
+      "curated_core.v_fcc_nonfiber_h3_counts_me_nh_2026_01"
+    ],
+    "sql": "SELECT * FROM curated_core.v_fcc_nonfiber_h3_counts_me_nh_2026_01 WHERE tech_source = 'Copper' LIMIT 25000;",
+    "max_rows": 25000,
+    "params": []
+  },
+  "gis_fcc_fixed_wireless": {
+    "views_used": [
+      "curated_core.v_fcc_nonfiber_h3_counts_me_nh_2026_01"
+    ],
+    "sql": "SELECT * FROM curated_core.v_fcc_nonfiber_h3_counts_me_nh_2026_01 WHERE tech_source = 'LicensedFixedWireless' LIMIT 25000;",
+    "max_rows": 25000,
+    "params": []
+  },
+  "gis_fcc_satellite": {
+    "views_used": [
+      "curated_core.v_fcc_nonfiber_h3_counts_me_nh_2026_01"
+    ],
+    "sql": "SELECT * FROM curated_core.v_fcc_nonfiber_h3_counts_me_nh_2026_01 WHERE tech_source = 'GSOSatellite' LIMIT 25000;",
+    "max_rows": 25000,
+    "params": []
+  },
+  "unique_customer_ids": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt"
+    ],
+    "sql": "WITH latest AS (\n  SELECT MAX(period_month) AS period_month\n  FROM curated_core.v_monthly_mrr_platt\n)\nSELECT\n  COUNT(DISTINCT CASE WHEN COALESCE(m.mrr_total, 0) > 0 THEN m.customer_id END) AS active_billing_customers,\n  MAX(l.period_month) AS period_month\nFROM curated_core.v_monthly_mrr_platt m\nCROSS JOIN latest l\nWHERE m.period_month = l.period_month\nLIMIT 1;",
+    "params": []
+  },
+  "customers_in_city": {
+    "views_used": [
+      "curated_core.platt_customer_current_ssot"
+    ],
+    "sql": "SELECT\n  COUNT(DISTINCT username) AS customer_count,\n  ${city} AS city\nFROM curated_core.platt_customer_current_ssot\nWHERE username IS NOT NULL AND TRIM(username) <> ''\n  AND (\n    LOWER(city) = LOWER(${city})\n    OR LOWER(gwi_lq_city) = LOWER(${city})\n  )\n  AND LOWER(COALESCE(active, '')) IN ('y','yes','true','1')\n  AND LOWER(COALESCE(sensitive_p, '')) <> 'y'\nLIMIT 1;",
+    "params": [
+      "city"
+    ]
+  },
+  "customers_in_city_breakdown": {
+    "views_used": [
+      "curated_core.platt_customer_current_ssot"
+    ],
+    "sql": "SELECT\n  ${city} AS city,\n  COUNT(DISTINCT CASE WHEN username IS NOT NULL AND TRIM(username) <> '' THEN username END) AS total_customers,\n  COUNT(DISTINCT CASE WHEN LOWER(COALESCE(active, '')) IN ('y','yes','true','1') AND username IS NOT NULL AND TRIM(username) <> '' THEN username END) AS active_customers,\n  COUNT(DISTINCT CASE WHEN LOWER(COALESCE(active, '')) NOT IN ('y','yes','true','1') AND username IS NOT NULL AND TRIM(username) <> '' THEN username END) AS inactive_customers\nFROM curated_core.platt_customer_current_ssot\nWHERE (\n    LOWER(city) = LOWER(${city})\n    OR LOWER(gwi_lq_city) = LOWER(${city})\n  )\n  AND LOWER(COALESCE(sensitive_p, '')) <> 'y'\nLIMIT 1;",
+    "params": [
+      "city"
+    ]
+  },
+  "copper_customers_count": {
+    "views_used": [
+      "curated_core.v_network_health",
+      "curated_core.v_investor_revenue_mix_latest"
+    ],
+    "sql": "WITH modeled AS (\n  SELECT\n    SUM(COALESCE(subscriptions, 0)) AS copper_active_services,\n    SUM(COALESCE(subscriptions, 0)) AS copper_subscriptions,\n    SUM(COALESCE(mrr, 0)) AS copper_mrr_modeled,\n    MAX(dt) AS modeled_dt\n  FROM curated_core.v_network_health\n  WHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n    AND (\n      LOWER(COALESCE(network, '')) LIKE '%copper%'\n      OR LOWER(COALESCE(network_norm, '')) LIKE '%copper%'\n    )\n    AND (\n      ${network} = ''\n      OR LOWER(COALESCE(network, '')) = LOWER(${network})\n      OR LOWER(COALESCE(network, '')) LIKE LOWER(${network_prefix})\n      OR LOWER(COALESCE(network_norm, '')) = LOWER(${network})\n      OR LOWER(COALESCE(network_norm, '')) LIKE LOWER(${network_prefix})\n    )\n), billing AS (\n  SELECT\n    SUM(COALESCE(plat_id_count, 0)) AS copper_customer_count,\n    SUM(COALESCE(revenue, 0)) AS copper_mrr_billed,\n    MAX(as_of_date) AS period_month\n  FROM curated_core.v_investor_revenue_mix_latest\n  WHERE (\n      LOWER(COALESCE(network, '')) LIKE '%copper%'\n      OR LOWER(COALESCE(network_type, '')) LIKE '%copper%'\n    )\n    AND (\n      ${network} = ''\n      OR LOWER(COALESCE(network, '')) = LOWER(${network})\n      OR LOWER(COALESCE(network, '')) LIKE LOWER(${network_prefix})\n    )\n)\nSELECT\n  billing.copper_customer_count,\n  modeled.copper_active_services,\n  modeled.copper_subscriptions,\n  COALESCE(billing.copper_mrr_billed, modeled.copper_mrr_modeled) AS copper_mrr_billed,\n  COALESCE(CAST(billing.period_month AS timestamp), CAST(modeled.modeled_dt AS timestamp)) AS period_month\nFROM billing\nCROSS JOIN modeled\nLIMIT 1;",
+    "params": [
+      "network",
+      "network_prefix"
+    ]
+  },
+  "copper_customers_network_mix": {
+    "views_used": [
+      "curated_core.v_network_health",
+      "curated_core.v_investor_revenue_mix_latest"
+    ],
+    "sql": "WITH modeled AS (\n  SELECT\n    SUM(COALESCE(subscriptions, 0)) AS copper_active_services,\n    SUM(COALESCE(subscriptions, 0)) AS copper_subscriptions,\n    SUM(COALESCE(mrr, 0)) AS copper_mrr_modeled,\n    MAX(dt) AS modeled_dt\n  FROM curated_core.v_network_health\n  WHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n    AND (\n      LOWER(COALESCE(network, '')) LIKE '%copper%'\n      OR LOWER(COALESCE(network_norm, '')) LIKE '%copper%'\n    )\n    AND (\n      ${network} = ''\n      OR LOWER(COALESCE(network, '')) = LOWER(${network})\n      OR LOWER(COALESCE(network, '')) LIKE LOWER(${network_prefix})\n      OR LOWER(COALESCE(network_norm, '')) = LOWER(${network})\n      OR LOWER(COALESCE(network_norm, '')) LIKE LOWER(${network_prefix})\n    )\n), billing AS (\n  SELECT\n    SUM(COALESCE(plat_id_count, 0)) AS copper_billed_customers,\n    SUM(COALESCE(revenue, 0)) AS copper_mrr_billed,\n    MAX(as_of_date) AS period_month\n  FROM curated_core.v_investor_revenue_mix_latest\n  WHERE (\n      LOWER(COALESCE(network, '')) LIKE '%copper%'\n      OR LOWER(COALESCE(network_type, '')) LIKE '%copper%'\n    )\n    AND (\n      ${network} = ''\n      OR LOWER(COALESCE(network, '')) = LOWER(${network})\n      OR LOWER(COALESCE(network, '')) LIKE LOWER(${network_prefix})\n    )\n)\nSELECT\n  billing.copper_billed_customers,\n  modeled.copper_active_services,\n  modeled.copper_subscriptions,\n  COALESCE(billing.copper_mrr_billed, modeled.copper_mrr_modeled) AS copper_mrr_billed,\n  COALESCE(CAST(billing.period_month AS timestamp), CAST(modeled.modeled_dt AS timestamp)) AS period_month\nFROM billing\nCROSS JOIN modeled\nLIMIT 1;",
+    "params": [
+      "network",
+      "network_prefix"
+    ]
+  },
+  "open_tickets_active": {
+    "views_used": [
+      "curated_core.v_cci_tickets_clean"
+    ],
+    "sql": "SELECT\n  case_or_ticket_number AS ticket_number,\n  customer_name,\n  customer_display_name,\n  service_location_city,\n  service_location_state,\n  status,\n  type,\n  priority,\n  service_area,\n  operations_code,\n  equipment_name,\n  created_time\nFROM curated_core.v_cci_tickets_clean\nWHERE status IS NOT NULL\n  AND TRIM(status) <> ''\n  AND LOWER(status) NOT IN ('closed', 'resolved', 'complete', 'completed', 'done')\n  AND LOWER(status) NOT LIKE '%closed%'\n  AND LOWER(status) NOT LIKE '%resolved%'\nORDER BY created_time DESC\nLIMIT 500;",
+    "params": []
+  },
+  "outages_reported": {
+    "views_used": [
+      "curated_core.v_cci_tickets_clean"
+    ],
+    "sql": "SELECT\n  case_or_ticket_number AS ticket_number,\n  customer_name,\n  customer_display_name,\n  service_location_city,\n  service_location_state,\n  status,\n  type,\n  priority,\n  service_area,\n  operations_code,\n  equipment_name,\n  created_time,\n  SUBSTR(work_done, 1, 200) AS work_done_preview\nFROM curated_core.v_cci_tickets_clean\nWHERE (\n  LOWER(type) LIKE '%outage%'\n  OR LOWER(work_done) LIKE '%outage%'\n  OR LOWER(operations_code) LIKE '%outage%'\n)\nORDER BY created_time DESC\nLIMIT 500;",
+    "params": []
+  },
+  "plat_id_count_by_network_latest": {
+    "views_used": [
+      "curated_core.v_investor_revenue_mix_latest"
+    ],
+    "sql": "SELECT\n  network,\n  network_type,\n  as_of_date,\n  plat_id_count\nFROM curated_core.v_investor_revenue_mix_latest\nWHERE LOWER(network) = LOWER(${network})\nLIMIT 1;",
+    "params": [
+      "network"
+    ]
+  },
+  "owned_customers_investor_workbook": {
+    "views_used": [
+      "curated_recon.v_network_mix_trusted_latest"
+    ],
+    "sql": "WITH owned AS (\n  SELECT\n    SUM(COALESCE(trusted_subscriptions, 0)) AS owned_subscriptions,\n    SUM(COALESCE(modeled_passings, canonical_passings_as_built, 0)) AS owned_passings,\n    SUM(COALESCE(trusted_billed_customers, 0)) AS owned_billing_customers_bucket,\n    SUM(COALESCE(trusted_billed_mrr, modeled_mrr, 0)) AS owned_mrr,\n    MAX(period_month) AS billing_period_month,\n    MAX(modeled_dt) AS modeled_dt,\n    CASE WHEN SUM(CASE WHEN passings_confidence <> 'trusted' THEN 1 ELSE 0 END) > 0 THEN 'untrusted' ELSE 'trusted' END AS passings_confidence\n  FROM curated_recon.v_network_mix_trusted_latest\n  WHERE LOWER(COALESCE(network_type, '')) = 'owned fttp'\n    AND LOWER(COALESCE(customer_type, '')) = 'owned customer'\n)\nSELECT\n  CAST(billing_period_month AS timestamp) AS billing_period_month,\n  CAST(owned_billing_customers_bucket AS bigint) AS owned_billing_customers_bucket,\n  CAST(owned_subscriptions AS bigint) AS owned_subscriptions,\n  CAST(owned_passings AS bigint) AS owned_passings,\n  owned_mrr,\n  CAST(modeled_dt AS timestamp) AS modeled_dt,\n  passings_confidence\nFROM owned\nLIMIT 1;",
+    "params": []
+  },
+  "owned_customers_multiscope": {
+    "views_used": [
+      "curated_recon.v_network_mix_trusted_latest"
+    ],
+    "sql": "WITH owned AS (\n  SELECT\n    SUM(COALESCE(trusted_subscriptions, 0)) AS owned_subscriptions,\n    SUM(COALESCE(modeled_passings, canonical_passings_as_built, 0)) AS owned_passings,\n    SUM(COALESCE(trusted_billed_customers, 0)) AS owned_billing_customers_bucket,\n    SUM(COALESCE(trusted_billed_mrr, modeled_mrr, 0)) AS owned_mrr,\n    MAX(period_month) AS billing_period_month,\n    MAX(modeled_dt) AS modeled_dt,\n    CASE WHEN SUM(CASE WHEN passings_confidence <> 'trusted' THEN 1 ELSE 0 END) > 0 THEN 'untrusted' ELSE 'trusted' END AS passings_confidence\n  FROM curated_recon.v_network_mix_trusted_latest\n  WHERE LOWER(COALESCE(network_type, '')) = 'owned fttp'\n    AND LOWER(COALESCE(customer_type, '')) = 'owned customer'\n    AND network <> 'NWFX'\n)\nSELECT\n  CAST(billing_period_month AS timestamp) AS billing_period_month,\n  CAST(owned_billing_customers_bucket AS bigint) AS owned_billing_customers_bucket,\n  CAST(owned_subscriptions AS bigint) AS owned_subscriptions,\n  CAST(owned_passings AS bigint) AS owned_passings,\n  owned_mrr,\n  CAST(modeled_dt AS timestamp) AS modeled_dt,\n  passings_confidence\nFROM owned\nLIMIT 1;",
+    "params": []
+  },
+  "owned_networks_list": {
+    "views_used": [
+      "curated_recon.v_network_mix_trusted_latest"
+    ],
+    "sql": "SELECT\n  network,\n  network_type,\n  customer_type,\n  CAST(period_month AS timestamp) AS period_month,\n  CAST(modeled_dt AS timestamp) AS modeled_dt,\n  COALESCE(trusted_subscriptions, 0) AS subscriptions,\n  COALESCE(modeled_passings, canonical_passings_as_built) AS passings,\n  COALESCE(trusted_billed_customers, 0) AS billed_customers,\n  COALESCE(trusted_billed_mrr, 0) AS billed_mrr,\n  passings_confidence\nFROM curated_recon.v_network_mix_trusted_latest\nWHERE LOWER(COALESCE(network_type, '')) = 'owned fttp'\n  AND LOWER(COALESCE(customer_type, '')) = 'owned customer'\n    AND network <> 'NWFX'\n  AND network IS NOT NULL\n  AND TRIM(network) <> ''\n  AND network <> 'Unmapped'\nORDER BY network\nLIMIT 500;",
+    "params": []
+  },
+  "workbook_customer_mix_kpis": {
+    "views_used": [
+      "curated_core.v_network_health"
+    ],
+    "sql": "SELECT\n  ${network_type} AS network_type,\n  ${customer_type} AS customer_type,\n  ${access_type} AS access_type,\n  CAST(MAX(dt) AS timestamp) AS modeled_dt,\n  CAST(date_trunc('month', CAST(MAX(dt) AS date)) AS timestamp) AS period_month,\n  SUM(COALESCE(passings, 0)) AS passings,\n  SUM(COALESCE(subscriptions, 0)) AS subscriptions,\n  CASE\n    WHEN SUM(COALESCE(passings, 0)) > 0 THEN (SUM(COALESCE(subscriptions, 0)) / SUM(COALESCE(passings, 0))) * 100\n    ELSE NULL\n  END AS penetration_pct,\n  SUM(COALESCE(mrr, 0)) AS mrr_modeled,\n  CASE\n    WHEN SUM(COALESCE(subscriptions, 0)) > 0 THEN SUM(COALESCE(mrr, 0)) / SUM(COALESCE(subscriptions, 0))\n    ELSE NULL\n  END AS arpu_modeled\nFROM curated_core.v_network_health\nWHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n  AND (\n    ${network_type} = '' OR LOWER(COALESCE(network_type, '')) = LOWER(${network_type})\n  )\n  AND (\n    ${customer_type} = '' OR LOWER(COALESCE(customer_type, '')) = LOWER(${customer_type})\n  )\n  AND (\n    ${access_type} = ''\n    OR (${access_type} = 'Copper' AND LOWER(COALESCE(network_type, '')) = 'clec')\n    OR (${access_type} = 'Fiber' AND LOWER(COALESCE(network_type, '')) <> 'clec')\n  )\nLIMIT 1;",
+    "params": [
+      "network_type",
+      "customer_type",
+      "access_type"
+    ]
+  },
+  "workbook_customer_mix_networks_list": {
+    "views_used": [
+      "curated_core.v_network_health"
+    ],
+    "sql": "SELECT\n  network,\n  network_norm,\n  network_type,\n  customer_type,\n  CASE\n    WHEN LOWER(COALESCE(network_type, '')) = 'clec' THEN 'Copper'\n    ELSE 'Fiber'\n  END AS access_type,\n  passings,\n  subscriptions,\n  mrr,\n  dt\nFROM curated_core.v_network_health\nWHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n  AND network IS NOT NULL\n  AND TRIM(network) <> ''\n  AND network <> 'Unmapped'\n  AND (\n    ${network_type} = '' OR LOWER(COALESCE(network_type, '')) = LOWER(${network_type})\n  )\n  AND (\n    ${customer_type} = '' OR LOWER(COALESCE(customer_type, '')) = LOWER(${customer_type})\n  )\n  AND (\n    ${access_type} = ''\n    OR (${access_type} = 'Copper' AND LOWER(COALESCE(network_type, '')) = 'clec')\n    OR (${access_type} = 'Fiber' AND LOWER(COALESCE(network_type, '')) <> 'clec')\n  )\nORDER BY subscriptions DESC, passings DESC, network\nLIMIT 500;",
+    "params": [
+      "network_type",
+      "customer_type",
+      "access_type"
+    ]
+  },
+  "workbook_revenue_mix_kpis": {
+    "views_used": [
+      "curated_core.v_investor_revenue_mix_latest"
+    ],
+    "sql": "SELECT\n  ${segment_label} AS segment_label,\n  MAX(as_of_date) AS as_of_date,\n  SUM(COALESCE(plat_id_count, 0)) AS billed_customers,\n  SUM(COALESCE(revenue, 0)) AS billed_mrr\nFROM curated_core.v_investor_revenue_mix_latest\nWHERE (\n    ${network_type_like} = ''\n    OR LOWER(COALESCE(network_type, '')) LIKE LOWER(${network_type_like})\n  )\n  AND (\n    ${network_like} = ''\n    OR LOWER(COALESCE(network, '')) LIKE LOWER(${network_like})\n  )\nLIMIT 1;",
+    "params": [
+      "segment_label",
+      "network_type_like",
+      "network_like"
+    ]
+  },
+  "workbook_revenue_mix_networks_list": {
+    "views_used": [
+      "curated_core.v_investor_revenue_mix_latest"
+    ],
+    "sql": "SELECT\n  network_type,\n  network,\n  MAX(as_of_date) AS as_of_date,\n  SUM(COALESCE(plat_id_count, 0)) AS billed_customers,\n  SUM(COALESCE(revenue, 0)) AS billed_mrr\nFROM curated_core.v_investor_revenue_mix_latest\nWHERE (\n    ${network_type_like} = ''\n    OR LOWER(COALESCE(network_type, '')) LIKE LOWER(${network_type_like})\n  )\n  AND (\n    ${network_like} = ''\n    OR LOWER(COALESCE(network, '')) LIKE LOWER(${network_like})\n  )\nGROUP BY 1, 2\nORDER BY billed_customers DESC\nLIMIT 200;",
+    "params": [
+      "network_type_like",
+      "network_like"
+    ]
+  },
+  "workbook_customer_mix_summary": {
+    "views_used": [
+      "curated_core.v_network_health"
+    ],
+    "sql": "SELECT\n  network_type,\n  customer_type,\n  CASE\n    WHEN LOWER(COALESCE(network_type, '')) = 'clec' THEN 'Copper'\n    ELSE 'Fiber'\n  END AS access_type,\n  CAST(MAX(dt) AS timestamp) AS modeled_dt,\n  SUM(COALESCE(passings, 0)) AS passings,\n  SUM(COALESCE(subscriptions, 0)) AS subscriptions,\n  CASE\n    WHEN SUM(COALESCE(passings, 0)) > 0 THEN (SUM(COALESCE(subscriptions, 0)) / SUM(COALESCE(passings, 0))) * 100\n    ELSE NULL\n  END AS penetration_pct,\n  SUM(COALESCE(mrr, 0)) AS mrr_modeled,\n  CASE\n    WHEN SUM(COALESCE(subscriptions, 0)) > 0 THEN SUM(COALESCE(mrr, 0)) / SUM(COALESCE(subscriptions, 0))\n    ELSE NULL\n  END AS arpu_modeled\nFROM curated_core.v_network_health\nWHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n  AND network IS NOT NULL\n  AND TRIM(network) <> ''\n  AND network <> 'Unmapped'\nGROUP BY 1, 2, 3\nORDER BY subscriptions DESC, passings DESC\nLIMIT 200;",
+    "params": []
+  },
+  "workbook_revenue_mix_summary": {
+    "views_used": [
+      "curated_core.v_investor_revenue_mix_latest"
+    ],
+    "sql": "SELECT\n  network_type,\n  CASE\n    WHEN LOWER(COALESCE(network_type, '')) LIKE '%copper%' THEN 'Copper'\n    ELSE 'Fiber'\n  END AS access_type,\n  MAX(as_of_date) AS as_of_date,\n  SUM(COALESCE(plat_id_count, 0)) AS billed_customers,\n  SUM(COALESCE(revenue, 0)) AS billed_mrr,\n  CASE\n    WHEN SUM(COALESCE(plat_id_count, 0)) > 0 THEN SUM(COALESCE(revenue, 0)) / SUM(COALESCE(plat_id_count, 0))\n    ELSE NULL\n  END AS arpu_billed\nFROM curated_core.v_investor_revenue_mix_latest\nWHERE network IS NOT NULL\n  AND TRIM(network) <> ''\n  AND network <> 'Total'\nGROUP BY 1, 2\nORDER BY billed_customers DESC\nLIMIT 200;",
+    "params": []
+  },
+  "workbook_revenue_mix_totals_excluding_dvfiber": {
+    "views_used": [
+      "curated_core.v_investor_revenue_mix_latest"
+    ],
+    "sql": "SELECT\n  MAX(as_of_date) AS as_of_date,\n  SUM(COALESCE(plat_id_count, 0)) AS billed_customers,\n  SUM(COALESCE(revenue, 0)) AS billed_mrr,\n  CASE\n    WHEN SUM(COALESCE(plat_id_count, 0)) > 0 THEN SUM(COALESCE(revenue, 0)) / SUM(COALESCE(plat_id_count, 0))\n    ELSE NULL\n  END AS arpu_billed\nFROM curated_core.v_investor_revenue_mix_latest\nWHERE network IS NOT NULL\n  AND TRIM(network) <> ''\n  AND network <> 'Total'\n  AND LOWER(COALESCE(network_type, '')) NOT LIKE '%dvfiber%'\nLIMIT 1;",
+    "params": []
+  },
+  "workbook_customer_mix_segment_pct": {
+    "views_used": [
+      "curated_core.v_network_health"
+    ],
+    "sql": "WITH base AS (\n  SELECT\n    network_type,\n    customer_type,\n    CASE\n      WHEN LOWER(COALESCE(network_type, '')) = 'clec' THEN 'Copper'\n      ELSE 'Fiber'\n    END AS access_type,\n    SUM(COALESCE(passings, 0)) AS passings,\n    SUM(COALESCE(subscriptions, 0)) AS subscriptions\n  FROM curated_core.v_network_health\n  WHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n    AND network IS NOT NULL\n    AND TRIM(network) <> ''\n    AND network <> 'Unmapped'\n  GROUP BY 1, 2, 3\n), segment AS (\n  SELECT\n    SUM(\n      CASE\n        WHEN LOWER(${measure}) IN ('passings','passing') THEN passings\n        ELSE subscriptions\n      END\n    ) AS segment_value\n  FROM base\n  WHERE (\n      ${network_type} = '' OR LOWER(COALESCE(network_type, '')) = LOWER(${network_type})\n    )\n    AND (\n      ${customer_type} = '' OR LOWER(COALESCE(customer_type, '')) = LOWER(${customer_type})\n    )\n    AND (\n      ${access_type} = '' OR LOWER(COALESCE(access_type, '')) = LOWER(${access_type})\n    )\n), totals AS (\n  SELECT\n    SUM(\n      CASE\n        WHEN LOWER(${measure}) IN ('passings','passing') THEN passings\n        ELSE subscriptions\n      END\n    ) AS total_value\n  FROM base\n)\nSELECT\n  ${measure} AS measure,\n  ${network_type} AS network_type,\n  ${customer_type} AS customer_type,\n  ${access_type} AS access_type,\n  CAST((SELECT segment_value FROM segment) AS double) AS segment_value,\n  CAST((SELECT total_value FROM totals) AS double) AS total_value,\n  CASE\n    WHEN (SELECT total_value FROM totals) > 0 THEN ((SELECT segment_value FROM segment) / (SELECT total_value FROM totals)) * 100\n    ELSE NULL\n  END AS segment_pct\nLIMIT 1;",
+    "params": [
+      "network_type",
+      "customer_type",
+      "access_type",
+      "measure"
+    ]
+  },
+  "workbook_revenue_mix_segment_pct": {
+    "views_used": [
+      "curated_core.v_investor_revenue_mix_latest"
+    ],
+    "sql": "WITH segment AS (\n  SELECT\n    MAX(as_of_date) AS as_of_date,\n    SUM(\n      CASE\n        WHEN LOWER(${measure}) IN ('plat_id_count','platidcount','plat id count','billed_customers','billed customers') THEN COALESCE(plat_id_count, 0)\n        ELSE COALESCE(revenue, 0)\n      END\n    ) AS segment_value\n  FROM curated_core.v_investor_revenue_mix_latest\n  WHERE network IS NOT NULL\n    AND TRIM(network) <> ''\n    AND network <> 'Total'\n    AND (\n      ${network_type_like} = ''\n      OR LOWER(COALESCE(network_type, '')) LIKE LOWER(${network_type_like})\n    )\n    AND (\n      ${network_like} = ''\n      OR LOWER(COALESCE(network, '')) LIKE LOWER(${network_like})\n    )\n), totals AS (\n  SELECT\n    MAX(as_of_date) AS as_of_date,\n    SUM(\n      CASE\n        WHEN LOWER(${measure}) IN ('plat_id_count','platidcount','plat id count','billed_customers','billed customers') THEN COALESCE(plat_id_count, 0)\n        ELSE COALESCE(revenue, 0)\n      END\n    ) AS total_value\n  FROM curated_core.v_investor_revenue_mix_latest\n  WHERE network IS NOT NULL\n    AND TRIM(network) <> ''\n    AND network <> 'Total'\n)\nSELECT\n  ${segment_label} AS segment_label,\n  ${measure} AS measure,\n  CAST((SELECT as_of_date FROM totals) AS timestamp) AS as_of_date,\n  CAST((SELECT segment_value FROM segment) AS double) AS segment_value,\n  CAST((SELECT total_value FROM totals) AS double) AS total_value,\n  CASE\n    WHEN (SELECT total_value FROM totals) > 0 THEN ((SELECT segment_value FROM segment) / (SELECT total_value FROM totals)) * 100\n    ELSE NULL\n  END AS segment_pct\nLIMIT 1;",
+    "params": [
+      "segment_label",
+      "network_type_like",
+      "network_like",
+      "measure"
+    ]
+  },
+  "platt_billing_customers_by_system_latest": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt",
+      "curated_recon.platt_customer_system_map",
+      "curated_core.platt_customer_current_ssot"
+    ],
+    "sql": "WITH latest AS (\n  SELECT MAX(period_month) AS period_month\n  FROM curated_core.v_monthly_mrr_platt\n), billing AS (\n  SELECT\n    CAST(customer_id AS varchar) AS customer_id,\n    period_month,\n    mrr_total\n  FROM curated_core.v_monthly_mrr_platt\n  WHERE period_month = (SELECT period_month FROM latest)\n), system_map AS (\n  SELECT\n    CAST(\n      CASE\n        WHEN pm.customer_id LIKE '%.0' THEN substr(pm.customer_id, 1, length(pm.customer_id) - 2)\n        ELSE pm.customer_id\n      END\n      AS varchar\n    ) AS customer_id,\n    COALESCE(NULLIF(TRIM(pm.gwi_system), ''), NULLIF(TRIM(pc.gwi_system), '')) AS gwi_system\n  FROM curated_recon.platt_customer_system_map pm\n  LEFT JOIN curated_core.platt_customer_current_ssot pc\n    ON CAST(\n      CASE\n        WHEN pm.customer_id LIKE '%.0' THEN substr(pm.customer_id, 1, length(pm.customer_id) - 2)\n        ELSE pm.customer_id\n      END\n      AS varchar\n    ) = CAST(pc.id AS varchar)\n)\nSELECT\n  sm.gwi_system,\n  MAX(b.period_month) AS invoice_month,\n  COUNT(DISTINCT CASE WHEN COALESCE(b.mrr_total, 0) > 0 THEN b.customer_id END) AS plat_id_count\nFROM billing b\nJOIN system_map sm\n  ON b.customer_id = sm.customer_id\nWHERE sm.gwi_system IS NOT NULL\n  AND LOWER(TRIM(sm.gwi_system)) = LOWER(TRIM(${gwi_system}))\nGROUP BY 1\nLIMIT 1;",
+    "params": [
+      "gwi_system"
+    ]
+  },
+  "platt_billing_customers_by_system_month": {
+    "views_used": [
+      "raw_platt.iheader_raw",
+      "raw_platt.customer"
+    ],
+    "sql": "WITH base AS (\n  SELECT\n    customer AS customer_id,\n    substr(date,1,7) AS invoice_month_str,\n    try_cast(total AS double) AS total\n  FROM raw_platt.iheader_raw\n  WHERE dt = (SELECT max(dt) FROM raw_platt.iheader_raw)\n), filtered AS (\n  SELECT\n    customer_id,\n    date_parse(concat(invoice_month_str, '-01'), '%Y-%m-%d') AS invoice_month,\n    total\n  FROM base\n  WHERE invoice_month_str IS NOT NULL AND length(invoice_month_str) = 7\n), customers AS (\n  SELECT id AS customer_id, gwi_system\n  FROM raw_platt.customer\n  WHERE dt = (SELECT max(dt) FROM raw_platt.customer)\n)\nSELECT\n  c.gwi_system,\n  f.invoice_month,\n  COUNT(DISTINCT f.customer_id) AS plat_id_count\nFROM filtered f\nJOIN customers c ON c.customer_id = f.customer_id\nWHERE f.total <> 0\n  AND LOWER(TRIM(c.gwi_system)) = LOWER(TRIM(${gwi_system}))\n  AND f.invoice_month = DATE ${invoice_month}\nGROUP BY 1,2\nLIMIT 1;",
+    "params": [
+      "gwi_system",
+      "invoice_month"
+    ]
+  },
+  "billing_customers_in_network_latest": {
+    "views_used": [
+      "curated_core.v_monthly_mrr_platt",
+      "curated_recon.platt_customer_system_map",
+      "curated_core.platt_customer_current_ssot",
+      "curated_recon.gwi_system_network_map",
+      "curated_core.v_network_health"
+    ],
+    "sql": "WITH latest AS (\n  SELECT MAX(period_month) AS period_month\n  FROM curated_core.v_monthly_mrr_platt\n), billing AS (\n  SELECT\n    CAST(customer_id AS varchar) AS customer_id,\n    mrr_total\n  FROM curated_core.v_monthly_mrr_platt\n  WHERE period_month = (SELECT period_month FROM latest)\n), system_map AS (\n  SELECT\n    CAST(\n      CASE\n        WHEN pm.customer_id LIKE '%.0' THEN substr(pm.customer_id, 1, length(pm.customer_id) - 2)\n        ELSE pm.customer_id\n      END\n      AS varchar\n    ) AS customer_id,\n    COALESCE(NULLIF(TRIM(pm.gwi_system), ''), NULLIF(TRIM(pc.gwi_system), '')) AS gwi_system,\n    trim(regexp_replace(\n      lower(coalesce(COALESCE(NULLIF(TRIM(pm.gwi_system), ''), NULLIF(TRIM(pc.gwi_system), '')), '')),\n      '[^a-z0-9]+',\n      ' '\n    )) AS gwi_system_norm\n  FROM curated_recon.platt_customer_system_map pm\n  LEFT JOIN curated_core.platt_customer_current_ssot pc\n    ON CAST(\n      CASE\n        WHEN pm.customer_id LIKE '%.0' THEN substr(pm.customer_id, 1, length(pm.customer_id) - 2)\n        ELSE pm.customer_id\n      END\n      AS varchar\n    ) = CAST(pc.id AS varchar)\n), network_map AS (\n  SELECT\n    trim(regexp_replace(lower(coalesce(gwi_system_norm, '')), ' +', ' ')) AS gwi_system_norm,\n    network\n  FROM curated_recon.gwi_system_network_map\n), mapped_billing AS (\n  SELECT\n    nm.network,\n    b.customer_id,\n    b.mrr_total\n  FROM billing b\n  LEFT JOIN system_map sm\n    ON b.customer_id = sm.customer_id\n  LEFT JOIN network_map nm\n    ON trim(regexp_replace(sm.gwi_system_norm, ' +', ' ')) = nm.gwi_system_norm\n), billing_rollup AS (\n  SELECT\n    network,\n    COUNT(DISTINCT CASE WHEN COALESCE(mrr_total, 0) > 0 THEN customer_id END) AS billed_customers,\n    SUM(CASE WHEN COALESCE(mrr_total, 0) > 0 THEN COALESCE(mrr_total, 0) ELSE 0 END) AS billed_mrr\n  FROM mapped_billing\n  WHERE network IS NOT NULL\n    AND LOWER(network) = LOWER(${network})\n  GROUP BY 1\n), modeled AS (\n  SELECT\n    SUM(COALESCE(subscriptions, 0)) AS modeled_subscriptions,\n    SUM(COALESCE(mrr, 0)) AS modeled_mrr\n  FROM curated_core.v_network_health\n  WHERE dt = (SELECT MAX(dt) FROM curated_core.v_network_health)\n    AND (\n      LOWER(COALESCE(network, '')) = LOWER(${network})\n      OR LOWER(COALESCE(network_norm, '')) = LOWER(${network})\n    )\n)\nSELECT\n  br.network,\n  CAST((SELECT period_month FROM latest) AS timestamp) AS invoice_month,\n  br.billed_customers,\n  br.billed_mrr,\n  modeled.modeled_subscriptions,\n  modeled.modeled_mrr,\n  (br.billed_mrr - modeled.modeled_mrr) AS mrr_delta,\n  CASE\n    WHEN modeled.modeled_mrr IS NULL OR modeled.modeled_mrr = 0 THEN NULL\n    ELSE br.billed_mrr / modeled.modeled_mrr\n  END AS billed_to_modeled_ratio\nFROM billing_rollup br\nCROSS JOIN modeled\nLIMIT 1;",
+    "params": [
+      "network"
+    ]
+  },
+  "change_log_customer_mix": {
+    "views_used": [
+      "curated_recon.v_network_mix_trusted_latest",
+      "curated_recon.v_network_mrr_recon_latest",
+      "curated_core.v_monthly_mrr_platt",
+      "curated_recon.platt_customer_system_map",
+      "curated_core.platt_customer_current_ssot",
+      "curated_recon.v_gwi_system_network_map_canon"
+    ],
+    "sql": "WITH mix_now AS (\n  SELECT\n    SUM(COALESCE(trusted_subscriptions, 0)) AS subscriptions,\n    SUM(\n      CASE\n        WHEN COALESCE(canonical_passings_as_built, 0) = 0 THEN COALESCE(modeled_passings, 0)\n        WHEN COALESCE(modeled_passings, 0) > 0\n          AND COALESCE(passings_confidence, '') <> 'trusted'\n          AND COALESCE(canonical_passings_as_built, 0) > COALESCE(modeled_passings, 0) * 3\n          THEN COALESCE(modeled_passings, 0)\n        ELSE COALESCE(canonical_passings_as_built, 0)\n      END\n    ) AS passings,\n    MAX(modeled_dt) AS modeled_dt\n  FROM curated_recon.v_network_mix_trusted_latest\n  WHERE network_type IN ('Owned FTTP', 'Contracted', 'CLEC')\n    AND network <> 'Unmapped'\n    AND network <> 'NWFX'\n), prior_snapshot AS (\n  SELECT\n    SUM(COALESCE(subscriptions, 0)) AS subscriptions,\n    SUM(COALESCE(passings, 0)) AS passings,\n    MAX(dt) AS snapshot_dt\n  FROM curated_core.v_network_health\n  WHERE network_type IN ('Owned FTTP', 'Contracted', 'CLEC')\n    AND network <> 'NWFX'\n), curr_billing AS (\n  SELECT\n    CAST(MAX(period_month) AS date) AS period_month,\n    SUM(COALESCE(billed_mrr_total, 0)) AS total_mrr,\n    SUM(COALESCE(billed_customers, 0)) AS customer_count\n  FROM curated_recon.v_network_mrr_recon_summary\n), prev_billing AS (\n  SELECT\n    CAST(date_trunc('month', period_month) AS date) AS period_month,\n    SUM(COALESCE(total_mrr, 0)) AS total_mrr,\n    SUM(COALESCE(active_accounts_proxy, 0)) AS customer_count\n  FROM curated_core.v_monthly_mrr_and_churn_summary\n  WHERE CAST(date_trunc('month', period_month) AS date) = (\n    SELECT MAX(CAST(date_trunc('month', period_month) AS date))\n    FROM curated_core.v_monthly_mrr_and_churn_summary\n    WHERE CAST(date_trunc('month', period_month) AS date) < (\n      SELECT CAST(MAX(period_month) AS date) FROM curr_billing\n    )\n  )\n  GROUP BY 1\n)\nSELECT\n  'subscriptions' AS metric,\n  CAST(mn.modeled_dt AS varchar) AS current_dt,\n  CAST(mn.subscriptions AS double) AS current_value,\n  CAST(ps.snapshot_dt AS varchar) AS prev_dt,\n  CAST(ps.subscriptions AS double) AS prev_value,\n  CAST(mn.subscriptions - ps.subscriptions AS double) AS delta,\n  CASE WHEN ps.subscriptions > 0 THEN CAST((mn.subscriptions - ps.subscriptions) AS double) / CAST(ps.subscriptions AS double) ELSE NULL END AS delta_pct\nFROM mix_now mn CROSS JOIN prior_snapshot ps\nUNION ALL\nSELECT\n  'passings' AS metric,\n  CAST(mn.modeled_dt AS varchar) AS current_dt,\n  CAST(mn.passings AS double) AS current_value,\n  CAST(ps.snapshot_dt AS varchar) AS prev_dt,\n  CAST(ps.passings AS double) AS prev_value,\n  CAST(mn.passings - ps.passings AS double) AS delta,\n  CASE WHEN ps.passings > 0 THEN CAST((mn.passings - ps.passings) AS double) / CAST(ps.passings AS double) ELSE NULL END AS delta_pct\nFROM mix_now mn CROSS JOIN prior_snapshot ps\nUNION ALL\nSELECT\n  'billed_customers' AS metric,\n  CAST(c.period_month AS varchar) AS current_dt,\n  CAST(c.customer_count AS double) AS current_value,\n  CAST(p.period_month AS varchar) AS prev_dt,\n  CAST(p.customer_count AS double) AS prev_value,\n  CAST(c.customer_count - p.customer_count AS double) AS delta,\n  CASE WHEN p.customer_count > 0 THEN CAST((c.customer_count - p.customer_count) AS double) / CAST(p.customer_count AS double) ELSE NULL END AS delta_pct\nFROM curr_billing c CROSS JOIN prev_billing p\nUNION ALL\nSELECT\n  'billed_mrr' AS metric,\n  CAST(c.period_month AS varchar) AS current_dt,\n  CAST(c.total_mrr AS double) AS current_value,\n  CAST(p.period_month AS varchar) AS prev_dt,\n  CAST(p.total_mrr AS double) AS prev_value,\n  CAST(c.total_mrr - p.total_mrr AS double) AS delta,\n  CASE WHEN p.total_mrr > 0 THEN CAST((c.total_mrr - p.total_mrr) AS double) / CAST(p.total_mrr AS double) ELSE NULL END AS delta_pct\nFROM curr_billing c CROSS JOIN prev_billing p\nORDER BY CASE metric WHEN 'subscriptions' THEN 1 WHEN 'passings' THEN 2 WHEN 'billed_customers' THEN 3 ELSE 4 END;",
+    "params": []
+  },
+  "mrr_movement_breakdown_latest": {
+    "views_used": [
+      "curated_recon.v_network_mix_trusted_latest",
+      "curated_recon.v_network_mrr_recon_latest",
+      "curated_core.v_monthly_mrr_platt",
+      "curated_recon.platt_customer_system_map",
+      "curated_core.platt_customer_current_ssot",
+      "curated_recon.v_gwi_system_network_map_canon"
+    ],
+    "sql": "WITH curr_billing AS (\n  SELECT\n    CAST(MAX(period_month) AS date) AS period_month,\n    SUM(COALESCE(billed_mrr_total, 0)) AS total_mrr,\n    SUM(COALESCE(billed_customers, 0)) AS customer_count\n  FROM curated_recon.v_network_mrr_recon_summary\n), prev_billing AS (\n  SELECT\n    CAST(date_trunc('month', period_month) AS date) AS period_month,\n    SUM(COALESCE(total_mrr, 0)) AS total_mrr,\n    SUM(COALESCE(active_accounts_proxy, 0)) AS customer_count,\n    SUM(COALESCE(accounts_added, 0)) AS accounts_added,\n    SUM(COALESCE(accounts_lost, 0)) AS accounts_lost\n  FROM curated_core.v_monthly_mrr_and_churn_summary\n  WHERE CAST(date_trunc('month', period_month) AS date) = (\n    SELECT MAX(CAST(date_trunc('month', period_month) AS date))\n    FROM curated_core.v_monthly_mrr_and_churn_summary\n    WHERE CAST(date_trunc('month', period_month) AS date) < (\n      SELECT CAST(MAX(period_month) AS date) FROM curr_billing\n    )\n  )\n  GROUP BY 1\n), d AS (\n  SELECT\n    c.period_month,\n    c.total_mrr AS curr_mrr,\n    p.total_mrr AS prev_mrr,\n    c.customer_count AS curr_customers,\n    p.customer_count AS prev_customers,\n    p.accounts_added,\n    p.accounts_lost,\n    (c.total_mrr - p.total_mrr) AS delta_mrr,\n    (c.customer_count - p.customer_count) AS delta_customers\n  FROM curr_billing c\n  CROSS JOIN prev_billing p\n)\nSELECT\n  period_month,\n  CASE WHEN delta_mrr > 0 THEN delta_mrr ELSE 0 END AS new_mrr,\n  CAST(0 AS double) AS reactivation_mrr,\n  CASE WHEN delta_mrr < 0 THEN ABS(delta_mrr) ELSE 0 END AS churned_mrr,\n  CASE WHEN delta_mrr > 0 THEN delta_mrr ELSE 0 END AS expansion_mrr,\n  CASE WHEN delta_mrr < 0 THEN delta_mrr ELSE 0 END AS contraction_mrr,\n  delta_mrr AS net_delta_mrr,\n  CASE WHEN delta_customers > 0 THEN delta_customers ELSE COALESCE(accounts_added,0) END AS new_accounts,\n  CAST(0 AS bigint) AS reactivated_accounts,\n  CASE WHEN delta_customers < 0 THEN ABS(delta_customers) ELSE COALESCE(accounts_lost,0) END AS churned_accounts\nFROM d\nLIMIT 1;",
+    "params": []
+  },
+  "vetro_network_status_dominant": {
+    "views_used": [
+      "curated_core.v_vetro_network_map_layers_v1"
+    ],
+    "sql": "WITH counts AS (\n  SELECT\n    network,\n    network_status,\n    COUNT(*) AS n\n  FROM curated_core.v_vetro_network_map_layers_v1\n  WHERE layer_key = 'service_locations'\n    AND network IS NOT NULL AND TRIM(network) <> ''\n    AND network_status IS NOT NULL AND TRIM(network_status) <> ''\n  GROUP BY 1, 2\n), totals AS (\n  SELECT network, SUM(n) AS total_n\n  FROM counts\n  GROUP BY 1\n), ranked AS (\n  SELECT\n    c.network,\n    c.network_status,\n    c.n,\n    t.total_n,\n    ROW_NUMBER() OVER (PARTITION BY c.network ORDER BY c.n DESC, c.network_status) AS rn\n  FROM counts c\n  JOIN totals t\n    ON c.network = t.network\n)\nSELECT\n  network,\n  network_status AS dominant_status,\n  n AS dominant_rows,\n  total_n AS total_rows,\n  CAST(100.0 * n / NULLIF(total_n, 0) AS double) AS dominant_pct\nFROM ranked\nWHERE rn = 1\nORDER BY dominant_pct DESC, dominant_rows DESC;",
+    "params": []
+  },
+  "vetro_networks_in_construction": {
+    "views_used": [
+      "curated_core.v_vetro_network_map_layers_v1"
+    ],
+    "sql": "WITH counts AS (\n  SELECT\n    network,\n    network_status,\n    COUNT(*) AS n\n  FROM curated_core.v_vetro_network_map_layers_v1\n  WHERE layer_key = 'service_locations'\n    AND network IS NOT NULL AND TRIM(network) <> ''\n    AND network_status IS NOT NULL AND TRIM(network_status) <> ''\n  GROUP BY 1, 2\n), totals AS (\n  SELECT network, SUM(n) AS total_n\n  FROM counts\n  GROUP BY 1\n), ranked AS (\n  SELECT\n    c.network,\n    c.network_status,\n    c.n,\n    t.total_n,\n    ROW_NUMBER() OVER (PARTITION BY c.network ORDER BY c.n DESC, c.network_status) AS rn\n  FROM counts c\n  JOIN totals t\n    ON c.network = t.network\n)\nSELECT\n  network,\n  network_status AS dominant_status,\n  n AS dominant_rows,\n  total_n AS total_rows,\n  CAST(100.0 * n / NULLIF(total_n, 0) AS double) AS dominant_pct\nFROM ranked\nWHERE rn = 1\n  AND network_status IN ('Planned', 'Design Complete', 'Installed')\nORDER BY dominant_pct DESC, dominant_rows DESC;",
+    "params": []
+  },
+  "financial_kpi_snapshot": {
+    "views_used": [
+      "curated_recon.v_network_mix_trusted_latest",
+      "curated_recon.v_network_mrr_recon_latest",
+      "curated_core.dim_customer_platt_v1_1"
+    ],
+    "sql": "WITH mix AS (\n  SELECT\n    network,\n    network_type,\n    trusted_subscriptions,\n    CASE\n      WHEN COALESCE(canonical_passings_as_built, 0) = 0 THEN COALESCE(modeled_passings, 0)\n      WHEN COALESCE(modeled_passings, 0) > 0\n        AND COALESCE(passings_confidence, '') <> 'trusted'\n        AND COALESCE(canonical_passings_as_built, 0) > COALESCE(modeled_passings, 0) * 3\n        THEN COALESCE(modeled_passings, 0)\n      ELSE COALESCE(canonical_passings_as_built, 0)\n    END AS passings_effective,\n    period_month,\n    modeled_dt,\n    passings_confidence\n  FROM curated_recon.v_network_mix_trusted_latest\n  WHERE network <> 'Unmapped'\n    AND network <> 'NWFX'\n    AND network_type IN ('Owned FTTP', 'Contracted', 'CLEC')\n), billing_ranked AS (\n  SELECT\n    network,\n    SUM(COALESCE(billed_customers, 0)) AS billed_customers,\n    SUM(COALESCE(billed_mrr, 0)) AS billed_mrr,\n    billed_source,\n    ROW_NUMBER() OVER (\n      PARTITION BY network\n      ORDER BY CASE billed_source\n        WHEN 'platt_monthly_mrr' THEN 1\n        WHEN 'gaiia_invoices' THEN 2\n        ELSE 9\n      END\n    ) AS rn\n  FROM curated_recon.v_network_mrr_recon_latest\n  GROUP BY 1, 4\n), billing AS (\n  SELECT network, billed_customers, billed_mrr\n  FROM billing_ranked\n  WHERE rn = 1\n), active_customers AS (\n  SELECT\n    COUNT(DISTINCT CASE WHEN has_active_service = true THEN customer_id END) AS active_customers\n  FROM curated_core.dim_customer_platt_v1_1\n  WHERE (is_test_internal = false OR is_test_internal IS NULL)\n), totals AS (\n  SELECT\n    CAST(MAX(m.period_month) AS timestamp) AS period_month,\n    CAST(MAX(m.modeled_dt) AS timestamp) AS modeled_dt,\n    CAST(SUM(COALESCE(m.trusted_subscriptions, 0)) AS bigint) AS total_subscriptions,\n    CAST(SUM(COALESCE(m.passings_effective, 0)) AS bigint) AS total_passings,\n    SUM(COALESCE(b.billed_mrr, 0)) AS total_mrr,\n    CAST(SUM(COALESCE(b.billed_customers, 0)) AS bigint) AS total_billed_customers,\n    CASE\n      WHEN SUM(CASE WHEN COALESCE(m.passings_confidence, '') <> 'trusted' THEN 1 ELSE 0 END) > 0 THEN 'partial'\n      ELSE 'trusted'\n    END AS passings_confidence\n  FROM mix m\n  LEFT JOIN billing b\n    ON m.network = b.network\n)\nSELECT\n  t.period_month,\n  t.modeled_dt,\n  t.total_mrr,\n  t.total_passings,\n  t.total_subscriptions,\n  t.total_billed_customers,\n  a.active_customers,\n  t.passings_confidence,\n  CASE WHEN t.total_passings > 0 THEN (t.total_subscriptions / CAST(t.total_passings AS double)) * 100 ELSE NULL END AS penetration_pct,\n  CASE WHEN t.total_subscriptions > 0 THEN t.total_mrr / CAST(t.total_subscriptions AS double) ELSE NULL END AS avg_arpu\nFROM totals t\nCROSS JOIN active_customers a\nLIMIT 1;",
+    "params": []
+  }
+}

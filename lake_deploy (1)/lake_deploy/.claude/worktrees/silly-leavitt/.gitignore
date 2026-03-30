@@ -1,0 +1,82 @@
+# Secrets and env
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.der
+*.jks
+*.keystore
+
+# Local secrets/state
+.secrets/
+secrets/
+state/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+
+# AWS / CLI outputs
+.aws/
+*.log
+logs/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node / Next
+node_modules/
+.next/
+out/
+dist/
+build/
+cdk.out/
+
+# OS / editors
+.DS_Store
+.vscode/
+.idea/
+
+# Deployment artifacts
+amplify-artifacts.zip
+
+# Data artifacts
+*.parquet
+*.feather
+*.orc
+*.csv.gz
+*.jsonl
+*.ndjson
+*.zip
+/tmp/
+
+# Local evidence / exports (do not commit)
+/lake_audit/
+/ssot_audit/
+/mac_native_audit/
+/source_exports/
+/metadata/
+
+# Keep intake inbox templates/protocols tracked, but ignore per-export-batch outputs.
+intake/exports_inbox_*/**
+!intake/exports_inbox_*/
+!intake/exports_inbox_*/README.md
+!intake/exports_inbox_*/PROTOCOL.md
+!intake/exports_inbox_*/EXPORT_TEMPLATE_github.md
+!intake/exports_inbox_*/MANIFEST.template.json
+
+# Raw chat transcripts are not suitable for version control.
+docs/reference/chat_history_*/
+
+# Optional local-only sanitization policy override.
+config/sanitization/banned_terms.txt
+
+# Known non-schema artifact (contains sampled values); do not commit.
+external_sources/ops_raw_platt/platt_schema.csv

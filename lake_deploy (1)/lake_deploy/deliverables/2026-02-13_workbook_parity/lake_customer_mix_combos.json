@@ -1,0 +1,30 @@
+[
+  {
+    "access_type": "Copper",
+    "customer_type": "Owned Customer",
+    "network_type": "CLEC",
+    "passings": 1634.0,
+    "subscriptions": 1634.0
+  },
+  {
+    "access_type": "Fiber",
+    "customer_type": "Contracted Customer",
+    "network_type": "Contracted",
+    "passings": 8913.0,
+    "subscriptions": 2209.0
+  },
+  {
+    "access_type": "Fiber",
+    "customer_type": "Owned Customer",
+    "network_type": "Contracted",
+    "passings": 124.0,
+    "subscriptions": 124.0
+  },
+  {
+    "access_type": "Fiber",
+    "customer_type": "Owned Customer",
+    "network_type": "Owned FTTP",
+    "passings": 3885.0,
+    "subscriptions": 912.0
+  }
+]

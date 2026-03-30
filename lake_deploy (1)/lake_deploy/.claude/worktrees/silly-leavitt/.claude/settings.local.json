@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(pip3 install:*)",
+      "Bash(wc:*)",
+      "Bash(done)",
+      "Bash(__NEW_LINE_2ab620cf4968ad03__ echo \"\")",
+      "Bash(__NEW_LINE_c118b6731e2bdcfa__ echo \"=== LEGACY CTAS S3 LOCATIONS ===\")"
+    ]
+  }
+}

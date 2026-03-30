@@ -1,0 +1,11 @@
+{
+  "name": "mac-app-query-broker",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "aws-sdk": "^2.1530.0",
+    "js-yaml": "^4.1.0",
+    "xlsx": "^0.18.5"
+  }
+}

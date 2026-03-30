@@ -1,0 +1,95 @@
+version: 1
+
+# Capability Registry
+# Used only when CAPABILITY_ROUTER_ENABLED=true. Deterministic templates remain the default path.
+capabilities:
+  ipv4_inventory:
+    flags_required: [IPV4_ENABLED]
+    required_sources: [ipv4_raw, ipv4_dhcp, ipv4_dns, ipv4_routing]
+    support_level: gated
+    supported_actions: [VERIFY_ACROSS_SYSTEMS, BUILD_REPORT, EXPORT_CSV, EXPORT_XLSX]
+    expected_outputs:
+      - inventory_summary
+      - selloff_candidates
+      - utilization_breakdown
+      - evidence_pack
+    keywords:
+      - ipv4
+      - arin
+      - netbox
+      - infoblox
+      - ipam
+      - dhcp
+      - dns
+      - routing
+      - nat
+
+  unit_economics:
+    flags_required: [PLANNER_ALLOWED]
+    required_sources: [customers, mrr, costs, action_band]
+    support_level: supported
+    supported_actions: [VERIFY_ACROSS_SYSTEMS, BUILD_REPORT, EXPORT_CSV, EXPORT_XLSX]
+    expected_outputs:
+      - action_band_summary
+      - worst_e_band_accounts
+      - margin_drivers
+      - evidence_pack
+    keywords:
+      - unit economics
+      - margin
+      - ebitda
+      - action band
+      - e-band
+      - repricing
+      - reprice
+
+  repricing_call_lists:
+    flags_required: [PLANNER_ALLOWED]
+    required_sources: [customers, costs, tickets]
+    support_level: supported
+    supported_actions: [BUILD_REPORT, EXPORT_CSV, EXPORT_XLSX]
+    expected_outputs:
+      - call_list
+      - upsides
+      - evidence_pack
+    keywords:
+      - call list
+      - repricing
+      - reprice
+      - candidates
+      - price-only
+
+  data_quality_recon:
+    flags_required: [NATIVE_VERIFY_ENABLED]
+    required_sources: [salesforce, platt, intacct, crosswalks]
+    support_level: supported
+    supported_actions: [VERIFY_ACROSS_SYSTEMS, BUILD_REPORT, EXPORT_CSV, EXPORT_XLSX]
+    expected_outputs:
+      - unmapped_accounts
+      - reconciliation_variance
+      - freshness
+      - evidence_pack
+    keywords:
+      - data quality
+      - reconcile
+      - reconciliation
+      - unmapped
+      - freshness
+      - crosswalk
+
+  board_outputs:
+    flags_required: [PLANNER_ALLOWED, REPORT_EXPORT_ENABLED]
+    required_sources: [risk_register, delta_history]
+    support_level: supported
+    supported_actions: [BUILD_REPORT, EXPORT_CSV, EXPORT_XLSX]
+    expected_outputs:
+      - executive_summary
+      - board_packet
+      - evidence_pack
+    keywords:
+      - board
+      - executive summary
+      - weekly
+      - packet
+      - checklist
+

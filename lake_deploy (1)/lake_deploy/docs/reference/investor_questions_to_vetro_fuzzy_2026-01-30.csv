@@ -1,0 +1,28 @@
+network_name,plan_id,plan_name,status,similarity
+Belmont/Morril,365,Belmont Motel,archived,0.815
+Brunswick,327,Brunswick Hotel,archived,0.75
+DVFiber,2682,DVFiber - BSLs,active,0.737
+DVFiber,2309,DVFiber - FSAs,active,0.737
+South Portland addresses,2179,South Portland - Phase I,active,0.783
+South Portland addresses,1182,South Portland - Phase I,active,0.783
+South Portland addresses,2180,South Portland - Phase II,active,0.766
+South Portland addresses,1419,South Portland - Phase II,active,0.766
+South Portland addresses,1650,South Portland - 55 D Street,active,0.76
+Islesboro Municipal Broadband,2393,Islesboro Municipal Broadband - IMB,active,0.935
+MFC - 3 Ring Binder (3RB),2141,3 Ring Binder,active,0.765
+Northport 1,2263,Northport 1 FSAs,active,0.815
+Northport 1,2196,Northport 1 - FTTX,active,0.815
+Northport 1,2325,Northport 2 - OLD,active,0.769
+Northport 1,2262,Northport 2 FSAs,active,0.741
+Northport 1,1862,Northport 2 - FTTX,active,0.741
+Northport 2,2325,Northport 2 - OLD,active,0.846
+Northport 2,2262,Northport 2 FSAs,active,0.815
+Northport 2,1862,Northport 2 - FTTX,active,0.815
+Northport 2,2263,Northport 1 FSAs,active,0.741
+Northport 2,2196,Northport 1 - FTTX,active,0.741
+South Portland,1395,South Portland - 3 D St,active,0.8
+South Portland,2205,South Portland - 43 D St ,active,0.778
+South Portland,2179,South Portland - Phase I,active,0.778
+South Portland,1567,South Portland - 46 C St,active,0.778
+South Portland,1539,South Portland - 38 A St,active,0.778
+Sumner,2329,Sumner - FSAs,active,0.706

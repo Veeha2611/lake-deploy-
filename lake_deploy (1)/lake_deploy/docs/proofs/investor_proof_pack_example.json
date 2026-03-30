@@ -1,0 +1,33 @@
+{
+  "answers": [
+    {
+      "question_id": 1,
+      "classification": "ANSWERABLE_NOW",
+      "sql": "SELECT context, bulk_retail, passings, pct FROM \"curated_core\".v_passings_bulk_retail_split ORDER BY context, bulk_retail;",
+      "query_execution_id": "6a28cb58-d7ec-4816-b92c-d60d04989d29",
+      "output_path": "s3://gwi-raw-us-east-2-pc/athena-result/investor-passings/6a28cb58-d7ec-4816-b92c-d60d04989d29.csv",
+      "notes": "Business = 567 bulk / 1,234 retail (31.5% / 68.5%); pipeline rows = 153,322 bulk passings (100% bulk). View refreshed for the 2026-01-23 partition."
+    },
+    {
+      "question_id": 3,
+      "classification": "PARTIALLY_ANSWERABLE",
+      "sql": "SELECT format_datetime(date_trunc('month', date_parse(entry_date,'%m/%d/%Y')), 'yyyy-MM') AS posting_month, SUM(CAST(amount AS double)) AS amt FROM \"gwi_raw_intacct\".gl_entries WHERE entry_date IS NOT NULL AND entry_date != '' GROUP BY 1 ORDER BY 1 DESC LIMIT 6;",
+      "query_execution_id": "7f6c2178-4a85-40e2-b6d1-978a1e327a0f",
+      "output_path": "s3://gwi-raw-us-east-2-pc/athena-result/investor-gl/7f6c2178-4a85-40e2-b6d1-978a1e327a0f.csv",
+      "notes": "Latest months: 2024-04 $9,154.93; 2024-03 $2,100.76; 2024-02 $28,982.05; 2024-01 $539,842.99. Even after the 2026-01-24 ingestion the newest posting month remains 2024-04 because GLENTRY rows still top out there, so 2024-05+ P&L requires fresher partitions or other joins."
+    },
+    {
+      "question_id": 3,
+      "classification": "PARTIALLY_ANSWERABLE",
+      "sql": "SELECT COUNT(*) AS gl_count, MAX(date_parse(entry_date,'%m/%d/%Y')) AS latest_posting FROM \"gwi_raw_intacct\".gl_entries;",
+      "query_execution_id": "f6fc74fd-109e-4a6d-a456-f84cd6ab63ad",
+      "output_path": "s3://gwi-raw-us-east-2-pc/athena-result/investor-gl/f6fc74fd-109e-4a6d-a456-f84cd6ab63ad.csv",
+      "notes": "GLENTRY currently has 3,000 rows with the freshest posting on 2024-04-17; the 2026-01-24 ingestion also shows 2024-04-17 as the max posting, so a newer ledger partition or subscriber-level join is still required for 2024-05+ finances."
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-01-24T01:00:03Z",
+    "gl_entries_partition": "2026-01-23",
+    "passings_source": "curated_core.v_passings_bulk_retail_split"
+  }
+}

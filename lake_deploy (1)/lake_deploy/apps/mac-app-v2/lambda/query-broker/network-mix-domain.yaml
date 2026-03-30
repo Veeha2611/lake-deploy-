@@ -1,0 +1,129 @@
+version: 2026-02-13
+domain_key: network_mix
+
+# Network Mix domain registry (finite + deterministic).
+#
+# Purpose:
+# - Canonicalize "network mix workbook" business questions into a finite set of metrics and operations.
+# - Ensure explicit grain (subscriptions vs billed customers), explicit segment filters, and fail-closed behavior.
+#
+# Notes:
+# - Customer Mix tab: "customers" == subscriptions (services) from curated_core.v_network_health.
+# - Revenue Mix tab: "customers" == plat_id_count (billed customer IDs) from curated_core.v_investor_revenue_mix_latest.
+# - DVFiber exclusion parity exists only for Revenue Mix totals (see workbook_revenue_mix_totals_excluding_dvfiber).
+
+segments:
+  owned:
+    label: Owned
+    customer_mix:
+      network_type: "Owned FTTP"
+      customer_type: "Owned Customer"
+      access_type: "Fiber"
+    revenue_mix:
+      network_type_like: "%owned%fiber%"
+  contracted:
+    label: Contracted
+    customer_mix:
+      network_type: "Contracted"
+      customer_type: "Contracted Customer"
+      access_type: "Fiber"
+    revenue_mix:
+      network_type_like: "%resold%fiber%"
+  clec:
+    label: CLEC
+    customer_mix:
+      network_type: "CLEC"
+      customer_type: "Owned Customer"
+      access_type: "Copper"
+    revenue_mix:
+      network_type_like: "%copper%"
+  resold:
+    label: Resold
+    # Customer Mix workbook does not define a distinct "Resold" segment beyond contracted.
+    customer_mix: null
+    revenue_mix:
+      network_type_like: "%resold%"
+
+operations:
+  customer_mix_summary:
+    query_id: workbook_customer_mix_summary
+  customer_mix_kpis:
+    query_id: workbook_customer_mix_kpis
+  customer_mix_networks_list:
+    query_id: workbook_customer_mix_networks_list
+  customer_mix_segment_pct:
+    query_id: workbook_customer_mix_segment_pct
+
+  revenue_mix_summary:
+    query_id: workbook_revenue_mix_summary
+  revenue_mix_kpis:
+    query_id: workbook_revenue_mix_kpis
+  revenue_mix_networks_list:
+    query_id: workbook_revenue_mix_networks_list
+  revenue_mix_segment_pct:
+    query_id: workbook_revenue_mix_segment_pct
+  revenue_mix_totals_excluding_dvfiber:
+    query_id: workbook_revenue_mix_totals_excluding_dvfiber
+
+synonyms:
+  # Deterministic segment normalization (finite).
+  owned:
+    - "owned"
+    - "owned fttp"
+    - "owned fiber"
+    - "owned networks"
+    - "owned network"
+  contracted:
+    - "contracted"
+    - "contracted fiber"
+    - "contracted networks"
+    - "contracted network"
+  clec:
+    - "clec"
+    - "copper"
+    - "clec networks"
+    - "copper networks"
+  resold:
+    - "resold"
+    - "resale"
+
+intents:
+  # Deterministic intent triggers (no fuzzy guessing).
+  list_networks_terms:
+    - "list networks"
+    - "which networks"
+    - "what networks"
+    - "show networks"
+    - "list systems"
+    - "which systems"
+    - "show systems"
+    - "networks are"
+  percent_terms:
+    - "%"
+    - "percent"
+    - "percentage"
+    - "share"
+    - "portion"
+  revenue_mix_terms:
+    - "revenue mix"
+    - "plat id"
+    - "platid"
+    - "billed"
+    - "billing"
+    - "invoice"
+    - "mrr"
+    - "monthly arpu"
+    - "revenue"
+  customer_mix_terms:
+    - "customer mix"
+    - "network mix"
+    - "passings"
+    - "subscriptions"
+    - "subscribers"
+    - "penetration"
+    - "homes passed"
+  dvfiber_exclude_terms:
+    - "excluding dvfiber"
+    - "exclude dvfiber"
+    - "without dvfiber"
+    - "minus dvfiber"

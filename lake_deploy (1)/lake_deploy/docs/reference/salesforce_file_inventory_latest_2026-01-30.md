@@ -1,0 +1,11 @@
+# salesforce file inventory (latest 10 by mtime)
+- 2026-01-30 11:01:01 | 1526 bytes | /Users/patch/lake_deploy/runbooks/intacct_glaccount_keys_test.sh
+- 2026-01-30 07:21:30 | 355 bytes | /Users/patch/lake_deploy/athena/curated/legacy_ctas/curated_salesforce_opportunities.sql
+- 2026-01-30 07:21:30 | 339 bytes | /Users/patch/lake_deploy/athena/curated/legacy_ctas/curated_salesforce_accounts.sql
+- 2026-01-30 07:21:30 | 508 bytes | /Users/patch/lake_deploy/athena/raw/legacy_ddls/raw_salesforce_opportunities.sql
+- 2026-01-30 07:21:30 | 501 bytes | /Users/patch/lake_deploy/athena/raw/legacy_ddls/raw_salesforce_accounts.sql
+- 2026-01-30 00:19:22 | 459 bytes | /Users/patch/lake_deploy/docs/integrations/salesforce.md
+- 2026-01-27 23:49:55 | 978 bytes | /Users/patch/lake_deploy/athena/curated/ssot/20_ssot_salesforce_accounts.sql
+- 2026-01-21 11:41:33 | 355 bytes | /Users/patch/lake_deploy/external_sources/curation/athena_ctas/curated_salesforce_opportunities.sql
+- 2026-01-21 11:41:28 | 339 bytes | /Users/patch/lake_deploy/external_sources/curation/athena_ctas/curated_salesforce_accounts.sql
+- 2026-01-21 11:41:04 | 508 bytes | /Users/patch/lake_deploy/external_sources/curation/athena_ddl/raw_salesforce_opportunities.sql

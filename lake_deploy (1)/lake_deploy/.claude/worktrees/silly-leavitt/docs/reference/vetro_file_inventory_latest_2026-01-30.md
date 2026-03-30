@@ -1,0 +1,11 @@
+# vetro file inventory (latest 10 by mtime)
+- 2026-01-30 11:32:05 | 3418 bytes | /Users/patch/lake_deploy/apps/mac-mountain-insights-console/functions/getVetroFeaturesForPlan.ts
+- 2026-01-30 11:32:05 | 2985 bytes | /Users/patch/lake_deploy/apps/mac-mountain-insights-console/functions/getVetroPlanIndex.ts
+- 2026-01-30 11:01:01 | 4018 bytes | /Users/patch/lake_deploy/automation/lambda/vetro_export_lambda.py
+- 2026-01-30 11:01:01 | 10290 bytes | /Users/patch/lake_deploy/external_sources/aws_local/vetro_features_lambda.py
+- 2026-01-30 11:01:01 | 9594 bytes | /Users/patch/lake_deploy/external_sources/aws_local/vetro_export_lambda.py
+- 2026-01-30 11:01:01 | 305 bytes | /Users/patch/lake_deploy/external_sources/vetro_ingest/get_features_2757.sh
+- 2026-01-30 11:01:01 | 780 bytes | /Users/patch/lake_deploy/external_sources/vetro_ingest/get_all_plans.sh
+- 2026-01-30 10:58:43 | 742 bytes | /Users/patch/lake_deploy/docs/reference/vetro_manual_batches_planmap_resolved_2026-01-30.md
+- 2026-01-30 10:58:14 | 82302 bytes | /Users/patch/lake_deploy/docs/reference/vetro_reconciliation_with_manual_2026-01-30.csv
+- 2026-01-30 10:57:55 | 14734 bytes | /Users/patch/lake_deploy/docs/reference/vetro_manual_batches_planmap_resolved_2026-01-30.csv

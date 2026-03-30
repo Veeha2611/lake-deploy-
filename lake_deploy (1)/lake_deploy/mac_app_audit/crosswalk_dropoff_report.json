@@ -1,0 +1,16 @@
+{
+  "run_date": "2026-02-13",
+  "generated_at": "2026-02-13T20:14:03+00:00",
+  "dropoff": {
+    "period_month": "2026-02-01",
+    "billed_customers_total": "2143",
+    "billed_customers_unmapped": "281",
+    "billed_customers_mapped": "1862",
+    "billed_mrr_total": "7254277.084799999",
+    "billed_mrr_unmapped": "80797.88200000001",
+    "billed_mrr_mapped": "7173479.202799999",
+    "active_services_total": "6208",
+    "active_services_unmapped": "117",
+    "active_services_mapped": "6091"
+  }
+}

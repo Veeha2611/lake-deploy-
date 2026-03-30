@@ -1,0 +1,11 @@
+# intacct file inventory (latest 10 by mtime)
+- 2026-01-30 11:48:58 | 1109 bytes | /Users/patch/lake_deploy/docs/reference/intacct_file_inventory_latest_2026-01-30.md
+- 2026-01-30 11:48:49 | 4788 bytes | /Users/patch/lake_deploy/docs/reference/intacct_file_inventory_2026-01-30.tsv
+- 2026-01-30 11:32:05 | 12652 bytes | /Users/patch/lake_deploy/apps/mac-mountain-insights-console/functions/processIntacctRevenue.ts
+- 2026-01-30 11:01:01 | 565 bytes | /Users/patch/lake_deploy/runbooks/intacct_ingest.sh
+- 2026-01-30 11:01:01 | 2683 bytes | /Users/patch/lake_deploy/runbooks/intacct_probe_prod_v2.sh
+- 2026-01-30 11:01:01 | 2106 bytes | /Users/patch/lake_deploy/runbooks/intacct_session_probe_env.sh
+- 2026-01-30 11:01:01 | 16543 bytes | /Users/patch/lake_deploy/runbooks/intacct_ingest.bak_summary_1769011902.sh
+- 2026-01-30 11:01:01 | 15718 bytes | /Users/patch/lake_deploy/runbooks/intacct_ingest.sh.bak_1769011194
+- 2026-01-30 11:01:01 | 1387 bytes | /Users/patch/lake_deploy/runbooks/intacct_ingest_dev.sh
+- 2026-01-30 11:01:01 | 943 bytes | /Users/patch/lake_deploy/runbooks/intacct_env.sh

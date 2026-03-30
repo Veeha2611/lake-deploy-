@@ -1,0 +1,326 @@
+import json
+import time
+from datetime import datetime, timedelta
+from typing import List, Dict
+
+from zoneinfo import ZoneInfo
+
+import boto3
+
+CURATED_DATABASE = "curated_core"
+ATHENA_OUTPUT = "s3://gwi-raw-us-east-2-pc/athena-results/orchestration/"
+S3_BUCKET = "gwi-raw-us-east-2-pc"
+RUN_ARTIFACT_PREFIX = "curated/_runs"
+
+def _max_partition_query() -> str:
+    return "SELECT MAX(partition_0) AS max_partition FROM gwi_raw_intacct.gl_entries_flat"
+
+
+CTAS_QUERIES = [
+    {
+        "name": "curated_intacct_gl_entries",
+        "query": """
+CREATE TABLE IF NOT EXISTS curated_core.intacct_gl_entries
+WITH (
+  format = 'PARQUET',
+  parquet_compression = 'SNAPPY',
+  partitioned_by = ARRAY['dt']
+)
+AS
+SELECT
+  recordno,
+  entry_date,
+  batchno AS batch_id,
+  customerid AS customer_id,
+  location AS location_id,
+  TRY_CAST(amount AS DOUBLE) AS amount,
+  description,
+  accountno,
+  accounttitle,
+  vendorid,
+  vendorname,
+  document,
+  '{run_date}' AS dt
+FROM gwi_raw_intacct.gl_entries_flat
+WHERE partition_0 = '{run_date}'
+  AND location = '10';
+""",
+    },
+    {
+        "name": "curated_platt_customer",
+        "query": """
+CREATE TABLE IF NOT EXISTS curated_core.curated_platt_customer
+WITH (
+  format = 'PARQUET',
+  parquet_compression = 'SNAPPY',
+  partitioned_by = ARRAY['dt']
+)
+AS
+SELECT
+  customer_id,
+  customer_name,
+  sales_rep,
+  status,
+  created_at,
+  '{run_date}' AS dt
+FROM gwi_raw.raw_platt_customer
+WHERE dt = '{run_date}';
+""",
+    },
+    {
+        "name": "curated_salesforce_accounts",
+        "query": """
+CREATE TABLE IF NOT EXISTS curated_core.curated_salesforce_accounts
+WITH (
+  format = 'PARQUET',
+  parquet_compression = 'SNAPPY',
+  partitioned_by = ARRAY['dt']
+)
+AS
+SELECT
+  sf_account_id AS account_id,
+  name,
+  industry,
+  region,
+  annual_revenue,
+  created_date,
+  '{run_date}' AS dt
+FROM gwi_raw.raw_salesforce_accounts
+WHERE dt = '{run_date}';
+""",
+    },
+    {
+        "name": "curated_salesforce_opportunities",
+        "query": """
+CREATE TABLE IF NOT EXISTS curated_core.curated_salesforce_opportunities
+WITH (
+  format = 'PARQUET',
+  parquet_compression = 'SNAPPY',
+  partitioned_by = ARRAY['dt']
+)
+AS
+SELECT
+  sf_opportunity_id AS opportunity_id,
+  account_id,
+  stage,
+  amount,
+  close_date,
+  probability,
+  '{run_date}' AS dt
+FROM gwi_raw.raw_salesforce_opportunities
+WHERE dt = '{run_date}';
+""",
+    },
+    {
+        "name": "curated_vetro_exports",
+        "query": """
+CREATE TABLE IF NOT EXISTS curated_core.curated_vetro_exports
+WITH (
+  format = 'PARQUET',
+  parquet_compression = 'SNAPPY'
+)
+AS
+SELECT
+  plan_id,
+  export_ts,
+  status,
+  data,
+  '{run_date}' AS dt
+FROM gwi_raw.raw_vetro_exports
+LIMIT 1000;
+""",
+    },
+    {
+        "name": "curated_dim_customer",
+        "query": """
+CREATE TABLE IF NOT EXISTS curated_core.curated_dim_customer
+WITH (
+  format = 'PARQUET',
+  parquet_compression = 'SNAPPY',
+  partitioned_by = ARRAY['dt']
+)
+AS
+WITH combined AS (
+  SELECT
+    customer_id,
+    customer_id AS canonical_id,
+    customer_name,
+    'platt' AS source,
+    dt
+  FROM curated_core.curated_platt_customer
+  WHERE dt = '{run_date}'
+  UNION ALL
+  SELECT
+    customer_id,
+    customer_id AS canonical_id,
+    memo AS customer_name,
+    'intacct' AS source,
+    dt
+  FROM curated_core.intacct_gl_entries
+  WHERE dt = '{run_date}'
+)
+SELECT
+  canonical_id AS customer_id,
+  MAX(customer_name) AS customer_name,
+  COUNT(DISTINCT source) AS source_count,
+  CASE WHEN COUNT(DISTINCT source) > 1 THEN 'HIGH' ELSE 'LOW' END AS confidence_flag,
+  '{run_date}' AS dt
+FROM combined
+GROUP BY canonical_id;
+""",
+    },
+    {
+        "name": "curated_fact_revenue",
+        "query": """
+CREATE TABLE IF NOT EXISTS curated_core.curated_fact_revenue
+WITH (
+  format = 'PARQUET',
+  parquet_compression = 'SNAPPY',
+  partitioned_by = ARRAY['dt']
+)
+AS
+SELECT
+  gl.recordno,
+  gl.entry_date,
+  gl.customer_id,
+  gl.amount AS revenue_amount,
+  pl.customer_name AS platt_customer,
+  sf.stage AS sf_stage,
+  sf.amount AS sf_pipeline_amount,
+  '{run_date}' AS dt
+  FROM curated_core.intacct_gl_entries gl
+LEFT JOIN curated_core.curated_platt_customer pl
+  ON gl.customer_id = pl.customer_id AND pl.dt = gl.dt
+LEFT JOIN curated_core.curated_salesforce_opportunities sf
+  ON pl.customer_id = sf.account_id AND sf.dt = gl.dt
+WHERE gl.dt = '{run_date}';
+""",
+    },
+]
+
+VALIDATION_QUERIES = [
+    {
+        "name": "ctas_row_count",
+        "query": "SELECT '{run_date}' AS dt, COUNT(*) AS rows FROM curated_core.intacct_gl_entries WHERE dt = '{run_date}'"
+    },
+    {
+        "name": "dim_customer_count",
+        "query": "SELECT '{run_date}' AS dt, COUNT(DISTINCT customer_id) AS customers FROM curated_dim_customer WHERE dt = '{run_date}'"
+    },
+    {
+        "name": "null_customers",
+        "query": "SELECT '{run_date}' AS dt, COUNT(*) AS null_customer_ids FROM curated_core.intacct_gl_entries WHERE dt = '{run_date}' AND customer_id IS NULL"
+    },
+    {
+        "name": "fact_revenue_rows",
+        "query": "SELECT '{run_date}' AS dt, COUNT(*) AS rows FROM curated_fact_revenue WHERE dt = '{run_date}'"
+    },
+]
+
+athena = boto3.client("athena")
+s3 = boto3.client("s3")
+
+
+def execute_query(query: str, database: str, fetch_results: bool = False) -> Dict:
+    response = athena.start_query_execution(
+        QueryString=query,
+        QueryExecutionContext={"Database": database},
+        ResultConfiguration={"OutputLocation": ATHENA_OUTPUT},
+    )
+    query_id = response["QueryExecutionId"]
+    print(f"[ATHENA] QueryString:\n{query.strip()}")
+    print(f"[ATHENA] QueryExecutionId={query_id}")
+    reason = ""
+    while True:
+        status_resp = athena.get_query_execution(QueryExecutionId=query_id)
+        status = status_resp["QueryExecution"]["Status"]
+        state = status["State"]
+        if state in ("SUCCEEDED", "FAILED", "CANCELLED"):
+            reason = status.get("StateChangeReason","")
+            if state != "SUCCEEDED":
+                print(f"[ATHENA] QueryExecutionId={query_id} state={state} reason={reason}")
+                print(f"[ATHENA] Failed Query:\n{query.strip()}\n")
+            break
+        time.sleep(5)
+    result = {
+        "id": query_id,
+        "state": state,
+        "reason": reason,
+        "query": query,
+        "completion": status.get("CompletionDateTime"),
+    }
+    if fetch_results and state == "SUCCEEDED":
+        result["results"] = athena.get_query_results(QueryExecutionId=query_id)
+    return result
+
+
+def get_max_partition_value() -> str:
+    nxt = execute_query(_max_partition_query(), database="default", fetch_results=True)
+    if nxt["state"] != "SUCCEEDED":
+        raise RuntimeError("Unable to resolve max partition_0")
+    rows = nxt["results"]["ResultSet"]["Rows"]
+    if len(rows) < 2:
+        return ""
+    return rows[1]["Data"][0].get("VarCharValue","")
+
+
+def determine_run_date(event: Dict) -> str:
+    incoming = (event or {}).get("runDate") or (event or {}).get("run_date")
+    if incoming:
+        return incoming
+    tz = ZoneInfo("America/Chicago")
+    yesterday = (datetime.now(tz) - timedelta(days=1)).strftime("%Y-%m-%d")
+    max_partition = get_max_partition_value()
+    if max_partition and max_partition >= yesterday:
+        return max_partition
+    if max_partition:
+        return max_partition
+    return yesterday
+
+
+def run_query(query: str, database: str = CURATED_DATABASE) -> Dict:
+    return execute_query(query, database=database)
+
+
+def handler(event, context):
+    run_date = determine_run_date(event)
+    if not run_date:
+        raise RuntimeError("Unable to determine run_date for CTAS")
+    ctas_results: List[Dict] = []
+    for entry in CTAS_QUERIES:
+        query = entry["query"].format(run_date=run_date)
+        result = run_query(query)
+        if result["state"] != "SUCCEEDED":
+            raise RuntimeError(f"CTAS {entry['name']} failed: {result['state']}")
+        result["name"] = entry["name"]
+        ctas_results.append(result)
+
+    validation_results: List[Dict] = []
+    for entry in VALIDATION_QUERIES:
+        query = entry["query"].format(run_date=run_date)
+        result = run_query(query)
+        if result["state"] != "SUCCEEDED":
+            raise RuntimeError(f"Validation {entry['name']} failed: {result['state']}")
+        result["name"] = entry["name"]
+        validation_results.append(result)
+
+    summary = {
+        "dt": run_date,
+        "ctas": [{"name": r["name"], "queryExecutionId": r["id"], "state": r["state"]} for r in ctas_results],
+        "validations": [{"name": r["name"], "queryExecutionId": r["id"], "state": r["state"]} for r in validation_results],
+        "status": "SUCCESS",
+    }
+
+    validation_payload = {
+        "dt": run_date,
+        "results": validation_results,
+        "status": "SUCCESS",
+    }
+
+    run_key = f"{RUN_ARTIFACT_PREFIX}/dt={run_date}/run_summary.json"
+    validation_key = f"{RUN_ARTIFACT_PREFIX}/dt={run_date}/validation_results.json"
+
+    s3.put_object(Bucket=S3_BUCKET, Key=run_key, Body=json.dumps(summary).encode("utf-8"))
+    s3.put_object(Bucket=S3_BUCKET, Key=validation_key, Body=json.dumps(validation_payload).encode("utf-8"))
+
+    return summary

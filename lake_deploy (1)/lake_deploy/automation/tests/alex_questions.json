@@ -1,0 +1,91 @@
+{
+  "version": "2026-02-13",
+  "notes": "Capability router contract tests. Run against an environment with CAPABILITY_ROUTER_ENABLED=true.",
+  "tests": [
+    {
+      "id": "a01_total_mrr",
+      "question": "What is our total MRR?",
+      "expect": {
+        "mode": "supported",
+        "require_evidence_pack": true
+      }
+    },
+    {
+      "id": "a02_ipv4_inventory",
+      "question": "Show our IPv4 inventory and sell-off candidates.",
+      "expect": {
+        "mode": "not_supported",
+        "must_contain": ["NOT SUPPORTED YET:", "NEXT STEP:"]
+      }
+    },
+    {
+      "id": "a03_unit_economics",
+      "question": "Show worst E-band accounts with margin drivers.",
+      "expect": {
+        "mode": "not_supported",
+        "must_contain": ["NOT SUPPORTED YET:", "NEXT STEP:"]
+      }
+    },
+    {
+      "id": "a04_data_quality_recon",
+      "question": "What percent of accounts are unmapped across systems?",
+      "expect": {
+        "mode": "not_supported",
+        "must_contain": ["NOT SUPPORTED YET:", "NEXT STEP:"]
+      }
+    },
+    {
+      "id": "a05_board_outputs",
+      "question": "Generate a weekly executive summary for the board.",
+      "expect": {
+        "mode": "not_supported",
+        "must_contain": ["NOT SUPPORTED YET:", "NEXT STEP:"]
+      }
+    },
+    {
+      "id": "w01_owned_customers",
+      "question": "How many owned customers do we have?",
+      "expect": {
+        "mode": "supported",
+        "require_evidence_pack": true,
+        "question_id": "owned_customers_multiscope"
+      }
+    },
+    {
+      "id": "w02_owned_networks_list",
+      "question": "List owned networks.",
+      "expect": {
+        "mode": "supported",
+        "require_evidence_pack": true,
+        "question_id": "owned_networks_list"
+      }
+    },
+    {
+      "id": "w03_clec_customers",
+      "question": "How many CLEC customers do we have?",
+      "expect": {
+        "mode": "supported",
+        "require_evidence_pack": true,
+        "question_id": "workbook_customer_mix_kpis"
+      }
+    },
+    {
+      "id": "w04_clec_billed_revenue_mix",
+      "question": "How many billed CLEC customers do we have? (revenue mix)",
+      "expect": {
+        "mode": "supported",
+        "require_evidence_pack": true,
+        "question_id": "workbook_revenue_mix_kpis"
+      }
+    },
+    {
+      "id": "w05_contracted_customers",
+      "question": "How many contracted customers do we have?",
+      "expect": {
+        "mode": "supported",
+        "require_evidence_pack": true,
+        "question_id": "workbook_customer_mix_kpis"
+      }
+    }
+  ]
+}

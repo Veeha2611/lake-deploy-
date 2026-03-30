@@ -1,0 +1,27 @@
+{
+  "batch_title": "<BATCH_TITLE>",
+  "batch_folder": "<BATCH_FOLDER>",
+  "owner": "<NAME_OR_ROLE>",
+  "run_date": "2026-02-12",
+  "scope": [
+    "<short scope item 1>",
+    "<short scope item 2>"
+  ],
+  "status": "PASS|FAIL|BLOCKED",
+  "blockers": [
+    "<if any>"
+  ],
+  "evidence": {
+    "local_path": "/Users/patch/lake_deploy/intake/exports_inbox_2026-02-12/<BATCH_FOLDER>/",
+    "s3_paths": [
+      "s3://.../dt=YYYY-MM-DD/"
+    ],
+    "qids": [
+      "<qid>"
+    ]
+  },
+  "files_changed": [
+    "path/to/file"
+  ],
+  "notes": ""
+}

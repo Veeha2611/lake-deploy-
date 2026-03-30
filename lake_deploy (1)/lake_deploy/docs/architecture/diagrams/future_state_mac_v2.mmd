@@ -1,0 +1,49 @@
+flowchart LR
+  subgraph Inputs
+    UI[Web App]
+    API[Public API]
+    Monday[Monday Inputs]
+  end
+
+  subgraph AppServices
+    Gateway[API Gateway]
+    Auth[Auth Service]
+    ModelSvc[Model Engine]
+    ScenarioSvc[Scenario Service]
+    Audit[Audit Logger]
+  end
+
+  subgraph DataLake
+    S3Raw[S3 raw/]
+    S3Curated[S3 curated/]
+    Athena[Athena]
+    SSOT[SSOT Views]
+  end
+
+  subgraph Query
+    KB[Knowledge Base]
+    RAG[RAG Layer]
+  end
+
+  subgraph Outputs
+    Reports[Exports & Reports]
+    Dashboards[Dashboards]
+  end
+
+  UI --> Gateway
+  API --> Gateway
+  Monday --> Gateway
+
+  Gateway --> Auth
+  Gateway --> ModelSvc
+  ModelSvc --> ScenarioSvc
+  ScenarioSvc --> S3Raw
+  ScenarioSvc --> Audit
+
+  S3Raw --> Athena --> S3Curated --> SSOT
+  SSOT --> Gateway
+
+  S3Curated --> Reports
+  SSOT --> Dashboards
+
+  KB --> RAG --> Gateway

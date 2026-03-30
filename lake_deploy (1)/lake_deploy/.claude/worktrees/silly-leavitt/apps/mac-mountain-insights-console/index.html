@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MAC App 2.0</title>
+    <script>
+      window.__MAC_APP_CONFIG__ = window.__MAC_APP_CONFIG__ || {
+        preview: false,
+        apiBaseUrl: 'https://0vyy63hwe5.execute-api.us-east-2.amazonaws.com/prod',
+        awsOnly: true,
+        // Breakglass toggle: set to `true` to bypass Cognito in the UI.
+        // Note: if the MAC API is Cognito-protected, leaving this `true` will cause 401s.
+        disableAuth: false,
+        // Prefer Google via Cognito Hosted UI (stable + simplest for @macmtn.com access).
+        authProvider: 'google',
+        authProviders: ['google'],
+        cognitoDomain: 'https://mac-app-702127848627.auth.us-east-2.amazoncognito.com',
+        cognitoClientId: '1dpdo8i74fkjvt3v2kt75mu4o9',
+        cognitoUserPoolId: 'us-east-2_eDzFeDgIz',
+        cognitoRegion: 'us-east-2',
+        // Redirect/logout default to current origin so stable rollback domains work.
+        allowedEmailDomain: '@macmtn.com',
+        viewer: { full_name: 'MAC Viewer', email: 'viewer@macmtn.com', role: 'viewer' }
+      };
+      // Safety: unregister any legacy service workers that could cache old Base44 assets.
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then((regs) => {
+          regs.forEach((reg) => reg.unregister());
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "version": "2026-02-10",
+  "joins": [
+    {
+      "from_view": "curated_core.v_customer_fully_loaded_margin_banded",
+      "to_view": "curated_core.dim_customer_platt_v1_1",
+      "keys": ["customer_id"],
+      "allowed_dimensions": ["customer_name"],
+      "notes": "Customer dimension join for margin bands."
+    },
+    {
+      "from_view": "curated_core.v_ticket_burden_banded",
+      "to_view": "curated_core.dim_customer_platt_v1_1",
+      "keys": ["customer_id"],
+      "allowed_dimensions": ["customer_name"],
+      "notes": "Customer dimension join for ticket burden."
+    },
+    {
+      "from_view": "curated_core.v_monthly_mrr_platt",
+      "to_view": "curated_core.dim_customer_platt_v1_1",
+      "keys": ["customer_id"],
+      "allowed_dimensions": ["customer_name"],
+      "notes": "Customer dimension join for MRR by customer."
+    }
+  ]
+}

@@ -1,0 +1,291 @@
+CREATE DATABASE IF NOT EXISTS raw_platt;
+
+CREATE TABLE IF NOT EXISTS raw_platt.raw_platt_customer (
+  "c_1006" string,
+  "william_pierce" string,
+  "c_0" string,
+  "c_2008_03_17_00_00_00_000" string,
+  "n" string,
+  "col" string,
+  "c_0000000029edda77" string,
+  "_" string,
+  "c_42_orchard_st" string,
+  "__2" string,
+  "biddeford" string,
+  "me" string,
+  "__3" string,
+  "c_04005" string,
+  "c_2072841324" string,
+  "col_2" string,
+  "wmpierce" string,
+  "t3stt3st" string,
+  "wmpierce_gwi_net" string,
+  "paper" string,
+  "c_2012_05_02_15_58_48_613" string,
+  "c_2012_06_01_00_00_00_000" string,
+  "c_1" string,
+  "n_2" string,
+  "col_3" string,
+  "col_4" string,
+  "col_5" string,
+  "col_6" string,
+  "col_7" string,
+  "col_8" string,
+  "col_9" string,
+  "col_10" string,
+  "col_11" string,
+  "col_12" string,
+  "col_13" string,
+  "col_14" string,
+  "col_15" string,
+  "col_16" string,
+  "col_17" string,
+  "c_1_2" string,
+  "col_18" string,
+  "col_19" string,
+  "col_20" string,
+  "col_21" string,
+  "col_22" string,
+  "col_23" string,
+  "col_24" string,
+  "contact1015" string,
+  "n_3" string,
+  "_000000" string,
+  "col_25" string,
+  "col_26" string,
+  "c_2012_01_03_13_33_16_053" string,
+  "c_1_3" string,
+  "col_27" string,
+  "c_1_4" string,
+  "n_4" string,
+  "col_28" string,
+  "y" string,
+  "c_2012_03_20_09_49_04_000" string,
+  "c_493_1600" string,
+  "col_29" string,
+  "col_30" string,
+  "col_31" string,
+  "col_32" string,
+  "c_2" string,
+  "c_42" string,
+  "col_33" string,
+  "c_6" string,
+  "orchard" string,
+  "col_34" string,
+  "c_15" string,
+  "col_35" string,
+  "col_36" string,
+  "c_24" string,
+  "col_37" string,
+  "c_28" string,
+  "col_38" string,
+  "c_30" string,
+  "col_39" string,
+  "c_37" string,
+  "bidd" string,
+  "c_04005_2" string,
+  "col_40" string,
+  "c_2008_11_06_10_49_56_157" string,
+  "c_1_5" string,
+  "col_41" string,
+  "c_10240" string,
+  "col_42" string,
+  "col_43" string,
+  "adsl_c_adsl_r_sdsl_idsl" string,
+  "col_44" string,
+  "c_207282" string,
+  "c_1_6" string,
+  "col_45" string,
+  "c_2_2" string,
+  "col_46" string,
+  "bdfrmejeham" string,
+  "col_47" string,
+  "col_48" string,
+  "col_49" string,
+  "col_50" string,
+  "col_51" string,
+  "col_52" string,
+  "c_1_7" string,
+  "c_2024_09_11_16_48_25_040" string,
+  "c_18" string,
+  "c_2_3" string,
+  "col_53" string,
+  "col_54" string,
+  "y_2" string,
+  "c_2008_08_20_11_45_54_000" string,
+  "col_55" string,
+  "col_56" string,
+  "col_57" string,
+  "c_0_2" string,
+  "c_0_3" string,
+  "c_43_49028" string,
+  "_70_466522" string,
+  "c_2010_10_19_14_34_07_690" string,
+  "c_0_4" string,
+  "c_0_5" string,
+  "col_58" string,
+  "col_59" string,
+  "col_60" string,
+  "c_0_6" string,
+  "col_61" string,
+  "c_0_7" string,
+  "col_62" string,
+  "c_1_8" string,
+  "c_0_8" string,
+  "col_63" string,
+  "c_0_9" string,
+  "col_64" string,
+  "col_65" string,
+  "col_66" string,
+  "col_67" string,
+  "col_68" string,
+  "col_69" string,
+  "col_70" string,
+  "col_71" string,
+  "col_72" string,
+  "col_73" string,
+  "col_74" string,
+  "col_75" string,
+  "col_76" string,
+  "col_77" string,
+  "col_78" string,
+  "__4" string
+)
+PARTITIONED BY (dt string)
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+WITH SERDEPROPERTIES (
+  'separatorChar' = ',',
+  'quoteChar' = '"',
+  'escapeChar' = '\\'
+)
+STORED AS TEXTFILE
+LOCATION 's3://gwi-raw-us-east-2-pc/raw/platt/customer/'
+TBLPROPERTIES (
+  'skip.header.line.count'='1',
+  'projection.enabled'='true',
+  'projection.dt.type'='date',
+  'projection.dt.format'='yyyy-MM-dd',
+  'projection.dt.range'='2000-01-01,NOW',
+  'storage.location.template'='s3://gwi-raw-us-east-2-pc/raw/platt/customer/dt=${dt}/'
+);
+
+CREATE TABLE IF NOT EXISTS raw_platt.raw_platt_custrate (
+  "c_420" string,
+  "c_1061" string,
+  "c_26" string,
+  "c_2026_01_01_00_00_00_000" string,
+  "c_2026_02_01_00_00_00_000" string,
+  "n" string,
+  "c_2008_09_03_12_29_33_827" string,
+  "c_1" string,
+  "col" string,
+  "col_2" string,
+  "c_1_2" string
+)
+PARTITIONED BY (dt string)
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+WITH SERDEPROPERTIES (
+  'separatorChar' = ',',
+  'quoteChar' = '"',
+  'escapeChar' = '\\'
+)
+STORED AS TEXTFILE
+LOCATION 's3://gwi-raw-us-east-2-pc/raw/platt/custrate/'
+TBLPROPERTIES (
+  'skip.header.line.count'='1',
+  'projection.enabled'='true',
+  'projection.dt.type'='date',
+  'projection.dt.format'='yyyy-MM-dd',
+  'projection.dt.range'='2000-01-01,NOW',
+  'storage.location.template'='s3://gwi-raw-us-east-2-pc/raw/platt/custrate/dt=${dt}/'
+);
+
+CREATE TABLE IF NOT EXISTS raw_platt.raw_platt_iheader (
+  "c_1338" string,
+  "c_8377" string,
+  "general_marine__inc_" string,
+  "c_56_landry__st_" string,
+  "col" string,
+  "biddeford" string,
+  "me" string,
+  "col_2" string,
+  "o4005" string,
+  "c_2847517" string,
+  "c_34_9500" string,
+  "c_1997_10_07_11_48_55_503" string,
+  "c_34_9500_2" string,
+  "c_8377_2" string,
+  "c_34_9500_3" string,
+  "c_00000000005709ef" string,
+  "col_3" string,
+  "col_4" string,
+  "col_5" string,
+  "col_6" string,
+  "_0000" string,
+  "col_7" string,
+  "c_1" string,
+  "col_8" string,
+  "col_9" string
+)
+PARTITIONED BY (dt string)
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+WITH SERDEPROPERTIES (
+  'separatorChar' = ',',
+  'quoteChar' = '"',
+  'escapeChar' = '\\'
+)
+STORED AS TEXTFILE
+LOCATION 's3://gwi-raw-us-east-2-pc/raw/platt/iheader/'
+TBLPROPERTIES (
+  'skip.header.line.count'='1',
+  'projection.enabled'='true',
+  'projection.dt.type'='date',
+  'projection.dt.format'='yyyy-MM-dd',
+  'projection.dt.range'='2000-01-01,NOW',
+  'storage.location.template'='s3://gwi-raw-us-east-2-pc/raw/platt/iheader/dt=${dt}/'
+);
+
+CREATE TABLE IF NOT EXISTS raw_platt.raw_platt_idetail (
+  "c_1338" string,
+  "svcchg" string,
+  "setup_fee_for_silver_ppp_account" string,
+  "col" string,
+  "c_25_0000" string,
+  "c_1997_10_07_11_48_55_533" string,
+  "c_8377" string,
+  "col_2" string,
+  "col_3" string,
+  "c_0000000000776ca9" string,
+  "col_4" string,
+  "col_5" string,
+  "col_6" string,
+  "col_7" string,
+  "col_8" string,
+  "col_9" string,
+  "col_10" string,
+  "c_1_0" string,
+  "c_3" string,
+  "col_11" string,
+  "col_12" string,
+  "col_13" string,
+  "col_14" string,
+  "col_15" string,
+  "col_16" string
+)
+PARTITIONED BY (dt string)
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+WITH SERDEPROPERTIES (
+  'separatorChar' = ',',
+  'quoteChar' = '"',
+  'escapeChar' = '\\'
+)
+STORED AS TEXTFILE
+LOCATION 's3://gwi-raw-us-east-2-pc/raw/platt/idetail/'
+TBLPROPERTIES (
+  'skip.header.line.count'='1',
+  'projection.enabled'='true',
+  'projection.dt.type'='date',
+  'projection.dt.format'='yyyy-MM-dd',
+  'projection.dt.range'='2000-01-01,NOW',
+  'storage.location.template'='s3://gwi-raw-us-east-2-pc/raw/platt/idetail/dt=${dt}/'
+);

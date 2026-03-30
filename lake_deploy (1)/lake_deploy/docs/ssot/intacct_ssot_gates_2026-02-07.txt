@@ -1,0 +1,11 @@
+SSOT Intacct gates start: 2026-02-07T01:50:24Z
+OK: gl_entries latest=2026-02-06 bytes=3420894370
+OK: gl_accounts latest=2026-02-07 bytes=540727
+OK: customers latest=2026-02-07 bytes=10524212
+OK: vendors latest=2026-02-07 bytes=8250182
+OK: ap_bills latest=2026-02-07 bytes=3506260
+OK: ap_payments latest=2026-02-07 bytes=1647274
+OK: ar_invoices latest=2026-02-06 bytes=5845
+OK: ar_invoice_items latest=2026-02-06 bytes=5508
+OK: ar_payments latest=2026-02-06 bytes=1742
+SSOT Intacct gates PASS

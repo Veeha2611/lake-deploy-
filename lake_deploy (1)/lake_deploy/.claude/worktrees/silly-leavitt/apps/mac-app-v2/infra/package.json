@@ -1,0 +1,23 @@
+{
+  "name": "mac-app-v2-infra",
+  "version": "0.1.0",
+  "private": true,
+  "bin": {
+    "mac-app-v2": "bin/mac-app-v2.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "synth": "cdk synth",
+    "diff": "cdk diff",
+    "deploy": "cdk deploy"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.130.0",
+    "constructs": "^10.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

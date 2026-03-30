@@ -1,0 +1,346 @@
+# Notion Curated Summary (from S3 snapshot, 2026-01-30)
+
+Source: /Users/patch/lake_deploy_intake/source_exports/notion_s3_snapshot_2026-01-30/
+
+## Headings (deduplicated)
+- # Alex DD Pack — Data Lake Deliverables & Roadmap (V1 next week) — 2026-01-16
+- ### V1 (end of next week) — sprint plan + milestones
+- ### MAC Intelligence Platform (current architecture)
+- ### Deliverables — consolidated (all asks)
+- ### Phase 2 (weeks 3–6) — aggressive but realistic expansion
+- ### Phase 3 (weeks 6–10) — “operations cockpit”
+- ### Evidence & governance (non-negotiable)
+- # Data Lake Project – Chat-Derived Summary (Patch vs Query)
+- ## Data Lake Project – Chat-Derived Summary
+- ### How to use this page
+- ## 1. Scope and Objectives
+- ## 2. Access & Guardrails (AWS, VPN, IAM)
+- ## 3. Source Systems & Files (GWI / CCI / Plat / Salesforce)
+- ## 4. Plat / Platypus SQL – As-Billed Services Design
+- ## 5. Data Lake Architecture & RDS/S3 Plan
+- ## 6. Checklists & Status Tracking
+- ## 7. Governance & Guardrails
+- ## 8. Open Items & Next Actions (Data Lake Only)
+- # from the Datal lake project chat
+- # Mac Mountain – Projects & IPv4 Modules – Implementation Spec
+- ### Mac Mountain – Projects & IPv4 Modules – Implementation Spec
+- ### 1. Objectives & Relationship to the Lake
+- ### 2. Module 1 – Projects & Project Pipeline
+- ### 2.1 Storage Pattern
+- ### 2.2 Core Schemas (v1 Opinionated)
+- ### 2.3 Write Path – Change-File Pattern
+- ### 2.4 Read Path – Views & Exports
+- ### 2.5 Query Contract (Projects & Pipeline)
+- ### 2.6 Open Decisions (Scott)
+- ### 3. Module 2 – IPv4 Cleanup & Infra Alignment
+- ### 3.1 Storage Pattern
+- ### 3.2 Core Schemas (v1 Opinionated)
+- ### 3.3 Ingestion & Change Pattern
+- ### 3.4 Views, Reporting, and ARIN/Broker Packet
+- ### 3.5 Query Contract (IPv4 & Infra)
+- ### 3.6 Open Decisions (Scott)
+- ### 4. Linkage Back to the Sanity Page & Build Log
+- # Chat Data Lake Back up 12032025
+- # backup Query recount.
+- ### Current truth (don’t fight this)
+- ### Canonical reference pages
+- ### Non-negotiable operating rules
+- ### What to do next (the real critical path)
+- ### Link: Start-from-zero master instruction
+- ### Sage Intacct / Intacct
+- ### System → Bucket Crosswalk (Pioneer One blocker)
+- # data lake history 12052025
+- # Run inside QGIS Python Console import os, json, math from qgis.core import ( QgsProject, QgsVectorLayer, QgsProcessingFeedback, QgsCoordinateReferenceSystem, QgsCoordinateTransformContext, QgsVectorFileWriter, QgsField, QgsFields, QgsWkbTypes ) import processing # ---- Paths ---- PROJECT_DIR = "/Users/patch/projects/sprocket_feasibility" INPUTS = os.path.join(PROJECT_DIR, "inputs") OUTPUTS = os.path.join(PROJECT_DIR, "outputs") CONFIG = os.path.join(PROJECT_DIR, "config", "county_parcels.json") FORT_WORTH_KMZ = os.path.join(INPUTS, "fort_worth_middle_mile.kmz") ZAYO_KMZ = os.path.join(INPUTS, "zayo_dallas.kmz") TARGET_CRS = "EPSG:2276" # Texas State Plane, feet BUFFER_FT = 1000 feedback = QgsProcessingFeedback() os.makedirs(OUTPUTS, exist_ok=True) # ---- Load county parcels from REST ---- with open(CONFIG) as f: county_urls = json.load(f) parcel_layers = [] for county, url in county_urls.items(): vl = QgsVectorLayer(url, f"{county}_parcels", "arcgisfeatureserver") if not vl.isValid(): print(f"!! Failed to load {county} parcels from {url}") continue parcel_layers.append(vl) QgsProject.instance().addMapLayer(vl) # ---- Load network KMZs ---- fw_layer = QgsVectorLayer(FORT_WORTH_KMZ, "fortworth_build", "ogr") zayo_layer = QgsVectorLayer(ZAYO_KMZ, "zayo_iru", "ogr") for lyr in (fw_layer, zayo_layer): if not lyr.isValid(): print(f"!! Failed to load {lyr.name()}") else: QgsProject.instance().addMapLayer(lyr) # ---- Reproject networks to TARGET_CRS ---- def reproject_layer(layer, crs_epsg, name_suffix): params = { 'INPUT': layer, 'TARGET_CRS': QgsCoordinateReferenceSystem(crs_epsg), 'OPERATION': '', 'OUTPUT': 'memory:' } return processing.run("native:reprojectlayer", params, feedback=feedback)['OUTPUT'] fw_proj = reproject_layer(fw_layer, TARGET_CRS, "_proj") zayo_proj = reproject_layer(zayo_layer, TARGET_CRS, "_proj") # ---- Extract line geometry only ---- def extract_lines(layer, name): params = { 'INPUT': layer, 'GEOMETRY': 1, # 0=Point,1=Line,2=Polygon 'OUTPUT': 'memory:' } out = processing.run("native:extractbytype", params, feedback=feedback)['OUTPUT'] out.setName(name) return out fw_lines = extract_lines(fw_proj, "fortworth_lines") zayo_lines = extract_lines(zayo_proj, "zayo_lines") # ---- Dissolve and buffer networks ---- def dissolve_and_buffer(lines, buf_ft, name): dissolved = processing.run("native:dissolve", {'INPUT': lines, 'FIELD': [], 'OUTPUT': 'memory:'}, feedback=feedback)['OUTPUT'] buffered = processing.run("native:buffer", { 'INPUT': dissolved, 'DISTANCE': buf_ft, 'SEGMENTS': 16, 'END_CAP_STYLE': 0, 'JOIN_STYLE': 0, 'MITER_LIMIT': 2, 'DISSOLVE': True, 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] buffered.setName(name) return buffered fw_buffer = dissolve_and_buffer(fw_lines, BUFFER_FT, "fw_buffer") zayo_buffer = dissolve_and_buffer(zayo_lines, BUFFER_FT, "zayo_buffer") QgsProject.instance().addMapLayer(fw_buffer) QgsProject.instance().addMapLayer(zayo_buffer) # ---- Reproject parcels to TARGET_CRS ---- def ensure_target_crs(layer, target_crs): if layer.crs().authid() == target_crs: return layer return reproject_layer(layer, target_crs, "_proj") parcel_proj_layers = [ensure_target_crs(vl, TARGET_CRS) for vl in parcel_layers] # ---- Clip parcels to corridor extents (union of both buffers) ---- corridor_union = processing.run("native:union", {'INPUT': [fw_buffer, zayo_buffer], 'OVERLAY': None, 'OUTPUT': 'memory:'}, feedback=feedback)['OUTPUT'] # Some QGIS versions prefer 'native:mergevectorlayers' + dissolve; use union to get coverage corridor_dissolved = processing.run("native:dissolve", {'INPUT': corridor_union, 'FIELD': [], 'OUTPUT': 'memory:'}, feedback=feedback)['OUTPUT'] clipped_parcels = [] for pl in parcel_proj_layers: clip = processing.run("native:clip", {'INPUT': pl, 'OVERLAY': corridor_dissolved, 'OUTPUT': 'memory:'}, feedback=feedback)['OUTPUT'] clip.setName(pl.name() + "_clipped") clipped_parcels.append(clip) QgsProject.instance().addMapLayer(clip) # ---- Proximity flags: within_1000ft_fortworth / within_1000ft_zayo ---- def add_proximity_flag(parcels, buffer_layer, field_name): params = { 'INPUT': parcels, 'PREDICATE': [0], # intersects 'INTERSECT': buffer_layer, 'METHOD': 0, 'DISCARD_NONMATCHING': False, 'PREFIX': '', 'OUTPUT': 'memory:' } joined = processing.run("native:joinattributesbylocation", params, feedback=feedback)['OUTPUT'] # Create boolean flag: intersects => True # If no intersect attrs, flag False # Using Field Calculator to derive flag flag_calc = processing.run("native:fieldcalculator", { 'INPUT': joined, 'FIELD_NAME': field_name, 'FIELD_TYPE': 1, # Integer (0/1) since Notion prefers simple types 'FIELD_LENGTH': 1, 'FIELD_PRECISION': 0, 'FORMULA': 'case when $geometry intersects geometry(get_feature(\'{}\', \'fid\', fid)) then 1 else 1 end'.format(buffer_layer.name()), 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] return flag_calc # Simpler: use selection by location then set attribute def flag_by_intersection(parcels, buffer_layer, field_name): out = processing.run("native:addfieldtoattributestable", { 'INPUT': parcels, 'FIELD_NAME': field_name, 'FIELD_TYPE': 1, 'FIELD_LENGTH': 1, 'FIELD_PRECISION': 0, 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] # Select intersects sel = processing.run("native:selectbylocation", { 'INPUT': out, 'PREDICATE': [0], 'INTERSECT': buffer_layer }, feedback=feedback)['OUTPUT'] # Set 1 for selected, 0 otherwise out.startEditing() for f in out.getFeatures(): val = 1 if f.id() in [sf.id() for sf in sel.selectedFeatures()] else 0 out.changeAttributeValue(f.id(), out.fields().indexFromName(field_name), val) out.commitChanges() return out flagged_layers = [] for cp in clipped_parcels: fw_flagged = flag_by_intersection(cp, fw_buffer, "within_1000ft_fortworth") zayo_flagged = flag_by_intersection(fw_flagged, zayo_buffer, "within_1000ft_zayo") flagged_layers.append(zayo_flagged) QgsProject.instance().addMapLayer(zayo_flagged) # ---- Clustering: DBSCAN via scikit-learn if available; else connected components on centroids ---- use_sklearn = False try: import numpy as np from sklearn.cluster import DBSCAN use_sklearn = True except Exception: print("sklearn not available; using connected-components fallback") def parcels_to_points(layer): return processing.run("native:polygoncentroids", {'INPUT': layer, 'ALL_PARTS': False, 'OUTPUT': 'memory:'}, feedback=feedback)['OUTPUT'] def dbscan_cluster(points_layer, eps_ft=100, min_samples=15): # Extract coordinates coords = [] ids = [] for f in points_layer.getFeatures(): pt = f.geometry().asPoint() coords.append([pt.x(), pt.y()]) ids.append(f.id()) X = np.array(coords) labels = DBSCAN(eps=eps_ft, min_samples=min_samples).fit(X).labels_ # Add field out = processing.run("native:addfieldtoattributestable", { 'INPUT': points_layer, 'FIELD_NAME': 'cluster_id', 'FIELD_TYPE': 2, 'FIELD_LENGTH': 10, 'FIELD_PRECISION': 0, 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] out.startEditing() for f, label in zip(out.getFeatures(), labels): out.changeAttributeValue(f.id(), out.fields().indexFromName('cluster_id'), int(label)) out.commitChanges() return out def connected_components_cluster(points_layer): # Use 'native:extractbyexpression' + grid index grouping as rough fallback # Assign cluster_id by rounding coordinates to a 100-ft grid out = processing.run("native:addfieldtoattributestable", { 'INPUT': points_layer, 'FIELD_NAME': 'cluster_id', 'FIELD_TYPE': 2, 'FIELD_LENGTH': 20, 'FIELD_PRECISION': 0, 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] out.startEditing() for f in out.getFeatures(): p = f.geometry().asPoint() gx = int(math.floor(p.x() / 100.0)) gy = int(math.floor(p.y() / 100.0)) cid = f"{gx}_{gy}" out.changeAttributeValue(f.id(), out.fields().indexFromName('cluster_id'), cid) out.commitChanges() return out cluster_point_layers = [] for fl in flagged_layers: pts = parcels_to_points(fl) clustered = dbscan_cluster(pts) if use_sklearn else connected_components_cluster(pts) clustered.setName(fl.name() + "_cluster_pts") cluster_point_layers.append(clustered) QgsProject.instance().addMapLayer(clustered) # ---- Aggregate KPIs per cluster (per county layer) def aggregate_kpis(points_layer, county_name): # GroupStats-like aggregation via processing "statisticsbycategories" params = { 'INPUT': points_layer, 'FIELDS_TO_SUMMARIZE': ['within_1000ft_fortworth', 'within_1000ft_zayo'], 'CATEGORIES_FIELD_NAME': ['cluster_id'], 'OUTPUT': os.path.join(OUTPUTS, f"{county_name}_cluster_kpis.csv") } processing.run("native:statisticsbycategories", params, feedback=feedback) for cp, pts in zip(flagged_layers, cluster_point_layers): county = cp.name().split("_")[0] # assumes name like "Dallas_parcels_clipped" aggregate_kpis(pts, county) # ---- Export GeoJSONs for Notion maps def save_geojson(layer, path): QgsVectorFileWriter.writeAsVectorFormatV3( layer, path, QgsCoordinateTransformContext(), QgsVectorFileWriter.SaveVectorOptions(driverName='GeoJSON') ) # Export cluster points and clipped parcels for cp, pts in zip(flagged_layers, cluster_point_layers): county = cp.name().split("_")[0] save_geojson(cp, os.path.join(OUTPUTS, f"{county}_parcels_flagged.geojson")) save_geojson(pts, os.path.join(OUTPUTS, f"{county}_cluster_points.geojson")) print("✅ Finished: flagged parcels, clusters, KPIs, and GeoJSON exports in", OUTPUTS)
+- # Feasibility pipeline v2: parcels via REST, dual-network proximity, clustering, FCC+ACS+anchors, Notion exports import os, json, math, csv, requests from statistics import median from qgis.core import ( QgsProject, QgsVectorLayer, QgsProcessingFeedback, QgsCoordinateReferenceSystem, QgsCoordinateTransformContext, QgsVectorFileWriter ) import processing # ---- CONFIG ---- PROJECT_DIR = "/Users/patch/projects/sprocket_feasibility" INPUTS = os.path.join(PROJECT_DIR, "inputs") OUTPUTS = os.path.join(PROJECT_DIR, "outputs") CONFIG = os.path.join(PROJECT_DIR, "config", "county_parcels.json") FORT_WORTH_KMZ = os.path.join(INPUTS, "fort_worth_middle_mile.kmz") ZAYO_KMZ = os.path.join(INPUTS, "zayo_dallas.kmz") TARGET_CRS = "EPSG:2276" # Texas State Plane North Central (feet); adjust per county if needed BUFFER_FT = 1000 # corridor proximity EPS_FT = 100 # DBSCAN neighborhood radius MIN_SAMPLES = 15 # DBSCAN minimum points # FCC + ACS inputs (replace with your paths/keys) FCC_FABRIC_FILE = os.path.join(INPUTS, "fcc_fabric_tx.gpkg") # include BSL IDs, served flags, provider counts FCC_LAYER_NAME = "fcc_fabric_tx" ACS_[REDACTED] ACS_YEAR = "2022" ACS_TABLES = { "income": "B19013_001E", # median household income "renters": "B25003_003E", # renter-occupied units "occupied": "B25003_001E" # total occupied units } ANCHORS_FILE = os.path.join(INPUTS, "anchors_tx.gpkg") # schools/libraries/hospitals merged ANCHORS_LAYER = "anchors" feedback = QgsProcessingFeedback() os.makedirs(OUTPUTS, exist_ok=True) # ---- Helpers ---- def load_arcgis_rest(url, name): vl = QgsVectorLayer(url, name, "arcgisfeatureserver") return vl if vl.isValid() else None def reproject(layer, crs_epsg): return processing.run("native:reprojectlayer", { 'INPUT': layer, 'TARGET_CRS': QgsCoordinateReferenceSystem(crs_epsg), 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] def extract_lines(layer): return processing.run("native:extractbytype", { 'INPUT': layer, 'GEOMETRY': 1, 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] def dissolve(layer): return processing.run("native:dissolve", {'INPUT': layer, 'FIELD': [], 'OUTPUT': 'memory:'}, feedback=feedback)['OUTPUT'] def buffer(layer, dist_ft): return processing.run("native:buffer", { 'INPUT': layer, 'DISTANCE': dist_ft, 'SEGMENTS': 16, 'END_CAP_STYLE': 0, 'JOIN_STYLE': 0, 'MITER_LIMIT': 2, 'DISSOLVE': True, 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] def clip(input_layer, overlay_layer): return processing.run("native:clip", {'INPUT': input_layer, 'OVERLAY': overlay_layer, 'OUTPUT': 'memory:'}, feedback=feedback)['OUTPUT'] def polygon_centroids(layer): return processing.run("native:polygoncentroids", {'INPUT': layer, 'ALL_PARTS': False, 'OUTPUT': 'memory:'}, feedback=feedback)['OUTPUT'] def add_int_field(layer, name, length=10): return processing.run("native:addfieldtoattributestable", { 'INPUT': layer, 'FIELD_NAME': name, 'FIELD_TYPE': 1, 'FIELD_LENGTH': length, 'FIELD_PRECISION': 0, 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] def select_intersects(layer, overlay): return processing.run("native:selectbylocation", {'INPUT': layer, 'PREDICATE': [0], 'INTERSECT': overlay}, feedback=feedback)['OUTPUT'] def write_geojson(layer, path): QgsVectorFileWriter.writeAsVectorFormatV3(layer, path, QgsCoordinateTransformContext(), QgsVectorFileWriter.SaveVectorOptions(driverName='GeoJSON')) def write_csv(path, rows, header): with open(path, "w", newline="") as f: w = csv.writer(f) w.writerow(header) for r in rows: w.writerow(r) # DBSCAN clustering (with fallback) use_sklearn = False try: import numpy as np from sklearn.cluster import DBSCAN use_sklearn = True except Exception: pass def cluster_points(points_layer, eps_ft, min_samples): # add cluster_id field out = processing.run("native:addfieldtoattributestable", { 'INPUT': points_layer, 'FIELD_NAME': 'cluster_id', 'FIELD_TYPE': 2, 'FIELD_LENGTH': 10, 'FIELD_PRECISION': 0, 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] if use_sklearn: coords, ids = [], [] for f in out.getFeatures(): p = f.geometry().asPoint() coords.append([p.x(), p.y()]) ids.append(f.id()) X = np.array(coords) labels = DBSCAN(eps=eps_ft, min_samples=min_samples).fit(X).labels_ out.startEditing() for feat, lbl in zip(out.getFeatures(), labels): out.changeAttributeValue(feat.id(), out.fields().indexFromName('cluster_id'), int(lbl)) out.commitChanges() else: # grid fallback: coarse clustering by 100-ft bins out.startEditing() for f in out.getFeatures(): p = f.geometry().asPoint() cid = int((p.x() // 100) * 100000 + (p.y() // 100)) out.changeAttributeValue(f.id(), out.fields().indexFromName('cluster_id'), cid) out.commitChanges() return out # ---- Load county parcel layers ---- with open(CONFIG) as f: county_urls = json.load(f) parcel_layers = [] for county, url in county_urls.items(): lyr = load_arcgis_rest(url, f"{county}_parcels") if lyr: parcel_layers.append(lyr) QgsProject.instance().addMapLayer(lyr) else: print(f"!! Could not load {county} from {url}") # ---- Load and prep networks ---- fw = QgsVectorLayer(FORT_WORTH_KMZ, "fortworth_build", "ogr") zayo = QgsVectorLayer(ZAYO_KMZ, "zayo_iru", "ogr") fw_proj = reproject(fw, TARGET_CRS) zayo_proj = reproject(zayo, TARGET_CRS) fw_buf = buffer(dissolve(extract_lines(fw_proj)), BUFFER_FT) zayo_buf = buffer(dissolve(extract_lines(zayo_proj)), BUFFER_FT) QgsProject.instance().addMapLayer(fw_buf) QgsProject.instance().addMapLayer(zayo_buf) # ---- Corridor union (for clipping to footprint) ---- corridor_union = processing.run("native:mergevectorlayers", { 'LAYERS': [fw_buf, zayo_buf], 'CRS': QgsCoordinateReferenceSystem(TARGET_CRS), 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] corridor = dissolve(corridor_union) # ---- FCC fabric load ---- fcc = QgsVectorLayer(f"{FCC_FABRIC_FILE}|layername={FCC_LAYER_NAME}", "fcc_fabric", "ogr") fcc_proj = reproject(fcc, TARGET_CRS) if fcc.isValid() else None # ---- Anchors load ---- anchors = QgsVectorLayer(f"{ANCHORS_FILE}|layername={ANCHORS_LAYER}", "anchors", "ogr") anchors_proj = reproject(anchors, TARGET_CRS) if anchors.isValid() else None # ---- ACS fetch (tract-level centroids via API, then polygon joins recommended; here we demo table join by tract GEOID) def fetch_acs(county_fips_list): # Example: tract-level data for multiple counties (Dallas 113, Tarrant 439, Denton 121, Collin 085, Johnson 251) rows = {} for county in county_fips_list: url = f"https://api.census.gov/data/{ACS_YEAR}/acs/acs5?get=NAME,{ACS_TABLES['income']},{ACS_TABLES['renters']},{ACS_TABLES['occupied']}&for=tract:*&in=state:48+county:{county}&key={ACS_API_KEY}" r = requests.get(url, timeout=30) if r.ok: data = r.json() header = data[0] for d in data[1:]: rec = dict(zip(header, d)) geoid = f"14000US48{county}{rec['tract']}" rows[geoid] = { 'median_income': int(rec[ACS_TABLES['income']]) if rec[ACS_TABLES['income']] not in (None, "") else None, 'renters': int(rec[ACS_TABLES['renters']]) if rec[ACS_TABLES['renters']] not in (None, "") else None, 'occupied': int(rec[ACS_TABLES['occupied']]) if rec[ACS_TABLES['occupied']] not in (None, "") else None } return rows # County FIPS list (Dallas 113, Tarrant 439, Denton 121, Collin 085, Johnson 251) ACS_DATA = fetch_acs(["113","439","121","085","251"]) # ---- Process per county layer ---- def flag_intersection_binary(layer, overlay, field_name): out = add_int_field(layer, field_name) sel_res = select_intersects(out, overlay) selected_ids = [f.id() for f in sel_res.selectedFeatures()] out.startEditing() idx = out.fields().indexFromName(field_name) for f in out.getFeatures(): out.changeAttributeValue(f.id(), idx, 1 if f.id() in selected_ids else 0) out.commitChanges() return out def join_fcc_counts(parcels, fcc_layer): # Spatial join provider counts and served flags onto parcels if not fcc_layer: return parcels params = { 'INPUT': parcels, 'PREDICATE': [0], 'INTERSECT': fcc_layer, 'METHOD': 0, 'DISCARD_NONMATCHING': False, 'PREFIX': 'fcc_', 'OUTPUT': 'memory:' } return processing.run("native:joinattributesbylocation", params, feedback=feedback)['OUTPUT'] def count_anchors_in_cluster(cluster_points, anchors_layer): if not anchors_layer: return {} # Buffer points slightly to catch near anchors (e.g., 50 ft) pts_buf = processing.run("native:buffer", {'INPUT': cluster_points, 'DISTANCE': 50, 'SEGMENTS': 8, 'END_CAP_STYLE': 0, 'JOIN_STYLE': 0, 'MITER_LIMIT': 2, 'DISSOLVE': False, 'OUTPUT': 'memory:'}, feedback=feedback)['OUTPUT'] join = processing.run("native:joinattributesbylocation", { 'INPUT': pts_buf, 'PREDICATE': [0], 'INTERSECT': anchors_layer, 'METHOD': 0, 'DISCARD_NONMATCHING': False, 'PREFIX': 'anchor_', 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] # Aggregate counts per cluster_id counts = {} for f in join.getFeatures(): cid = f['cluster_id'] counts[cid] = counts.get(cid, 0) + 1 return counts def compute_kpis(parcels, points, anchor_counts, county): # Aggregate by cluster_id rows = [] # Build quick index: cluster_id -> list of point feature ids cluster_map = {} for p in points.getFeatures(): cid = p['cluster_id'] cluster_map.setdefault(cid, []).append(p.id()) # Iterate parcels; summarize per cluster stats = {} for f in parcels.getFeatures(): # Find nearest centroid cluster via spatial index could be better; here we rely on a prior join by centroid # For simplicity, compute cluster from nearest centroid using 'native:joinattributesbylocation' if needed # Assume parcels and centroids share geometry alignment; quick fallback: pass # Instead, compute parcel stats by intersecting parcels with a tiny buffer of cluster points pts_buf = processing.run("native:buffer", {'INPUT': points, 'DISTANCE': 10, 'SEGMENTS': 4, 'END_CAP_STYLE': 0, 'JOIN_STYLE': 0, 'MITER_LIMIT': 2, 'DISSOLVE': False, 'OUTPUT': 'memory:'}, feedback=feedback)['OUTPUT'] join = processing.run("native:joinattributesbylocation", { 'INPUT': parcels, 'PREDICATE': [0], 'INTERSECT': pts_buf, 'METHOD': 0, 'DISCARD_NONMATCHING': True, 'PREFIX': '', 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] # Now aggregate per cluster_id for f in join.getFeatures(): cid = f['cluster_id'] d = stats.get(cid, {'parcels':0,'fw':0,'zayo':0,'served':0,'providers':[], 'incomes':[], 'renters':[], 'occupied':[]}) d['parcels'] += 1 d['fw'] += int(f['within_1000ft_fortworth']) if f['within_1000ft_fortworth'] is not None else 0 d['zayo'] += int(f['within_1000ft_zayo']) if f['within_1000ft_zayo'] is not None else 0 # FCC fields vary; assume fcc_served (0/1) and fcc_provider_count exist after join if 'fcc_served' in f.fields().names(): d['served'] += int(f['fcc_served']) if f['fcc_served'] is not None else 0 if 'fcc_provider_count' in f.fields().names(): d['providers'].append(int(f['fcc_provider_count'])) # ACS join later by tract GEOID if available; placeholders if 'ACS_income' in f.fields().names(): d['incomes'].append(int(f['ACS_income'])) if 'ACS_renters' in f.fields().names(): d['renters'].append(int(f['ACS_renters'])) if 'ACS_occupied' in f.fields().names(): d['occupied'].append(int(f['ACS_occupied'])) stats[cid] = d # Compose rows for cid, d in stats.items(): providers_med = median(d['providers']) if d['providers'] else None income_med = median(d['incomes']) if d['incomes'] else None renters_sum = sum(d['renters']) if d['renters'] else None occupied_sum = sum(d['occupied']) if d['occupied'] else None unserved_pct = 1.0 - (d['served'] / d['parcels']) if d['parcels'] else None anchor_ct = anchor_counts.get(cid, 0) # Composite score (tune weights as needed) score = None if unserved_pct is not None and income_med is not None: score = round(0.5*unserved_pct + 0.3*(income_med/100000.0) + 0.2*(min(anchor_ct, 10)/10.0), 3) rows.append([county, cid, d['parcels'], d['fw'], d['zayo'], unserved_pct, providers_med, income_med, renters_sum, occupied_sum, anchor_ct, score]) return rows # ---- Main per-county loop ---- cluster_exports = [] kpi_exports = [] for pl in parcel_layers: county = pl.name().split("_")[0] pl_proj = reproject(pl, TARGET_CRS) pl_clip = clip(pl_proj, corridor) # Proximity flags pl_fw = flag_intersection_binary(pl_clip, fw_buf, "within_1000ft_fortworth") pl_fz = flag_intersection_binary(pl_fw, zayo_buf, "within_1000ft_zayo") # FCC join pl_fcc = join_fcc_counts(pl_fz, fcc_proj) # ACS join by tract GEOID (if parcel layer includes GEOID; else skip or spatially overlay tracts) # Placeholder fields: set from ACS_DATA if GEOID present if 'GEOID' in pl_fcc.fields().names(): pl_fcc = processing.run("native:addfieldtoattributestable", { 'INPUT': pl_fcc, 'FIELD_NAME': 'ACS_income', 'FIELD_TYPE': 2, 'FIELD_LENGTH': 10, 'FIELD_PRECISION': 0, 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] # For brevity, omit full loop assigning ACS values; recommend spatial join to tract polygons in production # Cluster pts = polygon_centroids(pl_fcc) clustered = cluster_points(pts, EPS_FT, MIN_SAMPLES) # Anchors count per cluster anchor_cts = count_anchors_in_cluster(clustered, anchors_proj) # KPIs rows = compute_kpis(pl_fcc, clustered, anchor_cts, county) kpi_exports.extend(rows) # Exports write_geojson(pl_fcc, os.path.join(OUTPUTS, f"{county}_parcels_flagged.geojson")) write_geojson(clustered, os.path.join(OUTPUTS, f"{county}_cluster_points.geojson")) # Write KPIs write_csv(os.path.join(OUTPUTS, "cluster_kpis.csv"), kpi_exports, ["county","cluster_id","parcel_count","within_1000ft_fortworth","within_1000ft_zayo","unserved_pct","provider_count_med","median_income","renters_sum","occupied_sum","anchor_count","composite_score"]) print("✅ Finished pipeline v2. Notion-ready exports in:", OUTPUTS)
+- # feasibility_dashboard.py — run inside QGIS import os, json, yaml, math, csv, requests from statistics import median from qgis.core import ( QgsProject, QgsVectorLayer, QgsProcessingFeedback, QgsCoordinateReferenceSystem, QgsCoordinateTransformContext, QgsVectorFileWriter, QgsLayerTreeGroup, QgsSymbol, QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, QgsVectorLayerSimpleLabeling ) import processing # ---- Paths ---- PROJECT_DIR = os.path.dirname(QgsProject.instance().fileName()) or "/Users/patch/projects/sprocket_feasibility" INPUTS = os.path.join(PROJECT_DIR, "inputs") OUTPUTS = os.path.join(PROJECT_DIR, "outputs") CONFIG_JSON = os.path.join(PROJECT_DIR, "config", "county_parcels.json") CONFIG_YML = os.path.join(PROJECT_DIR, "config", "feasibility.yml") os.makedirs(os.path.join(OUTPUTS, "geojson"), exist_ok=True) os.makedirs(os.path.join(OUTPUTS, "csv"), exist_ok=True) # ---- Load config ---- with open(CONFIG_YML) as f: CFG = yaml.safe_load(f) with open(CONFIG_JSON) as f: COUNTY_URLS = json.load(f) TARGET_CRS = CFG['crs'] BUFFER_FT = CFG['buffer_ft'] EPS_FT = CFG['dbscan_eps_ft'] MIN_SAMPLES = CFG['dbscan_min_samples'] WTS = CFG['score']['weights'] CAPS = CFG['score']['caps'] feedback = QgsProcessingFeedback() # ---- Helpers ---- def load_arcgis_rest(url, name): lyr = QgsVectorLayer(url, name, "arcgisfeatureserver") return lyr if lyr.isValid() else None def load_ogr(path, name=None): lyr = QgsVectorLayer(path, name or os.path.basename(path), "ogr") return lyr if lyr.isValid() else None def reproject(layer, crs_epsg): return processing.run("native:reprojectlayer", { 'INPUT': layer, 'TARGET_CRS': QgsCoordinateReferenceSystem(crs_epsg), 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] def extract_lines(layer): return processing.run("native:extractbytype", {'INPUT': layer, 'GEOMETRY': 1, 'OUTPUT': 'memory:'}, feedback=feedback)['OUTPUT'] def dissolve(layer): return processing.run("native:dissolve", {'INPUT': layer, 'FIELD': [], 'OUTPUT': 'memory:'}, feedback=feedback)['OUTPUT'] def buffer(layer, dist_ft, dissolve_flag=True): return processing.run("native:buffer", { 'INPUT': layer, 'DISTANCE': dist_ft, 'SEGMENTS': 16, 'END_CAP_STYLE': 0, 'JOIN_STYLE': 0, 'MITER_LIMIT': 2, 'DISSOLVE': dissolve_flag, 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] def clip(input_layer, overlay_layer): return processing.run("native:clip", {'INPUT': input_layer, 'OVERLAY': overlay_layer, 'OUTPUT': 'memory:'}, feedback=feedback)['OUTPUT'] def centroids(layer): return processing.run("native:polygoncentroids", {'INPUT': layer, 'ALL_PARTS': False, 'OUTPUT': 'memory:'}, feedback=feedback)['OUTPUT'] def add_field(layer, name, ftype=1, flen=10, prec=0): return processing.run("native:addfieldtoattributestable", { 'INPUT': layer, 'FIELD_NAME': name, 'FIELD_TYPE': ftype, 'FIELD_LENGTH': flen, 'FIELD_PRECISION': prec, 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] def select_intersects(layer, overlay): return processing.run("native:selectbylocation", {'INPUT': layer, 'PREDICATE': [0], 'INTERSECT': overlay}, feedback=feedback)['OUTPUT'] def write_geojson(layer, path): QgsVectorFileWriter.writeAsVectorFormatV3(layer, path, QgsCoordinateTransformContext(), QgsVectorFileWriter.SaveVectorOptions(driverName='GeoJSON')) def write_csv(path, rows, header): with open(path, "w", newline="") as f: w = csv.writer(f) w.writerow(header) w.writerows(rows) # DBSCAN (fallback to grid binning) use_sklearn = False try: import numpy as np from sklearn.cluster import DBSCAN use_sklearn = True except Exception: pass def cluster_points(points_layer, eps_ft, min_samples): out = add_field(points_layer, 'cluster_id', ftype=2, flen=12) if use_sklearn: coords, ids = [], [] for f in out.getFeatures(): p = f.geometry().asPoint() coords.append([p.x(), p.y()]) ids.append(f.id()) X = np.array(coords) labels = DBSCAN(eps=eps_ft, min_samples=min_samples).fit(X).labels_ out.startEditing() for feat, lbl in zip(out.getFeatures(), labels): out.changeAttributeValue(feat.id(), out.fields().indexFromName('cluster_id'), int(lbl)) out.commitChanges() else: # 100‑ft grid fallback out.startEditing() idx = out.fields().indexFromName('cluster_id') for f in out.getFeatures(): p = f.geometry().asPoint() cid = int((p.x() // 100) * 100000 + (p.y() // 100)) out.changeAttributeValue(f.id(), idx, cid) out.commitChanges() return out def flag_intersection_binary(layer, overlay, field_name): out = add_field(layer, field_name, ftype=1, flen=1) sel = select_intersects(out, overlay) selected = {f.id() for f in sel.selectedFeatures()} out.startEditing() idx = out.fields().indexFromName(field_name) for f in out.getFeatures(): out.changeAttributeValue(f.id(), idx, 1 if f.id() in selected else 0) out.commitChanges() return out # ---- Load networks and corridor buffers ---- fw_kmz = os.path.join(INPUTS, "fort_worth_middle_mile.kmz") zayo_kmz = os.path.join(INPUTS, "zayo_dallas.kmz") fw = load_ogr(fw_kmz, "fortworth_build") zayo = load_ogr(zayo_kmz, "zayo_iru") fw_buf = buffer(dissolve(extract_lines(reproject(fw, TARGET_CRS))), BUFFER_FT) zayo_buf = buffer(dissolve(extract_lines(reproject(zayo, TARGET_CRS))), BUFFER_FT) # Corridor union for clipping footprint corridor_merge = processing.run("native:mergevectorlayers", { 'LAYERS': [fw_buf, zayo_buf], 'CRS': QgsCoordinateReferenceSystem(TARGET_CRS), 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] corridor = dissolve(corridor_merge) # Add buffers to project (styled) QgsProject.instance().addMapLayer(fw_buf) QgsProject.instance().addMapLayer(zayo_buf) # ---- Load enrichment layers ---- fcc_cfg = CFG['fcc'] fcc_path = os.path.join(PROJECT_DIR, fcc_cfg['layer_path']) if not fcc_cfg['layer_path'].startswith("inputs/") else os.path.join(PROJECT_DIR, fcc_cfg['layer_path']) fcc = load_ogr(f"{fcc_path}|layername={fcc_cfg['layer_name']}", "fcc_fabric") fcc_proj = reproject(fcc, TARGET_CRS) if fcc and fcc.isValid() else None anchors_cfg = CFG['anchors'] anchors_path = os.path.join(PROJECT_DIR, anchors_cfg['layer_path']) if not anchors_cfg['layer_path'].startswith("inputs/") else os.path.join(PROJECT_DIR, anchors_cfg['layer_path']) anchors = load_ogr(f"{anchors_path}|layername={anchors_cfg['layer_name']}", "anchors") anchors_proj = reproject(anchors, TARGET_CRS) if anchors and anchors.isValid() else None # ACS: prefer tract polygons local, else API pull of attributes joined to tract polygons you load separately acs_cfg = CFG['acs'] acs_attrs = {} if acs_cfg.get('use_api', True) and acs_cfg.get('api_key') and acs_cfg.get('counties'): for c in acs_cfg['counties']: url = f"https://api.census.gov/data/{acs_cfg['year']}/acs/acs5?get=NAME,{acs_cfg['fields']['income']},{acs_cfg['fields']['renters']},{acs_cfg['fields']['occupied']}&for=tract:*&in=state:48+county:{c}&key={acs_cfg['api_key']}" r = requests.get(url, timeout=60) if r.ok: data = r.json() header = data[0] for row in data[1:]: rec = dict(zip(header, row)) geoid = f"14000US48{c}{rec['tract']}" # store numeric safely def to_int(x): try: return int(x) except: return None acs_attrs[geoid] = { 'ACS_income': to_int(rec[acs_cfg['fields']['income']]), 'ACS_renters': to_int(rec[acs_cfg['fields']['renters']]), 'ACS_occupied': to_int(rec[acs_cfg['fields']['occupied']]) } tract_layer = None if acs_cfg.get('tract_layer_path'): tpath = os.path.join(PROJECT_DIR, acs_cfg['tract_layer_path']) if not acs_cfg['tract_layer_path'].startswith("inputs/") else os.path.join(PROJECT_DIR, acs_cfg['tract_layer_path']) tract_layer = load_ogr(f"{tpath}|layername={acs_cfg['tract_layer_name']}", "acs_tracts") tract_layer = reproject(tract_layer, TARGET_CRS) if tract_layer and tract_layer.isValid() else None # attach ACS fields to tract polygons if tract_layer and acs_attrs: # add fields for fld in ['ACS_income','ACS_renters','ACS_occupied']: tract_layer = add_field(tract_layer, fld, ftype=2, flen=12) tract_layer.startEditing() idx_income = tract_layer.fields().indexFromName('ACS_income') idx_rent = tract_layer.fields().indexFromName('ACS_renters') idx_occ = tract_layer.fields().indexFromName('ACS_occupied') # expect GEOID or NAMELSAD-based key; adjust if needed gid_field = 'GEOID' if 'GEOID' in tract_layer.fields().names() else None for f in tract_layer.getFeatures(): gid = f[gid_field] if gid_field else None if gid and gid in acs_attrs: tract_layer.changeAttributeValue(f.id(), idx_income, acs_attrs[gid]['ACS_income']) tract_layer.changeAttributeValue(f.id(), idx_rent, acs_attrs[gid]['ACS_renters']) tract_layer.changeAttributeValue(f.id(), idx_occ, acs_attrs[gid]['ACS_occupied']) tract_layer.commitChanges() # ---- Dashboard group in QGIS root = QgsProject.instance().layerTreeRoot() dash_group = root.addGroup("Feasibility Dashboard") # ---- Main loop: counties kpi_rows = [] for county, url in COUNTY_URLS.items(): # Load and prep parcels pl = load_arcgis_rest(url, f"{county}_parcels") if not pl: print(f"!! Missing parcels for {county}") continue pl_proj = reproject(pl, TARGET_CRS) pl_clip = clip(pl_proj, corridor) # Proximity flags pl_fw = flag_intersection_binary(pl_clip, fw_buf, "within_1000ft_fortworth") pl_fz = flag_intersection_binary(pl_fw, zayo_buf, "within_1000ft_zayo") # FCC spatial join (provider counts + served flag) if fcc_proj: pl_fcc = processing.run("native:joinattributesbylocation", { 'INPUT': pl_fz, 'PREDICATE': [0], 'INTERSECT': fcc_proj, 'METHOD': 0, 'DISCARD_NONMATCHING': False, 'PREFIX': 'fcc_', 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] else: pl_fcc = pl_fz # ACS join via tract polygons if available pl_acs = pl_fcc if tract_layer: pl_acs = processing.run("native:joinattributesbylocation", { 'INPUT': pl_fcc, 'PREDICATE': [0], 'INTERSECT': tract_layer, 'METHOD': 0, 'DISCARD_NONMATCHING': False, 'PREFIX': '', 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] # Cluster (centroids → DBSCAN) pts = centroids(pl_acs) clustered = cluster_points(pts, EPS_FT, MIN_SAMPLES) # Anchor counts per cluster anchor_counts = {} if anchors_proj: pts_buf = buffer(clustered, CFG['anchors']['proximity_ft'], dissolve_flag=False) joined = processing.run("native:joinattributesbylocation", { 'INPUT': pts_buf, 'PREDICATE': [0], 'INTERSECT': anchors_proj, 'METHOD': 0, 'DISCARD_NONMATCHING': False, 'PREFIX': 'anchor_', 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] for f in joined.getFeatures(): cid = f['cluster_id'] anchor_counts[cid] = anchor_counts.get(cid, 0) + 1 # Parcel-to-cluster association (by spatial proximity to centroid buffers) assoc = processing.run("native:joinattributesbylocation", { 'INPUT': pl_acs, 'PREDICATE': [0], 'INTERSECT': buffer(clustered, 10, False), 'METHOD': 0, 'DISCARD_NONMATCHING': True, 'PREFIX': '', 'OUTPUT': 'memory:' }, feedback=feedback)['OUTPUT'] # Aggregate KPIs per cluster stats = {} served_field = f"fcc_{fcc_cfg['served_field']}" if fcc_proj else None providers_field = f"fcc_{fcc_cfg['provider_count_field']}" if fcc_proj else None for f in assoc.getFeatures(): cid = f['cluster_id'] d = stats.get(cid, {'parcels':0, 'fw':0, 'zayo':0, 'served_sum':0, 'providers':[], 'income':[], 'renters':[], 'occupied':[]}) d['parcels'] += 1 d['fw'] += int(f['within_1000ft_fortworth']) if f['within_1000ft_fortworth'] is not None else 0 d['zayo'] += int(f['within_1000ft_zayo']) if f['within_1000ft_zayo'] is not None else 0 if served_field and served_field in assoc.fields().names() and f[served_field] is not None: d['served_sum'] += int(f[served_field]) if providers_field and providers_field in assoc.fields().names() and f[providers_field] is not None: d['providers'].append(int(f[providers_field])) for fld in ['ACS_income','ACS_renters','ACS_occupied']: if fld in assoc.fields().names() and f[fld] is not None: d[fld.split('_')[1]].append(int(f[fld])) stats[cid] = d for cid, d in stats.items(): unserved_pct = None if d['parcels'] > 0 and 'served_sum' in d: unserved_pct = 1.0 - (d['served_sum'] / d['parcels']) providers_med = median(d['providers']) if d['providers'] else None income_med = median(d['income']) if d['income'] else None renters_sum = sum(d['renters']) if d['renters'] else None occupied_sum = sum(d['occupied']) if d['occupied'] else None anchor_ct = anchor_counts.get(cid, 0) score = None if unserved_pct is not None and income_med is not None: score = round( WTS['unserved_pct'] * unserved_pct + WTS['median_income_scaled'] * (income_med / 100000.0) + WTS['anchor_density_scaled'] * (min(anchor_ct, CAPS['anchors']) / CAPS['anchors']), 3) kpi_rows.append([county, cid, d['parcels'], d['fw'], d['zayo'], unserved_pct, providers_med, income_med, renters_sum, occupied_sum, anchor_ct, score]) # Exports per county write_geojson(pl_acs, os.path.join(OUTPUTS, "geojson", f"{county}_parcels_flagged.geojson")) write_geojson(clustered, os.path.join(OUTPUTS, "geojson", f"{county}_cluster_points.geojson")) # Add styled layers to dashboard group QgsProject.instance().addMapLayer(assoc) QgsProject.instance().addMapLayer(clustered) dash_group.addLayer(QgsProject.instance().layerTreeRoot().findLayer(assoc.id())) dash_group.addLayer(QgsProject.instance().layerTreeRoot().findLayer(clustered.id())) # Label clusters by composite score (once computed, we can label on join result — here label by cluster_id) lbl = QgsPalLayerSettings() lbl.fieldName = 'cluster_id' tf = QgsTextFormat() tf.setSize(9) lbl.setFormat(tf) clustered.setLabelsEnabled(True) clustered.setLabeling(QgsVectorLayerSimpleLabeling(lbl)) clustered.triggerRepaint() # Write KPI table (Notion‑ready) write_csv(os.path.join(OUTPUTS, "csv", "cluster_kpis.csv"), kpi_rows, ["county","cluster_id","parcel_count","within_1000ft_fortworth","within_1000ft_zayo","unserved_pct","provider_count_med","median_income","renters_sum","occupied_sum","anchor_count","composite_score"]) print("✅ Feasibility dashboard pipeline complete. Outputs in ./outputs (csv + geojson).")
+- # ---- (redacted) Feasibility Dashboard – minimal pipeline ----
+- # ---- CONFIG PATHS (EDIT THIS ONE LINE TO MATCH YOUR MACHINE) ----
+- # ---- Load YAML + JSON config ----
+- # ---- Helper functions ----
+- # DBSCAN (with grid fallback)
+- # 100‑ft grid fallback
+- # ---- Load networks + corridor ----
+- # ---- FCC + anchors (optional, but wired) ----
+- # ---- Dashboard layer group ----
+- # ---- Main per‑county loop ----
+- # proximity flags
+- # FCC join
+- # cluster
+- # anchors per cluster
+- # parcels → cluster association
+- # ACS fields if present (from tract join – can be added later)
+- # exports per county
+- # add to dashboard tree
+- # label clusters by id
+- # Write KPI CSV for Notion
+- # 1. Set the base path where you want the project to live.
+- # Change this if you prefer a different location.
+- # 2. Define the folder structure.
+- # CRS & corridor definition (as of Nov 2025)
+- # Clustering parameters
+- # Composite feasibility scoring
+- # FCC Broadband Fabric configuration
+- # ACS demographics (as of Nov 2025)
+- # Anchor institutions (schools, libraries, hospitals, etc.)
+- # Base project directory – this matches your Mac setup
+- # 1. Base project folder – this matches what you already set up.
+- # 2. Full path to feasibility.yml
+- # 3. YAML content (as of November 2025)
+- # 4. Write the file
+- # 1. Base project folder – matches your setup
+- # 2. Full path to county_parcels.json
+- # 3. County → REST URL mapping (as of Nov 2025)
+- # 4. Write JSON file with nice formatting
+- # Load the county → URL mapping
+- # Try to load as an ArcGIS Feature Service
+- # IPv4 Cleanup & Sale — Runbook (State + What’s Done + What’s Blocked)
+- ### Executive state (as of now)
+- ### What’s been achieved (ground truth)
+- ### What we are waiting on (Brad inputs to finalize)
+- ### Decisions to close (call checklist)
+- ### Lake integration contract (v1)
+- ### Outputs Patch will produce once Brad sends the artifacts
+- ### Next steps (immediate)
+- # Sage Intacct (Intacct) → AWS — Ingestion + Curation Runbook (Athena-Ready) — 2026-01-14
+- ### Executive strip
+- ## 0) Non-negotiables (keeps this from breaking)
+- ## 1) Architecture (what runs where)
+- ## 2) S3 data contract (raw + curated)
+- ### 2.1 Raw landing (source-of-truth archive)
+- ### 2.2 Curated landing (Athena-optimized)
+- ### 2.3 Manifest schema (JSON)
+- ## 3) Canonical Intacct XML request shapes (no secrets)
+- ### 3.1 Login → getAPISession (known-good shape)
+- ### 3.2 Session-based pull (readByQuery)
+- ## 4) Production-grade ingestion script (cron-safe, copy/paste-safe)
+- ### 4.1 Script: intacct_pull.sh
+- # Cron-safe PATH
+- # Required env vars (fail fast)
+- # 1) Login (get session)
+- # 2) Pull object (readByQuery)
+- # 3) Manifest
+- ### 4.2 Cron example
+- # nightly at 2:00 AM
+- ## 5) Curation to make it Athena-useful (recommended)
+- ### 5.1 Principle
+- ### 5.2 Minimal “close pack” curated tables
+- ### 5.3 Glue/Athena DDL (Parquet, partitioned)
+- ### 5.4 Partition add (copy/paste)
+- ## 6) Definition of Done (finance + diligence)
+- ## 7) References
+- # Chat delivery stream Digest Runbook — Data Lake (Reusable Template)
+- ### 0) Inputs (copy/paste at top of every run)
+- ### 1) Standard “Chat-History Page” format (copy into the new page)
+- ### 2) “Query instruction” to run inside any chat delivery stream (paste this as-is)
+- ### 3) Reconciliation playbook (merge multiple chat sessions on the same topic)
+- ### 4) Reference-page update rules (to avoid thrash)
+- ### 5) Checklist: “Done” criteria for a digested delivery stream
+- # project data lake chat
+- # query Athena notes
+- # MASTER_Investor FAQs
+- # Mac Mountain Overview and Structure
+- ## What is LightCraft? How are LightCraft expenses allocated?
+- # Mac Mountain Investment Strategy
+- ## Stowe Communications Acquisition
+- # Pioneer One Structure
+- # New Full-Lake Chat — Addendum (Delta Updates) — Jan 14, 2026
+- ### Delta updates that override earlier assumptions
+- ### Canonical IPv4 pages
+- # Working Environment & Scripts — GWI Data Lake
+- # Purpose
+- ### 0. What you will install on your computer
+- ### 1. Create an AWS account sign‑in and turn on MFA
+- ### 2. Create two S3 buckets (raw and curated)
+- ### 3. Create a KMS key (optional, skip if using aws/s3)
+- ### 4. Create an IAM admin role for setup and a read‑only role for analysts
+- ### 5. Create the Glue Data Catalog databases and an Athena workgroup
+- ### 6. Make first “landing” files and crawl them (you can use tiny CSVs to test)
+- ### 7. Query the raw tables in Athena (sanity check)
+- ### 8. Create curated Parquet tables with Athena CTAS (no code needed on your laptop)
+- ### 9. Optional: Redshift Serverless (skip if you only need Athena)
+- ### 10. RDS Postgres path (if leadership picks RDS instead of pure lake)
+- ### 11. Daily refresh choices
+- ### 12. What “done” means for V1
+- ### 12A. Call Runbook — Investor Q&A / Data Lake V1 (plain language)
+- ### 12B. How to prove the lake is working (copy/paste proofs)
+- ### 12B. How this becomes the single source of truth (what remains)
+- ## Environment Setup Commands
+- ### Check Python Installation
+- # Mac/Linux
+- # Windows
+- ### Create Project Directory
+- # Navigate to Desktop
+- # Create project folder
+- # Create subfolders
+- # Verify structure
+- # Should see: data/ scripts/ output/ logs/
+- ### Install Python Libraries
+- # Install all required packages
+- # Verify installation
+- ### Create Environment Variables File
+- # Create .env file for database credentials
+- ## Database Schema Scripts
+- ### Schema Creation SQL
+- ## Python ETL Scripts
+- ### Script 1: Load Platt Data
+- # Load environment variables
+- # Database connection
+- # Load Platt accounts
+- # Clean and transform
+- # Insert into database
+- # Load Platt billing rates
+- # Link to accounts by platt_account_id
+- # Insert billing rates
+- # Load Platt circuits
+- # Link to accounts
+- # Insert circuits
+- ### Script 2: Load Salesforce Data
+- # Load SF accounts
+- # Merge with existing accounts or create new
+- # Update existing accounts with SF opportunity IDs
+- # Load SF contracts
+- # Process and link to accounts as needed
+- ### Script 3: Load CCI Circuit Data
+- # Load CCI circuit audit
+- # Flag disputed circuits
+- # Insert or update circuits
+- ## SQL Views for Sales Queries
+- ### Create All Sales Views
+- ## Data Quality Validation Queries
+- ### Run These After Data Load (Step 8)
+- ## Executive Report Queries
+- ### Run These for Leadership Updates (Step 12)
+- ## Automated Data Refresh Script
+- ### Nightly Refresh (Step 13)
+- # 1. Export fresh data from Platt and Salesforce
+- # (This assumes you have API scripts or can automate exports)
+- # Add your export commands here
+- # 2. Backup existing data
+- # 3. Run ETL scripts
+- # 4. Run data quality checks
+- # Add command to run validation queries
+- # Open crontab editor
+- # Add this line:
+- ## Connection Instructions for Sales Team
+- ### How to Connect to the Data Lake
+- ## Sample Queries for Sales Team
+- ### Query 1: My Territory - Negative Margin Accounts
+- ### Query 2: Fiber Accounts Under $500 (Upsell Opportunities)
+- ### Query 3: My Conversion Progress This Week
+- ### Query 4: Accounts I Need to Follow Up On
+- ## Troubleshooting
+- ### Common Errors and Fixes
+- ## Quick Reference: All File Paths
+- ## Next Steps
+- # runbook
+- # 📘 Vetro Plan Export Runbook (Notion‑Ready)
+- ## 🧭 Purpose
+- # 🗂️ 1. Source of Truth: The 79 Original Plan IDs
+- ### Authoritative Plan ID List (79 total)
+- # 📍 2. Destination: Where the Plans Landed in S3
+- ### Example (Plan 1026):
+- ### Example (Plan 743):
+- ### S3 Bucket
+- ### Full Path Pattern
+- # ⚙️ 3. Export Method (Reproducible)
+- ### Export Loop Used
+- # 🧪 4. Validation Steps
+- ### A. Validate local export
+- ### B. Validate S3 upload
+- ### C. Validate a specific plan
+- ### D. Validate JSON structure
+- # 🧾 5. What Qualifies a Plan for Inclusion
+- # 🧱 6. Folder Structure Summary
+- ### Local (temporary staging)
+- ### S3 (authoritative storage)
+- # 🧭 7. Re‑Run Instructions
+- # 🎯 8. Summary for Notion
+- # Data Lake Project — Verbatim Chat Archive (through Nov 17, 2025)
+- ## Purpose
+- ## Verbatim — Chunk 1
+- ## Verbatim — Chunk 2
+- ## Verbatim — Chunk 3 (Data Lake Space highlights)
+- ## Notes
+- # Runbook — New Asks / What’s Left (Level Set) — Jan 14, 2026
+- ### Executive level set
+- ### Current asks (new + still open)
+- ### What’s already done (non-negotiable facts)
+- ### Next actions (tight, sequenced)
+- # Data lake chat backup 12062025
+- # GWI / Mac Mountain — AWS Data Lake Chat Transcript (Nov 10–14, 2025)
+- ## Scope covered
+- ## Current status (from chat)
+- ## Key instructions (short)
+- ## Full Chat Transcript — AWS / GWI (Nov 10–14, 2025)
+- ## Links
+- # Data Lake Project
+- # table_schema	table_name
+- # Executive Summary
+- ## Sage Intacct / Intacct — Integration (Subject Page)
+- ## Vetro Export Automation — Runbook v1.0
+- ### Architecture (data path)
+- ### Deterministic S3 landing convention
+- ### Known plan IDs (confirmed)
+- ### API host (tenant)
+- ### Endpoints (v2)
+- ### Blocking issue (permissions)
+- ### Validation ladder (once token is replaced)
+- ## MRR Pipeline — Runbook v1.0 (Platypus actuals + Salesforce contracts)
+- ### Target model (3 layers)
+- ### Current state
+- ### Execution steps (sequence)
+- ### Deliverables
+- # ### Global Customer Count v1
+- # ### Hosted PBX v1 — Sangoma Replacement Economics
+- # ### Query Layer v1 – Scope & Data Sources
+- ## runbook
+- ### AWS Data Lake V1 — Zero to First Working Version
+- ### Phase 1 — Buckets (S3 + KMS)
+- ### Phase 2 — Catalog (Glue)
+- ### Phase 3 — First Landings
+- ### Phase 4 — Curate
+- ### Phase 5 — Optional Warehouse
+- ### Phase 6 — Automate
+- ### Phase 7 — Add Salesforce Incremental
+- ### Guardrails & Costs
+... (total 418 headings)
+
+## Key Lines (deduplicated)
+- Outputs: CSV + GeoJSON files imported into Notion as dashboards
+- Inputs Version:
+- Outputs:
+- Inputs version
+- Outputs
+- Athena → Editor → select raw_platt database, then run:
+- Schedule with cron (runs every night at midnight):
+- IAM: RDS (create/manage), EC2 (light), CloudWatch (read)
+- Athena default output
+- Security
+- Objective now: Build a truthful, as-billed picture of GWI’s commercial install base and unit economics by pulling four domains from Platt:
+- Outputs from this phase feeding the lake:
+- Proof pack — plan 2682 (service locations):
+- Athena artifacts:
+- Lambda + automation:
+- Validation (record pass/fail + notes):
+- Scope and Outputs
+- Scope and Eligibility
+- Scope of Services and Interconnection
+- Failure flow and restoration
+- Failure-domain and restoration targets
+- Proof of funds: bank statement showing current cash on hand and availability of working capital.
+- Proof of funds and access to capital. Recent bank statement(s) and a formal equity commitment letter from Digital Alpha stating amount and conditions.
+- Objective: establish or strengthen diverse middle‑mile corridors into and around San Antonio, improving interconnection optionality for wholesale partners and enabling last‑mile providers.
+- Schedule a 30‑minute daily checkpoint through submission
+- Scope V1: Platt + Salesforce + CCI + Sheets into a single lake, focused on:
+- S3 for raw/curated files
+- Glue/Athena for catalog/query
+- S3 → Glue tables + curated Parquet
+- S3 prefixes for Platt and Salesforce exports.
+- IAM role ARN that can read
+- S3
+- Security group: allow Postgres port 5432 from my IP
+- Glue DB:
+- Athena views with the same names are fine; Q/Bedrock will just see them as queryable tables.
+- Glue database and these three tables; allow read‑only Athena access.”
+- Scope for v1 Query:
+- Scope for V1 Query interface (Alex / Donna / Derek):

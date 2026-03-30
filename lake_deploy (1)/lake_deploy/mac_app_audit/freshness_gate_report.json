@@ -1,0 +1,186 @@
+{
+  "run_date": "2026-02-13",
+  "generated_at": "2026-02-13T20:13:14+00:00",
+  "queries": {
+    "bucket_summary": {
+      "status": "ok",
+      "freshness_checks": [
+        {
+          "view": "curated_core.v_network_health",
+          "time_column": "dt",
+          "latest_partition": "2026-02-11",
+          "age_days": 2,
+          "max_age_days": 2,
+          "status": "ok",
+          "query_execution_id": "66e8610f-2b2d-49e6-a558-e7560384c263",
+          "sql": "SELECT MAX(dt) AS latest_partition FROM curated_core.v_network_health LIMIT 1;"
+        }
+      ]
+    },
+    "network_health": {
+      "status": "ok",
+      "freshness_checks": [
+        {
+          "view": "curated_core.v_network_health",
+          "time_column": "dt",
+          "latest_partition": "2026-02-11",
+          "age_days": 2,
+          "max_age_days": 2,
+          "status": "ok",
+          "query_execution_id": "b6ad115e-41cb-4761-b49f-8875571cd0c7",
+          "sql": "SELECT MAX(dt) AS latest_partition FROM curated_core.v_network_health LIMIT 1;"
+        },
+        {
+          "view": "raw_platt.iheader_raw",
+          "time_column": "dt",
+          "latest_partition": "2026-02-12",
+          "age_days": 1,
+          "max_age_days": 2,
+          "status": "ok",
+          "query_execution_id": "e4a7a7e0-46df-4187-af51-246c2ab4e275",
+          "sql": "SELECT MAX(dt) AS latest_partition FROM raw_platt.iheader_raw LIMIT 1;"
+        }
+      ]
+    },
+    "passings_subscribers": {
+      "status": "ok",
+      "freshness_checks": [
+        {
+          "view": "curated_core.v_network_health",
+          "time_column": "dt",
+          "latest_partition": "2026-02-11",
+          "age_days": 2,
+          "max_age_days": 2,
+          "status": "ok",
+          "query_execution_id": "217e3318-9394-4ca0-94ec-d8fa87fd11c7",
+          "sql": "SELECT MAX(dt) AS latest_partition FROM curated_core.v_network_health LIMIT 1;"
+        },
+        {
+          "view": "raw_platt.iheader_raw",
+          "time_column": "dt",
+          "latest_partition": "2026-02-12",
+          "age_days": 1,
+          "max_age_days": 2,
+          "status": "ok",
+          "query_execution_id": "dee21904-7184-4435-9b2c-70b01b5e7575",
+          "sql": "SELECT MAX(dt) AS latest_partition FROM raw_platt.iheader_raw LIMIT 1;"
+        }
+      ]
+    },
+    "mrr_overview": {
+      "status": "ok",
+      "freshness_checks": [
+        {
+          "view": "raw_platt.iheader_raw",
+          "time_column": "dt",
+          "latest_partition": "2026-02-12",
+          "age_days": 1,
+          "max_age_days": 2,
+          "status": "ok",
+          "query_execution_id": "9b347131-7a7a-4d7f-9d1e-11cf68da06aa",
+          "sql": "SELECT MAX(dt) AS latest_partition FROM raw_platt.iheader_raw LIMIT 1;"
+        },
+        {
+          "view": "curated_core.v_monthly_mrr_platt",
+          "time_column": "period_month",
+          "latest_partition": "2026-02-01",
+          "age_days": 12,
+          "max_age_days": 60,
+          "status": "ok",
+          "query_execution_id": "dd52b3df-5b01-42c9-83db-e58dd3bd4ed4",
+          "sql": "SELECT MAX(period_month) AS latest_partition FROM curated_core.v_monthly_mrr_platt LIMIT 1;"
+        }
+      ]
+    },
+    "mrr_trend_12m": {
+      "status": "ok",
+      "freshness_checks": [
+        {
+          "view": "raw_platt.iheader_raw",
+          "time_column": "dt",
+          "latest_partition": "2026-02-12",
+          "age_days": 1,
+          "max_age_days": 2,
+          "status": "ok",
+          "query_execution_id": "e6ae288c-cfd0-4dc3-b8da-87a11036fe9a",
+          "sql": "SELECT MAX(dt) AS latest_partition FROM raw_platt.iheader_raw LIMIT 1;"
+        },
+        {
+          "view": "curated_core.v_monthly_mrr_platt",
+          "time_column": "period_month",
+          "latest_partition": "2026-02-01",
+          "age_days": 12,
+          "max_age_days": 60,
+          "status": "ok",
+          "query_execution_id": "a1b67286-fc84-4988-ad09-055108302d98",
+          "sql": "SELECT MAX(period_month) AS latest_partition FROM curated_core.v_monthly_mrr_platt LIMIT 1;"
+        }
+      ]
+    },
+    "bucket_summary_billing": {
+      "status": "ok",
+      "freshness_checks": [
+        {
+          "view": "raw_platt.iheader_raw",
+          "time_column": "dt",
+          "latest_partition": "2026-02-12",
+          "age_days": 1,
+          "max_age_days": 2,
+          "status": "ok",
+          "query_execution_id": "e0052763-6fd1-496d-8008-5009ba8eb99c",
+          "sql": "SELECT MAX(dt) AS latest_partition FROM raw_platt.iheader_raw LIMIT 1;"
+        },
+        {
+          "view": "curated_recon.v_network_mrr_recon_latest",
+          "time_column": "period_month",
+          "latest_partition": "2026-02-01",
+          "age_days": 12,
+          "max_age_days": 60,
+          "status": "ok",
+          "query_execution_id": "cf7809f0-b757-4b4c-a981-054891792469",
+          "sql": "SELECT MAX(period_month) AS latest_partition FROM curated_recon.v_network_mrr_recon_latest LIMIT 1;"
+        },
+        {
+          "view": "curated_core.v_network_health",
+          "time_column": "dt",
+          "latest_partition": "2026-02-11",
+          "age_days": 2,
+          "max_age_days": 2,
+          "status": "ok",
+          "query_execution_id": "4615214c-af60-4fa1-bd01-b3ea3816b9ba",
+          "sql": "SELECT MAX(dt) AS latest_partition FROM curated_core.v_network_health LIMIT 1;"
+        }
+      ]
+    },
+    "change_log_customer_mix": {
+      "status": "ok",
+      "freshness_checks": [
+        {
+          "view": "curated_core.v_network_health",
+          "time_column": "dt",
+          "latest_partition": "2026-02-11",
+          "age_days": 2,
+          "max_age_days": 2,
+          "status": "ok",
+          "query_execution_id": "52ed5e7a-40dd-40a0-8763-6ea3383f734d",
+          "sql": "SELECT MAX(dt) AS latest_partition FROM curated_core.v_network_health LIMIT 1;"
+        }
+      ]
+    },
+    "mrr_movement_breakdown_latest": {
+      "status": "ok",
+      "freshness_checks": [
+        {
+          "view": "curated_core.v_monthly_mrr_platt",
+          "time_column": "period_month",
+          "latest_partition": "2026-02-01",
+          "age_days": 12,
+          "max_age_days": 60,
+          "status": "ok",
+          "query_execution_id": "6612bce3-28a9-4ceb-826c-c17cc43badef",
+          "sql": "SELECT MAX(period_month) AS latest_partition FROM curated_core.v_monthly_mrr_platt LIMIT 1;"
+        }
+      ]
+    }
+  }
+}

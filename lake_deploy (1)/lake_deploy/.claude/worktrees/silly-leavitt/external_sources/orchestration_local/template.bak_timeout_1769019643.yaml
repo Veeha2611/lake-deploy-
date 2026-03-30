@@ -1,0 +1,201 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Step Functions automation for nightly lake curation
+Parameters:
+  CalcRunDateCodeBucket:
+    Type: String
+  CalcRunDateCodeKey:
+    Type: String
+  LakeOrchestratorCodeBucket:
+    Type: String
+  LakeOrchestratorCodeKey:
+    Type: String
+  ScheduleExpression:
+    Type: String
+    Default: cron(0 7 * * ? *)
+Resources:
+  CalcRunDateFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: calc_run_date.handler
+      Runtime: python3.9
+      Role: !GetAtt OrchestrationLambdaRole.Arn
+      Code:
+        S3Bucket: !Ref CalcRunDateCodeBucket
+        S3Key: !Ref CalcRunDateCodeKey
+  LakeOrchestratorFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: lake_orchestrator.handler
+      Runtime: python3.9
+      Role: !GetAtt OrchestrationLambdaRole.Arn
+      Code:
+        S3Bucket: !Ref LakeOrchestratorCodeBucket
+        S3Key: !Ref LakeOrchestratorCodeKey
+  OrchestrationLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: LakeCurationLambdaPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+                - Effect: Allow
+                  Action:
+                    - athena:StartQueryExecution
+                    - athena:GetQueryExecution
+                  Resource: '*'
+                - Effect: Allow
+                  Action:
+                    - s3:GetBucketLocation
+                    - s3:ListBucket
+                  Resource:
+                    - arn:aws:s3:::gwi-raw-us-east-2-pc
+                - Effect: Allow
+                  Action:
+                    - s3:PutObject
+                  Resource:
+                    - arn:aws:s3:::gwi-raw-us-east-2-pc/athena-results/*
+                    - arn:aws:s3:::gwi-raw-us-east-2-pc/athena-result/*
+                    - arn:aws:s3:::gwi-raw-us-east-2-pc/curated/_runs/*
+
+  OrchestrationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: states.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: OrchestrationGlue
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - glue:StartCrawler
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource:
+                  - !GetAtt CalcRunDateFunction.Arn
+                  - !GetAtt LakeOrchestratorFunction.Arn
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource: arn:aws:s3:::gwi-raw-us-east-2-pc/curated/_runs/*
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource:
+                  - !Ref OrchestrationNotificationTopic
+  OrchestrationNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: lake-orchestration-notifications
+  OrchestrationStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !GetAtt OrchestrationRole.Arn
+      DefinitionString: !Sub |
+        {
+          "Comment": "Nightly lake orchestration (compute dt -> run orchestrator -> write status -> notify on failure)",
+          "StartAt": "ComputeRunDate",
+          "States": {
+            "ComputeRunDate": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "${CalcRunDateFunction.Arn}",
+                "Payload": {"timezone": "America/Chicago"}
+              },
+              "ResultPath": "$.runInfo",
+              "Next": "RunLakeOrchestrator",
+              "Catch": [{"ErrorEquals": ["States.ALL"], "ResultPath": "$.errorInfo", "Next": "HandleFailure"}]
+            },
+            "RunLakeOrchestrator": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "${LakeOrchestratorFunction.Arn}",
+                "Payload": {"runDate.$": "$.runInfo.Payload.runDate"}
+              },
+              "ResultPath": "$.curationResult",
+              "Next": "PublishSuccess",
+              "Catch": [{"ErrorEquals": ["States.ALL"], "ResultPath": "$.errorInfo", "Next": "HandleFailure"}]
+            },
+            "PublishSuccess": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::aws-sdk:s3:putObject",
+              "Parameters": {
+                "Bucket": "gwi-raw-us-east-2-pc",
+                "Key.$": "States.Format('curated/_runs/dt={}/status.json', $.runInfo.Payload.runDate)",
+                "Body.$": "States.Format('{\"dt\":\"{}\",\"status\":\"SUCCESS\"}', $.runInfo.Payload.runDate)"
+              },
+              "Next": "SuccessState",
+              "Catch": [{"ErrorEquals": ["States.ALL"], "ResultPath": "$.errorInfo", "Next": "HandleFailure"}]
+            },
+            "SuccessState": { "Type": "Succeed" },
+            "HandleFailure": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::sns:publish",
+              "Parameters": {
+                "TopicArn": "${OrchestrationNotificationTopic}",
+                "Subject": "Lake orchestration failure",
+                "Message.$": "States.Format('Orchestration failed: {}', $.errorInfo.Cause)"
+              },
+              "Next": "FailureState"
+            },
+            "FailureState": {
+              "Type": "Fail",
+              "Error": "OrchestrationFailed",
+              "Cause": "See errorInfo in execution details"
+            }
+          }
+        }
+
+  OrchestrationEventRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: EventsInvokeStepFunction
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: states:StartExecution
+                Resource: !GetAtt OrchestrationStateMachine.Arn
+  OrchestrationSchedule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Nightly lake orchestration
+      ScheduleExpression: !Ref ScheduleExpression
+      State: ENABLED
+      Targets:
+        - Id: StepFunctionTarget
+          Arn: !GetAtt OrchestrationStateMachine.Arn
+          RoleArn: !GetAtt OrchestrationEventRole.Arn
+Outputs:
+  StateMachineArn:
+    Value: !GetAtt OrchestrationStateMachine.Arn
+  ScheduleName:
+    Value: !Ref OrchestrationSchedule

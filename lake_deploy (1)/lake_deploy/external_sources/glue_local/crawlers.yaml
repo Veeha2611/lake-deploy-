@@ -1,0 +1,111 @@
+[
+  {
+    "crawler_name": "intacct_vendors_json_crawler",
+    "s3_targets": ["s3://gwi-raw-us-east-2-pc/raw/intacct_json/vendors/"],
+    "database_name": "gwi_raw",
+    "table_prefix": "raw_intacct_vendors",
+    "schedule": "cron(10 2 * * ? *)",
+    "classifiers": ["json"],
+    "schema_change_policy": {"UpdateBehavior": "UPDATE_IN_DATABASE", "DeleteBehavior": "DEPRECATE_IN_DATABASE"},
+    "recrawl_policy": {"RecrawlBehavior": "CRAWL_EVERYTHING"}
+  },
+  {
+    "crawler_name": "intacct_customers_json_crawler",
+    "s3_targets": ["s3://gwi-raw-us-east-2-pc/raw/intacct_json/customers/"],
+    "database_name": "gwi_raw",
+    "table_prefix": "raw_intacct_customers",
+    "schedule": "cron(12 2 * * ? *)",
+    "classifiers": ["json"],
+    "schema_change_policy": {"UpdateBehavior": "UPDATE_IN_DATABASE", "DeleteBehavior": "DEPRECATE_IN_DATABASE"},
+    "recrawl_policy": {"RecrawlBehavior": "CRAWL_EVERYTHING"}
+  },
+  {
+    "crawler_name": "intacct_gl_accounts_json_crawler",
+    "s3_targets": ["s3://gwi-raw-us-east-2-pc/raw/intacct_json/gl_accounts/"],
+    "database_name": "gwi_raw",
+    "table_prefix": "raw_intacct_gl_accounts",
+    "schedule": "cron(14 2 * * ? *)",
+    "classifiers": ["json"],
+    "schema_change_policy": {"UpdateBehavior": "UPDATE_IN_DATABASE", "DeleteBehavior": "DEPRECATE_IN_DATABASE"},
+    "recrawl_policy": {"RecrawlBehavior": "CRAWL_EVERYTHING"}
+  },
+  {
+    "crawler_name": "intacct_ap_bills_json_crawler",
+    "s3_targets": ["s3://gwi-raw-us-east-2-pc/raw/intacct_json/ap_bills/"],
+    "database_name": "gwi_raw",
+    "table_prefix": "raw_intacct_ap_bills",
+    "schedule": "cron(16 2 * * ? *)",
+    "classifiers": ["json"],
+    "schema_change_policy": {"UpdateBehavior": "UPDATE_IN_DATABASE", "DeleteBehavior": "DEPRECATE_IN_DATABASE"},
+    "recrawl_policy": {"RecrawlBehavior": "CRAWL_EVERYTHING"}
+  },
+  {
+    "crawler_name": "intacct_ap_payments_json_crawler",
+    "s3_targets": ["s3://gwi-raw-us-east-2-pc/raw/intacct_json/ap_payments/"],
+    "database_name": "gwi_raw",
+    "table_prefix": "raw_intacct_ap_payments",
+    "schedule": "cron(18 2 * * ? *)",
+    "classifiers": ["json"],
+    "schema_change_policy": {"UpdateBehavior": "UPDATE_IN_DATABASE", "DeleteBehavior": "DEPRECATE_IN_DATABASE"},
+    "recrawl_policy": {"RecrawlBehavior": "CRAWL_EVERYTHING"}
+  },
+  {
+    "crawler_name": "intacct_ar_payments_json_crawler",
+    "s3_targets": ["s3://gwi-raw-us-east-2-pc/raw/intacct_json/ar_payments/"],
+    "database_name": "gwi_raw_intacct",
+    "table_prefix": "",
+    "schedule": "cron(19 2 * * ? *)",
+    "classifiers": ["json"],
+    "schema_change_policy": {"UpdateBehavior": "UPDATE_IN_DATABASE", "DeleteBehavior": "DEPRECATE_IN_DATABASE"},
+    "recrawl_policy": {"RecrawlBehavior": "CRAWL_EVERYTHING"}
+  },
+  {
+    "crawler_name": "intacct_gl_entries_json_crawler",
+    "s3_targets": ["s3://gwi-raw-us-east-2-pc/raw/intacct_json/gl_entries/"],
+    "database_name": "gwi_raw",
+    "table_prefix": "raw_intacct_gl_entries",
+    "schedule": "cron(20 2 * * ? *)",
+    "classifiers": ["json"],
+    "schema_change_policy": {"UpdateBehavior": "UPDATE_IN_DATABASE", "DeleteBehavior": "DEPRECATE_IN_DATABASE"},
+    "recrawl_policy": {"RecrawlBehavior": "CRAWL_EVERYTHING"}
+  },
+  {
+    "crawler_name": "platt-raw-crawler",
+    "s3_targets": ["s3://gwi-raw-us-east-2-pc/raw/platt/"],
+    "database_name": "gwi_raw",
+    "table_prefix": "raw_platt_",
+    "schedule": "cron(22 2 * * ? *)",
+    "classifiers": ["csv"],
+    "schema_change_policy": {"UpdateBehavior": "UPDATE_IN_DATABASE", "DeleteBehavior": "DEPRECATE_IN_DATABASE"},
+    "recrawl_policy": {"RecrawlBehavior": "CRAWL_EVERYTHING"}
+  },
+  {
+    "crawler_name": "salesforce-raw-crawler",
+    "s3_targets": ["s3://gwi-raw-us-east-2-pc/raw/salesforce/"],
+    "database_name": "gwi_raw",
+    "table_prefix": "raw_salesforce_",
+    "schedule": "cron(24 2 * * ? *)",
+    "classifiers": ["csv"],
+    "schema_change_policy": {"UpdateBehavior": "UPDATE_IN_DATABASE", "DeleteBehavior": "DEPRECATE_IN_DATABASE"},
+    "recrawl_policy": {"RecrawlBehavior": "CRAWL_EVERYTHING"}
+  },
+  {
+    "crawler_name": "vetro-raw-crawler",
+    "s3_targets": ["s3://gwi-raw-us-east-2-pc/raw/vetro/"],
+    "database_name": "gwi_raw",
+    "table_prefix": "raw_vetro_exports",
+    "schedule": "cron(26 2 * * ? *)",
+    "classifiers": ["json"],
+    "schema_change_policy": {"UpdateBehavior": "UPDATE_IN_DATABASE", "DeleteBehavior": "DEPRECATE_IN_DATABASE"},
+    "recrawl_policy": {"RecrawlBehavior": "CRAWL_EVERYTHING"}
+  },
+  {
+    "crawler_name": "gaiia-graphql-raw-crawler",
+    "s3_targets": ["s3://gwi-raw-us-east-2-pc/raw/gaiia/graphql/"],
+    "database_name": "raw_gaiia",
+    "table_prefix": "raw_gaiia_graphql_",
+    "schedule": "cron(28 2 * * ? *)",
+    "schema_change_policy": {"UpdateBehavior": "UPDATE_IN_DATABASE", "DeleteBehavior": "DEPRECATE_IN_DATABASE"},
+    "recrawl_policy": {"RecrawlBehavior": "CRAWL_EVERYTHING"}
+  }
+]

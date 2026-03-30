@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<request>
+  <control>
+    <senderid>&lt;INTACCT_SENDER_ID&gt;</senderid>
+    <password>&lt;INTACCT_SENDER_PASSWORD&gt;</password>
+    <controlid>login_test</controlid>
+    <uniqueid>false</uniqueid>
+    <dtdversion>3.0</dtdversion>
+  </control>
+  <operation>
+    <authentication>
+      <login>
+        <userid>&lt;INTACCT_USER_ID&gt;</userid>
+        <companyid>&lt;INTACCT_COMPANY_ID&gt;</companyid>
+        <password>&lt;INTACCT_WS_USER_PASSWORD&gt;</password>
+      </login>
+    </authentication>
+    <content>
+      <function controlid="get_session">
+        <getAPISession />
+      </function>
+    </content>
+  </operation>
+</request>

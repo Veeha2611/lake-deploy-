@@ -1,0 +1,226 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Intacct ingest on ECS Fargate (scheduled)
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  ScheduleExpression:
+    Type: String
+    Default: rate(24 hours)
+  ScheduleState:
+    Type: String
+    Default: DISABLED
+    AllowedValues: [ENABLED, DISABLED]
+  ScriptS3Uri:
+    Type: String
+    Default: s3://gwi-raw-us-east-2-pc/orchestration/intacct/intacct_ingest_no_tee.sh
+  LogS3Prefix:
+    Type: String
+    Default: s3://gwi-raw-us-east-2-pc/raw/intacct_logs
+  SecretArn:
+    Type: String
+  LookbackDays:
+    Type: Number
+    Default: 7
+  PageSize:
+    Type: Number
+    Default: 1000
+
+Resources:
+  IntacctCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: intacct-ingest-cluster
+
+  IntacctLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/intacct-ingest
+      RetentionInDays: 30
+
+  IntacctTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: intacct-ingest-exec-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: intacct-ingest-exec
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub "${SecretArn}*"
+
+  IntacctTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: intacct-ingest-task-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: intacct-ingest-task
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource: arn:aws:s3:::gwi-raw-us-east-2-pc
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:AbortMultipartUpload
+                Resource: arn:aws:s3:::gwi-raw-us-east-2-pc/*
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub "${SecretArn}*"
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+
+  IntacctTaskSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Intacct ingest task
+      VpcId: !Ref VpcId
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  IntacctTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: intacct-ingest-task
+      Cpu: "1024"
+      Memory: "2048"
+      NetworkMode: awsvpc
+      RequiresCompatibilities: [FARGATE]
+      ExecutionRoleArn: !GetAtt IntacctTaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt IntacctTaskRole.Arn
+      ContainerDefinitions:
+        - Name: intacct-ingest
+          Image: public.ecr.aws/amazonlinux/amazonlinux:2
+          Essential: true
+          EntryPoint: ["/bin/bash","-lc"]
+          Command:
+            - !Sub |
+                set -euo pipefail
+                yum -y install python3 jq >/dev/null
+                python3 -m pip install --quiet --no-cache-dir awscli yq >/dev/null
+                if ! command -v xq >/dev/null; then ln -s "$(command -v yq)" /usr/local/bin/xq; fi
+                RUN_DATE=$(date +%F)
+                aws s3 cp ${ScriptS3Uri} /tmp/intacct_ingest_no_tee.sh
+                chmod +x /tmp/intacct_ingest_no_tee.sh
+                export RUN_DATE
+                export BASE_DIR=/tmp/intacct_ingest/$RUN_DATE
+                export LOG_DIR=/tmp/intacct_ingest/logs
+                export AWS_REGION=${AWS::Region}
+                export GL_ENTRIES_LOOKBACK_DAYS=${LookbackDays}
+                export GL_ENTRIES_PAGE_SIZE=${PageSize}
+                bash /tmp/intacct_ingest_no_tee.sh
+                aws s3 cp "$LOG_DIR" "${LogS3Prefix}/run_date=$RUN_DATE/" --recursive || true
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: /ecs/intacct-ingest
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: ecs
+          Secrets:
+            - Name: INTACCT_SENDER_ID
+              ValueFrom: !Sub "${SecretArn}:INTACCT_SENDER_ID::"
+            - Name: INTACCT_SENDER_PASSWORD
+              ValueFrom: !Sub "${SecretArn}:INTACCT_SENDER_REDACTED
+            - Name: INTACCT_WS_USER_ID
+              ValueFrom: !Sub "${SecretArn}:INTACCT_WS_USER_ID::"
+            - Name: INTACCT_WS_USER_PASSWORD
+              ValueFrom: !Sub "${SecretArn}:INTACCT_WS_USER_REDACTED
+            - Name: INTACCT_COMPANY_ID
+              ValueFrom: !Sub "${SecretArn}:INTACCT_COMPANY_ID::"
+            - Name: INTACCT_ENDPOINT_URL
+              ValueFrom: !Sub "${SecretArn}:INTACCT_ENDPOINT_URL::"
+            - Name: LOCATION_ID
+              ValueFrom: !Sub "${SecretArn}:LOCATION_ID::"
+
+  IntacctEventsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: intacct-ingest-events-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: intacct-ingest-events
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecs:RunTask
+                  - ecs:DescribeTasks
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                Resource:
+                  - !GetAtt IntacctTaskExecutionRole.Arn
+                  - !GetAtt IntacctTaskRole.Arn
+
+  IntacctScheduleRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: intacct-ingest-schedule
+      ScheduleExpression: !Ref ScheduleExpression
+      State: !Ref ScheduleState
+      Targets:
+        - Arn: !GetAtt IntacctCluster.Arn
+          Id: IntacctIngestTarget
+          RoleArn: !GetAtt IntacctEventsRole.Arn
+          EcsParameters:
+            TaskDefinitionArn: !Ref IntacctTaskDefinition
+            TaskCount: 1
+            LaunchType: FARGATE
+            NetworkConfiguration:
+              AwsVpcConfiguration:
+                Subnets: !Ref SubnetIds
+                SecurityGroups: [!Ref IntacctTaskSecurityGroup]
+                AssignPublicIp: ENABLED
+
+Outputs:
+  ClusterName:
+    Value: !Ref IntacctCluster
+  TaskDefinitionArn:
+    Value: !Ref IntacctTaskDefinition
+  ScheduleRuleName:
+    Value: !Ref IntacctScheduleRule
+  TaskSecurityGroup:
+    Value: !Ref IntacctTaskSecurityGroup

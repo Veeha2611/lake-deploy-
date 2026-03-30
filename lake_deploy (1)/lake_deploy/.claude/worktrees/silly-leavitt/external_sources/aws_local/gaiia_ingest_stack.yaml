@@ -1,0 +1,123 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Gaiia ingestion (configurable endpoints) + schedule
+
+Parameters:
+  LambdaCodeBucket:
+    Type: String
+    Default: gwi-raw-us-east-2-pc
+  LambdaCodeKey:
+    Type: String
+    Default: orchestration/lambda-code/gaiia-ingest.zip
+  SecretName:
+    Type: String
+    Default: gaiia/api_keys
+  ScheduleExpression:
+    Type: String
+    Default: rate(24 hours)
+  ScheduleState:
+    Type: String
+    Default: ENABLED
+    AllowedValues: [ENABLED, DISABLED]
+  S3Bucket:
+    Type: String
+    Default: gwi-raw-us-east-2-pc
+  S3Prefix:
+    Type: String
+    Default: raw/gaiia/graphql
+  GaiiaEndpoints:
+    Type: String
+    Default: ""
+  GaiiaApiUrl:
+    Type: String
+    Default: https://api.gaiia.com/api/v1
+  GaiiaQueryRegistryKey:
+    Type: String
+    Default: source_exports/gaiia/gaiia_graphql_query_registry.json
+  GaiiaAuthHeader:
+    Type: String
+    Default: X-Gaiia-Api-Key
+  GaiiaAuthPrefix:
+    Type: String
+    Default: ""
+
+Resources:
+  GaiiaIngestRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: gaiia-ingest-lambda-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: gaiia-ingest-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${SecretName}*"
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource: !Sub "arn:aws:s3:::${S3Bucket}"
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource: !Sub "arn:aws:s3:::${S3Bucket}/*"
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+
+  GaiiaIngestFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: gaiia-ingest
+      Runtime: python3.11
+      Handler: gaiia_ingest_lambda.lambda_handler
+      Timeout: 900
+      MemorySize: 512
+      Role: !GetAtt GaiiaIngestRole.Arn
+      Code:
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref LambdaCodeKey
+      Environment:
+        Variables:
+          S3_BUCKET: !Ref S3Bucket
+          S3_PREFIX: !Ref S3Prefix
+          GAIIA_SECRET_NAME: !Ref SecretName
+          GAIIA_ENDPOINTS: !Ref GaiiaEndpoints
+          GAIIA_API_URL: !Ref GaiiaApiUrl
+          GAIIA_QUERY_REGISTRY_KEY: !Ref GaiiaQueryRegistryKey
+          GAIIA_AUTH_HEADER: !Ref GaiiaAuthHeader
+          GAIIA_AUTH_PREFIX: !Ref GaiiaAuthPrefix
+
+  GaiiaIngestSchedule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: gaiia-ingest-schedule
+      ScheduleExpression: !Ref ScheduleExpression
+      State: !Ref ScheduleState
+      Targets:
+        - Arn: !GetAtt GaiiaIngestFunction.Arn
+          Id: GaiiaIngestTarget
+
+  PermissionForEventsToInvoke:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref GaiiaIngestFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt GaiiaIngestSchedule.Arn
+
+Outputs:
+  FunctionName:
+    Value: !Ref GaiiaIngestFunction

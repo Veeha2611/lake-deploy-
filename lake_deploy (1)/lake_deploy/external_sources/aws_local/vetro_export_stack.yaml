@@ -1,0 +1,165 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Vetro plan export automation (one plan per run) + DLQ + 429 alarm
+
+Parameters:
+  LambdaCodeBucket:
+    Type: String
+  LambdaCodeKey:
+    Type: String
+
+  # Secret NAME (not ARN). Example: vetro/api_token
+  VetroTokenSecretName:
+    Type: String
+    Default: vetro/api_token
+
+  PlanIds:
+    Type: String
+
+  PlanIdsS3Bucket:
+    Type: String
+    Default: gwi-raw-us-east-2-pc
+
+  PlanIdsS3Key:
+    Type: String
+    Default: raw/vetro_features/_meta/plan_ids.json
+
+  ScheduleExpression:
+    Type: String
+    Default: rate(60 minutes)
+
+  ExportBucket:
+    Type: String
+  ExportPrefix:
+    Type: String
+
+  StateBucket:
+    Type: String
+  StateKey:
+    Type: String
+
+Resources:
+  VetroExportDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 1209600
+
+  VetroExportRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: vetro-export
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              # CloudWatch Logs
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+
+              # S3 bucket-level list permissions (REQUIRED)
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                Resource:
+                  - !Sub "arn:aws:s3:::${ExportBucket}"
+                  - !Sub "arn:aws:s3:::${StateBucket}"
+
+              # S3 object-level read/write permissions
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:AbortMultipartUpload
+                Resource:
+                  - !Sub "arn:aws:s3:::${ExportBucket}/*"
+                  - !Sub "arn:aws:s3:::${StateBucket}/*"
+
+              # Secrets Manager (allow name*)
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource:
+                  - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${VetroTokenSecretName}*"
+
+  VetroExportFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.11
+      Handler: vetro_export_lambda.lambda_handler
+      Role: !GetAtt VetroExportRole.Arn
+      Timeout: 900
+      MemorySize: 1024
+      Code:
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref LambdaCodeKey
+      Environment:
+        Variables:
+          PLAN_IDS: !Ref PlanIds
+          PLAN_IDS_S3_BUCKET: !Ref PlanIdsS3Bucket
+          PLAN_IDS_S3_KEY: !Ref PlanIdsS3Key
+          VETRO_TOKEN_SECRET: !Ref VetroTokenSecretName
+          EXPORT_BUCKET: !Ref ExportBucket
+          EXPORT_PREFIX: !Ref ExportPrefix
+          STATE_BUCKET: !Ref StateBucket
+          STATE_KEY: !Ref StateKey
+
+  VetroExportLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${VetroExportFunction}"
+      RetentionInDays: 30
+
+  VetroScheduleRule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: !Ref ScheduleExpression
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt VetroExportFunction.Arn
+          Id: VetroExportTarget
+          DeadLetterConfig:
+            Arn: !GetAtt VetroExportDLQ.Arn
+
+  VetroInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref VetroExportFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt VetroScheduleRule.Arn
+
+  RateLimitedMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref VetroExportLogGroup
+      FilterPattern: '"Rate limited (429)"'
+      MetricTransformations:
+        - MetricNamespace: "VetroExport"
+          MetricName: "RateLimited429"
+          MetricValue: "1"
+
+  RateLimitedAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: "vetro-export-rate-limited-429"
+      AlarmDescription: "Triggers when Vetro exports hit 429 repeatedly."
+      Namespace: "VetroExport"
+      MetricName: "RateLimited429"
+      Statistic: Sum
+      Period: 3600
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 3
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
